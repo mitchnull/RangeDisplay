@@ -1,0 +1,12 @@
+## Interface: 20003
+## Title: SpellCaster (version 2.0.1)
+## Author: Mitchell of Bloodscalp, EU
+## Version: 2.0.0
+## Notes: see README
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## SavedVariablesPerCharacter: SpellCasterState
+SpellCaster.xml
+SpellCaster.lua
+RangeCheck.lua
+localization-en.lua
