@@ -2,7 +2,7 @@
 ## Title: SpellCaster (version 2.0.1)
 ## Author: Mitchell of Bloodscalp, EU
 ## Version: 2.0.0
-## Notes: see README
+## Notes: RangeCheck for mages and some other tweaks
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariablesPerCharacter: SpellCasterState

@@ -67,9 +67,6 @@ function RangeCheckSpell:init()
     self.id = findSpellId(self.name);
     self.range = getSpellRange(self.id, BOOKTYPE_SPELL);
     if (self.range == nil) then return nil; end
-    if (RangeCheck.isDebug) then
-	    print("### new spell: " .. self.name .. ", range: " .. tostring(self.range));
-	end
     return self;
 end
 
@@ -175,6 +172,7 @@ function RangeCheck:init(forced)
 	local playerClass = UnitClass("player");
 	self.friendRC = RCList:new(L_RC.FriendSpells[playerClass]);
 	self.harmRC = RCList:new(L_RC.HarmSpells[playerClass]);
+	self.miscRC = RCList:new(nil);
 	self.lastRange = nil;
     if (self.isDebug) then
         print("FriendRangeCheck:");
@@ -197,18 +195,19 @@ function RangeCheck:init(forced)
 	end
 end
 
--- ### TODO: probly dead units are also invalid
 local function isTargetValid(unit)
-	return (UnitExists(unit));
+	return UnitExists(unit) and (not UnitIsDeadOrGhost(unit));
 end
 
 function RangeCheck:getRange(unit)
 	-- TODO: check what happens if unit is dead, etc
 	if (not isTargetValid(unit)) then return nil; end
-	if (UnitIsFriend("player", unit)) then
+	if (UnitCanAttack("player", unit)) then
+	    return self.harmRC:getRange(unit);
+	elseif (UnitCanAssist("player", unit)) then
 	    return self.friendRC:getRange(unit);
 	else
-	    return self.harmRC:getRange(unit);
+		return self.miscRC:getRange(unit);
 	end
 end
 
