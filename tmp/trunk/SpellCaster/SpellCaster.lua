@@ -170,12 +170,12 @@ function SpellCaster:SlashCmd(args)
 		self:setStateVar("RangeTooltip", cmdParam);
 	elseif (cmd == "rangecheck" or cmd == "rc") then
 		if (cmdParam == "lock") then
-			self.RangeCheck:lock();
 			SpellCasterState.RangeCheckLocked = true;
+			self.RangeCheck:lock();
 			print("RangeCheck locked");
 		elseif (cmdParam == "unlock") then
+			SpellCasterState.RangeCheckLocked = false;
 			self.RangeCheck:unlock();
-			SpellCasterState.RangeCheckLocked = true;
 			print("RangeCheck is unlocked");
 		elseif (cmdParam == "height" or cmdParam == "h") then
 			local _, _, h = string.find(args, "(%d+\.?%d*)");

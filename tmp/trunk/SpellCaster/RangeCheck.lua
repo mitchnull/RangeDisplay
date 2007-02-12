@@ -231,19 +231,23 @@ end
 function RangeCheck:lock()
 	rangeFrame:EnableMouse(false);
 	rangeFrameBG:Hide();
+	if (not isTargetValid("target")) then
+		rangeFrame:Hide();
+	end
 end
 
 function RangeCheck:unlock()
 	rangeFrame:EnableMouse(true);
+	rangeFrame:Show();
 	rangeFrameBG:Show();
 end
 
 function RangeCheck:targetChanged()
-	if (not isTargetValid("target")) then
-		rangeFrame:Hide();
-	else
+	if (isTargetValid("target")) then
 		rangeFrame:Show();
 		lastUpdate = UpdateDelay; -- to force update in next OnUpdate()
+	elseif (SpellCasterState.RangeCheckLocked) then
+		rangeFrame:Hide();
 	end
 end
 
