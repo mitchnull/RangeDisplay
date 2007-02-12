@@ -42,9 +42,8 @@
       </Layer>
     </Layers>
     <Scripts>
-      <OnLoad> this:RegisterForDrag("LeftButton"); </OnLoad>
-      <OnDragStart> this:StartMoving(); </OnDragStart>
-      <OnDragStop> this:StopMovingOrSizing(); </OnDragStop>
+      <OnMouseDown> this:StartMoving(); </OnMouseDown>
+ 			<OnMouseUp> this:StopMovingOrSizing(); </OnMouseUp>
       <OnUpdate> SpellCaster.RangeCheck:OnUpdate(elapsed); </OnUpdate>
     </Scripts>
     
