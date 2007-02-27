@@ -16,6 +16,7 @@ SpellCaster = { L = {}, Version = "2.0.1" };
 
 local DefaultState = {
 	AutoBar = true,
+	PetBar = true,
 	RangeCheck = true,
 	GuildTooltip = true,
 	RangeTooltip = true,
@@ -127,6 +128,9 @@ function SpellCaster:PLAYER_ALIVE()
 -- talent info should be ready, but it's not :( [at least spell ranges are not updated]
 -- we'll do RangeCheck:init() when first needed
 -- self.RangeCheck:init();
+	if (not SpellCasterState.PetBar) then
+		self:hidePetBar();
+	end
 end
 
 function SpellCaster:LEARNED_SPELL_IN_TAB()
@@ -164,6 +168,18 @@ function SpellCaster:SlashCmd(args)
 	local _, _, cmd, cmdParam = string.find(string.lower(args), "^%s*(%S+)%s*(%S*)");
 	if (cmd == "autobar" or cmd == "ab") then
 		self:setStateVar("AutoBar", cmdParam);
+	elseif (cmd == "petbar" or cmd == "pb") then
+		if (InCombatLockdown()) then
+			-- TODO: check InCombatLockdown() in some all the cases where it could cause problems (show/hide, etc)
+			print("cannot enable/disable PetBar during combat");
+			return;
+		end
+		self:setStateVar("PetBar", cmdParam);
+		if (SpellCasterState.PetBar) then
+			self:showPetBar();
+		else
+			self:hidePetBar();
+		end
 	elseif (cmd == "guildtooltip" or cmd == "gtt") then
 		self:setStateVar("GuildTooltip", cmdParam);
 	elseif (cmd == "RangeTooltip" or cmd == "rtt") then
@@ -198,18 +214,41 @@ function SpellCaster:SlashCmd(args)
 		end
 	elseif (cmd == "reset") then
 		SpellCasterState = DefaultState;
+		if (SpellCasterState.PetBar) then
+			self:showPetBar();
+		else
+			self:hidePetBar();
+		end
 		self.RangeCheck:init(true);
 		self.RangeCheck:resetPosition();
 		self.RangeCheck:setHeight(SpellCasterState.RangeCheckHeight);
+		if (SpellCasterState.RangeCheck) then
+			self.RangeCheck:enable();
+		else
+			self.RangeCheck:disable();
+		end
 	else
 		self:showStatus();
 	end
 end
 
 function SpellCaster:showStatus()
-	print("options: AutoBar on|off, RangeCheck lock|unlock|enable|disable|height XX, GuildTooltip on|off, RangeTooltip on|off, reset");
+	print("options: AutoBar on|off, PetBar on|off, RangeCheck lock|unlock|enable|disable|height XX, GuildTooltip on|off, RangeTooltip on|off, reset");
 	for k, v in pairs(SpellCasterState) do
 		print(k .. ": " .. tostring(v));
 	end
 end
 
+function SpellCaster:hidePetBar()
+	if (self.petBarOrigPos) then return; end
+	self.petBarOrigPos = { PetActionBarFrame:GetPoint() };
+	PetActionBarFrame:ClearAllPoints();
+	PetActionBarFrame:SetPoint("BOTTOMRIGHT", nil, "TOPLEFT", -1, -1);
+end
+	
+function SpellCaster:showPetBar()
+	if (not self.petBarOrigPos) then return; end
+	PetActionBarFrame:ClearAllPoints();
+	PetActionBarFrame:SetPoint(unpack(self.petBarOrigPos));
+	self.petBarOrigPos = nil;
+end
