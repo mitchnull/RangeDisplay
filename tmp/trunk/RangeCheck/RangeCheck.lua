@@ -15,7 +15,7 @@ if (AceLibrary) then
 end
 if (BS == nil) then
 	BS = {}
-	BS.__index = function(self, k) return k end
+	setmetatable(BS, {__index = function(self, k) return k end})
 end
 
 -- list of friendly spells that have different ranges
