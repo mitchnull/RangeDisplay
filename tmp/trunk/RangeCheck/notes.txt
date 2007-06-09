@@ -1,0 +1,30 @@
+- Currently RangeCheck only has spell data for the Mage class, to add
+  other classes, initialize the L_RC.HarmSpells["ClassName"] and
+  L_RC.FriendSpells["ClassName"] arrays with the spell names to check.
+
+- Classes that don't have their spell lists set will only use the
+  InteractDistance based range estimation (10, 11 and 28 yards at the
+  moment)
+
+- Spell ranges are automatically parsed from the spell's tooltip text,
+  so talent specific changes should be automatically taken care of (like
+  Arctic Reach for frost mages). You should list all spells that can
+  have different ranges depending on talents (that's why Scorch, Arcane
+  Missiles and Frostbolt are all listed, although they all have a 30 yd
+  range initially).
+
+- Ideally, RangeCheck should be initialized on PLAYER_ALIVE, but
+  unfortunately the spell tooltips are not yet updated at that point, so
+  now I delay the initialization 'till the first target change or first
+  mouseover
+
+- Right now the code doesn't handle spells with minimum range
+  requirements properly (most hunter shots). I'll add that soon.
+
+Future plans:
+
+- display spell icon for the current range
+- "ding" and visual display on mouseover if unit is debuffed with
+  something you can remove and is in range
+- configuration dialog
+
