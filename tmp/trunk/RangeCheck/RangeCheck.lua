@@ -26,7 +26,7 @@ local HarmSpells = {}
 FriendSpells["Mage"] = { BS["Remove Lesser Curse"] }
 HarmSpells["Mage"] = { BS["Fire Blast"], BS["Arcane Missiles"], BS["Frostbolt"], BS["Scorch"], BS["Fireball"], BS["Detect Magic"] }
 
-local RangeCheck = { L = {}, isDebug = nil}
+RangeCheck = { L = {}, isDebug = nil}
 
 local DefaultDB = {
 	Enabled = true,
@@ -41,6 +41,7 @@ RangeCheckDB = RangeCheckDB or DefaultDB
 local db = RangeCheckDB
 local L = RangeCheck.L
 local tooltip = RangeCheckTip
+local tooltipRangeText = RangeCheckTipTextRight2;
 local rangeText = RangeCheckFrameText
 local rangeFrameBG = RangeCheckFrameBG
 local rangeFrame = RangeCheckFrame
@@ -69,7 +70,7 @@ local function getSpellRange(spellId, bookType)
 	tooltip:Hide()
     if (ttt == nil) then return nil end
 	-- ### TODO: check hunter spells with minimum range.
-    local _, _, range = string.find(ttt, L_RC.RangePattern, 1)
+    local _, _, range = string.find(ttt, L.RangePattern, 1)
     if (range == nil) then return nil end
     return tonumber(range)
 end
@@ -317,7 +318,7 @@ function RangeCheck:OnLoad()
 	this:RegisterEvent("LEARNED_SPELL_IN_TAB")
 	this:RegisterEvent("CHARACTER_POINTS_CHANGED")
 	this:RegisterEvent("PLAYER_TARGET_CHANGED")
-	this:RegisterEvent("PLAYER_ALIVE")
+--	this:RegisterEvent("PLAYER_ALIVE")
 --	this:RegisterEvent("SPELLS_CHANGED")
 end
 
@@ -330,19 +331,19 @@ function RangeCheck:OnEvent(event, ...)
 end
 
 function RangeCheck:VARIABLES_LOADED()
+	db = RangeCheckDB
 	print("RangeCheck " .. VERSION .. " loaded. Type /rangecheck for help")
 end
 
+--[[
 function RangeCheck:PLAYER_ALIVE()
 -- talent info should be ready, but it's not :( [at least spell ranges are not updated]
 -- we'll do RangeCheck:init() when first needed
 --	if (db.Enabled) then
 -- 		self:init()
 --	end
-	self.isDebug = true
-	self:init()
-	self.isInitialized = false
 end
+]]
 
 function RangeCheck:LEARNED_SPELL_IN_TAB()
 	if (db.Enabled) then
@@ -373,7 +374,7 @@ function RangeCheck:SlashCmd(args)
 		print("RangeCheck enabled")
 	elseif (cmd == "off" or cmd == "disable") then
 		db.Enabled = false
-		seld:disable()
+		self:disable()
 		print("RangeCheck disabled")
 	elseif (cmd == "lock") then
 		db.Locked = true
@@ -410,7 +411,7 @@ function RangeCheck:SlashCmd(args)
 end
 
 function RangeCheck:showStatus()
-	print("usage: /rangecheck lock|unlock|enable|disable|height XX|reset")
+	print("usage: /rangecheck lock | unlock | enable | disable | height XX | reset")
 	for k, v in pairs(db) do
 		print(k .. ": " .. tostring(v))
 	end

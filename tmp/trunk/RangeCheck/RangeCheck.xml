@@ -1,6 +1,8 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.blizzard.com/wow/ui/ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
   
+  <Script file="RangeCheck.lua"/>
+  
   <GameTooltip name="RangeCheckTip" frameStrata="TOOLTIP" hidden="true" parent="UIParent" inherits="GameTooltipTemplate"/>
   
   <Frame name="RangeCheckFrame" hidden="true" parent="UIParent" enableMouse="false" movable="true" frameStrata="BACKGROUND">
@@ -33,11 +35,11 @@
       </Layer>
     </Layers>
     <Scripts>
-      <OnLoad> RangeCheck:OnLoad(); </OnLoad>
-      <OnEvent> RangeCheck:OnEvent(event, ...); </OnEvent>
-      <OnMouseDown> this:StartMoving(); </OnMouseDown>
- 			<OnMouseUp> this:StopMovingOrSizing(); </OnMouseUp>
-      <OnUpdate> RangeCheck:OnUpdate(elapsed); </OnUpdate>
+      <OnLoad> RangeCheck:OnLoad() </OnLoad>
+      <OnEvent> RangeCheck:OnEvent(event, ...) </OnEvent>
+      <OnMouseDown> this:StartMoving() </OnMouseDown>
+ 			<OnMouseUp> this:StopMovingOrSizing() </OnMouseUp>
+      <OnUpdate> RangeCheck:OnUpdate(elapsed) </OnUpdate>
     </Scripts>
     
   </Frame>
