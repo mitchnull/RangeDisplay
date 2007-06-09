@@ -1,24 +1,10 @@
-SpellCaster has started out as a collection of utilities for the Mage class.
-Unfortunately most of its functionality was broken with the 2.0 patch, so now
-only the addon name remains, the functionality is completely new.
-
-You can access the configuration options with the /spellcaster (or /spc) slash
-command.
-
 Options:
-/spc AutoBar on|off
-  if enabled, your default (blizzard) action bar will be switched to the first
-  one whenever you enter combat.
-  [I needed this 'cos all my out-of-combat stuff like conjure/portal/etc are
-  placed on my second action bar page, and I tend to forget to switch back to
-  the first one and then I try casting telepot to darnassus instead of CoC or 
-  whatever, and it's usually bad for my health]
-/spc RangeCheck on|off
+/rangecheck on|off
   if enabled, your current estimated range to your target will be displayed
-/spc RangeCheck unlock
+/rangecheck unlock
   unlocks the RangeCheck display frame, so you can drag it to a position you
   like
-/spc RangeCheck lock
+/rangecheck lock
   locks the RangeCheck display frame
 /spc RangeCheck height NUM
   sets the font height of the RangeCheck display to NUM

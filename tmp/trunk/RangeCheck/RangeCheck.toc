@@ -1,0 +1,13 @@
+## Interface: 20100
+## Title: RangeCheck (version 2.1.1)
+## Author: Mitchell of Bloodscalp, EU
+## Version: 2.1.1
+## Notes: Estimated range display. type /rangecheck for help
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## SavedVariablesPerCharacter: RangeCheckDB
+## OptionalDeps: Ace2 Babble-2.2
+RangeCheck.xml
+RangeCheck.lua
+localization-en.lua
+localization-de.lua

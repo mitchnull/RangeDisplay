@@ -1,6 +1,6 @@
 - Currently RangeCheck only has spell data for the Mage class, to add
-  other classes, initialize the L_RC.HarmSpells["ClassName"] and
-  L_RC.FriendSpells["ClassName"] arrays with the spell names to check.
+  other classes, initialize the HarmSpells["ClassName"] and
+  FriendSpells["ClassName"] arrays with the spell names to check.
 
 - Classes that don't have their spell lists set will only use the
   InteractDistance based range estimation (10, 11 and 28 yards at the
@@ -24,7 +24,5 @@
 Future plans:
 
 - display spell icon for the current range
-- "ding" and visual display on mouseover if unit is debuffed with
-  something you can remove and is in range
 - configuration dialog
 

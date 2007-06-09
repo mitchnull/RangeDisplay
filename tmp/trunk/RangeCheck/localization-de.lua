@@ -1,20 +1,12 @@
 -- German texts.
 
-if (GetLocale() == "frFR") then
+if (GetLocale() == "deDE") then
 
-local L = SpellCaster.L
+local L = RangeCheck.L
 
--- config dialog
--- L.CONFIG_AUTOBAR = 		 "AutoBar";
--- L.CONFIG_TOOLTIP_GUILD = "TooltipGuild";
--- L.CONFIG_TOOLTIP_RANGE = "TooltipRange";
--- L.CONFIG_RANGECHECK = "RangeCheck";
-
--- RangeCheck stuff
-local L_RC = SpellCaster.RangeCheck.L;
--- L_RC.OutOfRange = "Out of range";
--- L_RC.RangePattern = "(%d+) yd range";
--- L_RC.FriendSpells["Mage"] = { "Remove Lesser Curse" };
--- L_RC.HarmSpells["Mage"] = { "Fire Blast", "Arcane Missiles", "Frostbolt", "Scorch", "Fireball", "Detect Magic" };
+-- L.OutOfRange = "Out of range"
+L.OutOfRange = nil
+L.RangePattern = "(%d+) yd range"
+L.RangePattern2 = "(%d+)-(%d+) yd range"
 
 end
