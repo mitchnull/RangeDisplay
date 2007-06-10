@@ -7,6 +7,9 @@
 ## LoadOnDemand: 0
 ## SavedVariablesPerCharacter: RangeCheckDB
 ## OptionalDeps: Ace2 Babble-2.2
+## X-Category: Combat
+## X-License: Public Domain
+
 RangeCheck.xml
 RangeCheck.lua
 localization-en.lua

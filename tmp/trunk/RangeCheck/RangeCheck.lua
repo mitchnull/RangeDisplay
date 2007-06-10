@@ -18,13 +18,42 @@ if (BS == nil) then
 	setmetatable(BS, {__index = function(self, k) return k end})
 end
 
+-- interact distance based checks. ranges are based on my own measurements (thanks for all the folks who helped me with this)
+local InteractList = { { index = 3, range = 9 }, { index = 2, range = 10 }, { index = 4, range = 28 }}
+
+-- interact distance to check if a spell with minimum range fails due to the min range or the max range
+local InteractMinRangeCheckIndex = 2
+local RealMinRange = 9.5
+local MeleeRange = 5
+
 -- list of friendly spells that have different ranges
 local FriendSpells = {}
 -- list of harmful spells that have different ranges
 local HarmSpells = {}
 
-FriendSpells["Mage"] = { BS["Remove Lesser Curse"] }
+FriendSpells["Mage"] = { BS["Remove Lesser Curse"], BS["Arcane Brilliance"] }
 HarmSpells["Mage"] = { BS["Fire Blast"], BS["Arcane Missiles"], BS["Frostbolt"], BS["Scorch"], BS["Fireball"], BS["Detect Magic"] }
+
+HarmSpells["Hunter"] = { BS["Auto Shot"], BS["Scatter Shot"], BS["Wing Clip"] }
+
+HarmSpells["Warrior"] = { BS["Charge"], BS["Rend"] }
+
+FriendSpells["Shaman"] = { BS["Healing Wave"], BS["Cure Poison"] }
+HarmSpells["Shaman"] = { BS["Lightning Bolt"], BS["Purge"], BS["Earth Shock"] }
+
+HarmSpells["Rogue"] = { BS["Deadly Throw"], BS["Blind"], BS["Eviscerate"] }
+
+FriendSpells["Priest"] = { BS["Lesser Heal"], BS["Power Word: Fortitude"] }
+HarmSpells["Priest"] = { BS["Mind Soothe"], BS["Smite"], BS["Shadow Word: Pain"], BS["Dispel Magic"], BS["Mind Flay"] }
+
+FriendSpells["Paladin"] = { BS["Holy Light"], BS["Blessing of Might"],  }
+HarmSpells["Paladin"] = { BS["Exorcism"], BS["Turn Undead"], BS["Judgement"] } 
+
+FriendSpells["Druid"] = { BS["Healing Touch"], BS["Mark of the Wild"] }
+HarmSpells["Druid"] = { BS["Wrath"], BS["Growl"],  }
+
+FriendSpells["Warlock"] = { BS["Unending Breath"] }
+HarmSpells["Warlock"] = { BS["Immolate"], BS["Corruption"], BS["Banish"], BS["Fear"], BS["Shadowburn"] }
 
 RangeCheck = { L = {}, isDebug = nil}
 
@@ -41,7 +70,8 @@ RangeCheckDB = RangeCheckDB or DefaultDB
 local db = RangeCheckDB
 local L = RangeCheck.L
 local tooltip = RangeCheckTip
-local tooltipRangeText = RangeCheckTipTextRight2;
+local tooltipRangeText = RangeCheckTipTextRight2
+local tooltipRangeText2 = RangeCheckTipTextLeft2
 local rangeText = RangeCheckFrameText
 local rangeFrameBG = RangeCheckFrameBG
 local rangeFrame = RangeCheckFrame
@@ -66,13 +96,39 @@ local function getSpellRange(spellId, bookType)
 	tooltip:SetOwner(this)
     tooltip:SetSpell(spellId, bookType)
 	tooltip:Show()
+	-- the tooltip is kinda whacky, the range can be in 2 positions...
+    local ttt2 = tooltipRangeText2:GetText()
     local ttt = tooltipRangeText:GetText()
 	tooltip:Hide()
-    if (ttt == nil) then return nil end
-	-- ### TODO: check hunter spells with minimum range.
-    local _, _, range = string.find(ttt, L.RangePattern, 1)
-    if (range == nil) then return nil end
-    return tonumber(range)
+    if (ttt2) then
+    	if (ttt2 == L.RangePatternMelee) then
+    		return MeleeRange;
+    	end
+	    local _, _, minRange, range = string.find(ttt2, L.RangePattern2, 1)
+	    if (minRange and range) then
+--	    	return tonumber(range), tonumber(minRange) ### the tooltip seems to be lying according to my measurements
+	    	return tonumber(range), RealMinRange
+	    end
+	    _, _, range = string.find(ttt2, L.RangePattern, 1)
+	    if (range) then
+	    	return tonumber(range)
+	    end
+	end
+	if (ttt) then
+    	if (ttt == L.RangePatternMelee) then
+    		return MeleeRange;
+    	end
+	    local _, _, minRange, range = string.find(ttt, L.RangePattern2, 1)
+	    if (minRange and range) then
+--	    	return tonumber(range), tonumber(minRange) ### the tooltip seems to be lying according to my measurements
+	    	return tonumber(range), RealMinRange
+	    end
+	   	_, _, range = string.find(ttt, L.RangePattern, 1)
+	    if (range) then
+	    	return tonumber(range)
+	    end
+	end
+	return nil
 end
 
 local function findSpellId(spellName)
@@ -100,13 +156,13 @@ end
 
 function RangeCheckSpell:init()
     self.id = findSpellId(self.name)
-    self.range = getSpellRange(self.id, BOOKTYPE_SPELL)
+    self.range, self.minRange = getSpellRange(self.id, BOOKTYPE_SPELL)
     if (self.range == nil) then return nil end
     return self
 end
 
 function RangeCheckSpell:isInRange(unit)
-	if (IsSpellInRange(self.id, BOOKTYPE_SPELL, unit) == 1) then return self.range end
+	if (IsSpellInRange(self.id, BOOKTYPE_SPELL, unit) == 1) then return true end
 	return nil
 end
 
@@ -122,14 +178,14 @@ end
 local RangeCheckInteract = {}
 
 function RangeCheckInteract:new(index, range)
-    local res = { index = index, range = range }
+    local res = { index = index, range = range, name = "interact" .. index }
     setmetatable(res, self)
     self.__index = self
     return res
 end
 
 function RangeCheckInteract:isInRange(unit)
-    if (CheckInteractDistance(unit, self.index)) then return self.range end
+    if (CheckInteractDistance(unit, self.index)) then return true end
     return nil
 end
 
@@ -148,7 +204,7 @@ function RCList:new(spellList)
     local res = {}
     setmetatable(res, self)
     self.__index = self
-    for i, v in ipairs(RangeCheck.InteractList) do
+    for i, v in ipairs(InteractList) do
 	    res:insertRangeCheck(RangeCheckInteract:new(v.index, v.range))
     end
     if (spellList == nil) then return res end
@@ -174,15 +230,27 @@ end
 -- return the current range estimate to unit
 -- the format is "min - max"
 function RCList:getRange(unit)
+	local min = 0
     local max = nil
     for i, v in ipairs(self) do
-        if (not v:isInRange(unit)) then
-            if (max == nil) then return L.OutOfRange  end
-            return tostring(v.range) .. " - " .. tostring(max)
+        if (v:isInRange(unit)) then
+	        max = v.range
+        elseif (v.minRange and CheckInteractDistance(unit, InteractMinRangeCheckIndex)) then
+--        	max = v.minRange 
+			-- we do not bother with using this for the maxRange,
+			-- as it's just a little difference between interact2 and interact3 anyway
+			-- and it would just cause a lot of flicker and would make the code a bit more complex
+        elseif (not max) then
+        	return L.OutOfRange
+        else
+			min = v.range
+		    break;
         end
-        max = v.range
     end
-    return "0 - " .. tostring(max)
+    if (L.MeleeRange and max <= MeleeRange) then
+    	return L.MeleeRange
+    end
+    return tostring(min) .. " - " .. tostring(max)
 end
 
 function RCList:print()
@@ -194,11 +262,6 @@ end
 -- >>> RCList ------------------------------------------------
 
 -- <<< RangeCheck constants and functions
-
--- hard-coded interact distances [based on wowwiki]
-RangeCheck.InteractList = { { index = 3, range = 10 }, { index = 2, range = 11 }, { index = 4, range = 28 } }
-RangeCheck.FriendSpells = {}
-RangeCheck.HarmSpells = {}
 
 -- initialize RangeCheck if not yet initialized or if "forced"
 function RangeCheck:init(forced)
@@ -215,6 +278,10 @@ function RangeCheck:init(forced)
         print("HarmRangeCheck:")
         self.harmRC:print()
 	end
+	self:applySettings();
+end
+
+function RangeCheck:applySettings()
 	if (db.Enabled) then
 		self:enable()
 	else
@@ -254,6 +321,7 @@ end
 function RangeCheck:OnUpdate(elapsed)
 	lastUpdate = lastUpdate + elapsed
 	if (lastUpdate < UpdateDelay) then return end
+--	if (self.checkStartTime) then self:checkChanges() end -- DEBUG
 	lastUpdate = 0
 	local range = self:getRange("target")
 	if (range == lastRange) then return end
@@ -333,6 +401,7 @@ end
 function RangeCheck:VARIABLES_LOADED()
 	db = RangeCheckDB
 	print("RangeCheck " .. VERSION .. " loaded. Type /rangecheck for help")
+	self:applySettings();
 end
 
 --[[
@@ -397,14 +466,23 @@ function RangeCheck:SlashCmd(args)
 				print("RangeCheckHeight set to " .. tostring(hh))
 			end
 	elseif (cmd == "reset") then
+		RangeCheckDB = DefaultDB
+		db = RangeCheckDB
 		self:resetPosition()
 		self:setHeight(db.Height)
 		if (db.Enabled) then
 			self:init(true)
-			self:enable()
 		else
 			self:disable()
 		end
+--[[ DEBUG
+	elseif (cmd == "rcshow") then
+		self:showChecks()
+	elseif (cmd == "rcstart") then
+		self:startCheck()
+	elseif (cmd == "rcstop") then
+		self:stopCheck()
+]]
 	else
 		self:showStatus()
 	end
@@ -417,3 +495,62 @@ function RangeCheck:showStatus()
 	end
 end
 
+--[[
+-- debug stuff to determine ranges
+
+RangeCheck.lastStates = nil
+RangeCheck.checkStartTime = nil
+
+function RangeCheck:initLastStates()
+	local unit = "target"
+	self.lastStates = {}
+	for i, v in ipairs(self.harmRC) do
+		self.lastStates[v.name] = v:isInRange(unit) or false
+	end
+	for i, v in ipairs(self.friendRC) do
+		self.lastStates[v.name] = v:isInRange(unit) or false
+	end
+	for i, v in ipairs(self.miscRC) do
+		self.lastStates[v.name] = v:isInRange(unit) or false
+	end
+end
+
+function RangeCheck:startCheck()
+	self:initLastStates()
+	self.checkStartTime = GetTime() * 1000
+end
+
+function RangeCheck:showChecks()
+	self:initLastStates()
+	for k, v in pairs(self.lastStates) do
+		print(k .. ": " .. tostring(v))
+	end
+end
+
+function RangeCheck:stopCheck()
+	self.checkStartTime = nil
+end
+
+function RangeCheck:checkChange(v, time)
+		local unit = "target"
+		res = v:isInRange(unit) or false
+		if (res ~= self.lastStates[v.name]) then
+			print(tostring(time - self.checkStartTime) .. ": " .. v.name .. ": " .. tostring(self.lastStates[v.name]) .. " -> " .. tostring(res))
+			self.lastStates[v.name] = res
+		end
+end
+
+function RangeCheck:checkChanges()
+	local res
+	local time = GetTime() * 1000
+	for i, v in ipairs(self.harmRC) do
+		self:checkChange(v, time)
+	end
+	for i, v in ipairs(self.friendRC) do
+		self:checkChange(v, time)
+	end
+	for i, v in ipairs(self.miscRC) do
+		self:checkChange(v, time)
+	end
+end
+]]

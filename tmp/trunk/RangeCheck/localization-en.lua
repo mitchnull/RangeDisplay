@@ -2,8 +2,11 @@
 
 local L = RangeCheck.L
 
+-- uncomment it if you prefer an Out of range display instead of hiding the display
 -- L.OutOfRange = "Out of range"
-L.OutOfRange = nil
+-- comment this out if you prefer a "0 - 5" display in melee range
+L.MeleeRange = "Melee"
 L.RangePattern = "(%d+) yd range"
 L.RangePattern2 = "(%d+)-(%d+) yd range"
+L.RangePatternMelee = "Melee Range"
 

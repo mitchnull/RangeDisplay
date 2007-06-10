@@ -6,13 +6,7 @@ Options:
   like
 /rangecheck lock
   locks the RangeCheck display frame
-/spc RangeCheck height NUM
+/rangecheck height NUM
   sets the font height of the RangeCheck display to NUM
-/spc GuildTooltip on|off
-  if enabled, the unit's guild name will be added to your default GameTooltip
-  on mouseover
-/spc RangeTooltip on|off
-  if enabled, the unit's range will be added to your default GameTooltip
-  on mouseover
-/spc reset
+/rangecheck reset
   resets the configuration for this character to default values

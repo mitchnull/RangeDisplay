@@ -1,16 +1,12 @@
-- Currently RangeCheck only has spell data for the Mage class, to add
-  other classes, initialize the HarmSpells["ClassName"] and
-  FriendSpells["ClassName"] arrays with the spell names to check.
-
-- Classes that don't have their spell lists set will only use the
-  InteractDistance based range estimation (10, 11 and 28 yards at the
-  moment)
+- Currently RangeCheck is only tested extensively for the Mage class, 
+  I've included the data for other classes as well, but I couldn't test them.
+  I'm not sure if the Melee range works correctly for druids, for example.
 
 - Spell ranges are automatically parsed from the spell's tooltip text,
   so talent specific changes should be automatically taken care of (like
   Arctic Reach for frost mages). You should list all spells that can
   have different ranges depending on talents (that's why Scorch, Arcane
-  Missiles and Frostbolt are all listed, although they all have a 30 yd
+  Missiles and Frostbolt are all listed, even though they all have a 30 yd
   range initially).
 
 - Ideally, RangeCheck should be initialized on PLAYER_ALIVE, but
@@ -18,11 +14,10 @@
   now I delay the initialization 'till the first target change or first
   mouseover
 
-- Right now the code doesn't handle spells with minimum range
-  requirements properly (most hunter shots). I'll add that soon.
-
-Future plans:
-
-- display spell icon for the current range
-- configuration dialog
-
+- The minimum range value is not used presently, as it's just a tiny distance
+  in between interact2 and interact3 values, and it would just cause too much flicker.
+  (as a side note, according to my tests, the minumum range is somewhere between 9 and 10
+  yards, and not 8 yards as the tooltip says...)
+  
+- I've done some testing without Babble, and it seems to work, but it will only work
+  in English locales without Babble.
