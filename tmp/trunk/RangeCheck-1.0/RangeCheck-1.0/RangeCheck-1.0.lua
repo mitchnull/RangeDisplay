@@ -32,9 +32,10 @@ local L = {}
 L.RangePattern = "(%d+) yd range"
 L.RangePattern2 = "(%d+)-(%d+) yd range"
 L.RangePatternMelee = "Melee Range"
+
 -- uncomment it if you prefer an Out of range display instead of hiding the display
 -- L.OutOfRange = "Out of range"
--- comment this out if you prefer a "0 - 5" display in melee range
+-- L.MeleeRange = "0 - 5"
 L.MeleeRange = "Melee"
 
 if locale == "deDE" then
@@ -95,6 +96,8 @@ HarmSpells["WARLOCK"] = { BS["Immolate"], BS["Corruption"], BS["Banish"], BS["Fe
 
 -- >> END OF STATIC CONFIG
 
+local INIT_EVENT = "MEETINGSTONE_CHANGED"
+
 -- helper functions and cache
 
 local BOOKTYPE_SPELL = BOOKTYPE_SPELL
@@ -103,6 +106,10 @@ local UnitCanAttack = UnitCanAttack
 local UnitCanAssist = UnitCanAssist
 local UnitExists = UnitExists
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
+local tonumber = tonumber
+local tostring = tostring
+local CheckInteractDistance = CheckInteractDistance
+local IsSpellInRange = IsSpellInRange
 
 local function print(text)
 	if ( DEFAULT_CHAT_FRAME ) then 
@@ -114,19 +121,21 @@ local function isTargetValid(unit)
 	return UnitExists(unit) and (not UnitIsDeadOrGhost(unit))
 end
 
--- OK, here comes the actual lib
-
-local RangeCheck = {}
-
 -- returns range[, minRange] of the given spell if applicable
-function RangeCheck:getSpellRange(spellId, bookType)
-    if (spellId == nil) then return nil end
-    -- TODO: copy-waste the actual implementation here
+local function getSpellRange(spellId, bookType)
+    if (not spellId) then return nil end
+    if (not bookType) then bookType = BOOKTYPE_SPELL end
+	gratuity:SetSpell(spellId, bookType)
+	if (gratuity:Find(L.RangePatternMelee, 2, 2)) then return MeleeRange end
+	local _, _, minRange, range = gratuity:Find(L.RangePattern2, 2, 2)
+	if (range) then return tonumber(range), tonumber(minRange) end
+	_, _, range = gratuity:Find(L.RangePattern, 2, 2)
+	if (range) then return tonumber(range) end
 	return nil
 end
 
 -- return the spellId of the given spell by scanning the spellbook
-function RangeCheck:findSpellId(spellName)
+local function findSpellId(spellName)
 	local i = 1
 	while true do
 	    local spell, rank = GetSpellName(i, BOOKTYPE_SPELL)
@@ -137,173 +146,114 @@ function RangeCheck:findSpellId(spellName)
 	return nil
 end
 
+
+local function addChecker(t, range, checker)
+	local rc = { ["range"] = range, ["checker"] = checker }
+	for i, v in ipairs(t) do
+		if (rc.range == v.range) then return end
+        if (rc.range > v.range) then
+        	table.insert(t, i, rc)
+        	return
+    	end
+	end
+	table.insert(t, rc)
+end
+
+local function createCheckerList(spellList)
+	local res = {}
+	for i, v in ipairs(InteractList) do
+		addChecker(res, v.range, function(unit)
+			if (CheckInteractDistance(unit, v.index)) then return true end
+		end)
+    end
+    if (not spellList) then return res end
+    for i, v in ipairs(spellList) do
+    	local spellId = findSpellId(v)
+    	local range, minRange = getSpellRange(spellId, BOOKTYP_SPELL)
+    	if (range) then
+    		if (minRange) then
+    			addChecker(res, range, function(unit)
+    				if (IsSpellInRange(spellId, BOOKTYPE_SPELL, unit) == 1 or CheckInteractDistance(unit, InteractMinRangeCheckIndex)) then return true end
+    			end)
+    		else
+    			addChecker(res, range, function(unit)
+    				if (IsSpellInRange(spellId, BOOKTYPE_SPELL, unit) == 1) then return true end
+    			end)
+    		end
+    	end
+    end
+    return res
+end
+
+-- returns minRange, maxRange or nil
+local function getRange(unit, checkerList)
+	local min = 0
+    local max = nil
+    for i, rc in ipairs(checkerList) do
+        if (rc.checker(unit)) then
+	        max = rc.range
+        elseif (not max) then
+        	return nil
+        else
+			return rc.range, max
+        end
+    end
+    return 0, max
+end
+
+-- OK, here comes the actual lib
+
+local RangeCheck = {}
+
+-- returns range[, minRange] of the given spell if applicable
+function RangeCheck:getSpellRange(spellId, bookType)
+	return getSpellRange(spellId, bookType)
+end
+
+-- return the spellId of the given spell by scanning the spellbook
+function RangeCheck:findSpellId(spellName)
+	return findSpellId(spellName)
+end
+
+-- returns minRange, maxRange or nil
 function RangeCheck:getRange(unit)
 	-- TODO: check what happens if unit is dead, etc
 	if (not isTargetValid(unit)) then return nil end
 	if (UnitCanAttack("player", unit)) then
-	    return self.harmRC:getRange(unit)
+	    return getRange(unit, self.harmRC)
 	elseif (UnitCanAssist("player", unit)) then
-	    return self.friendRC:getRange(unit)
+	    return getRange(unit, self.friendRC)
 	else
-		return self.miscRC:getRange(unit)
+		return getRange(unit, self.miscRC)
 	end
 end
 
--- <<< RangeCheckSpell --------------------------------
--- RangeChecker class that implements range checking based on spell ranges
-
-local RangeCheckSpell = {}
-function RangeCheckSpell:new(spellName)
-    local res = { name = spellName }
-    setmetatable(res, self)
-    self.__index = self
-    return res:init()
+-- returns the range estimate as a string
+function RangeCheck:getRangeAsString(unit)
+	local minRange, maxRange = self:getRange(unit)
+	if (not maxRange) then return L.OutOfRange end
+	if (maxRange <= MeleeRange) then return L.MeleeRange end
+	return tostring(minRange) .. " - " .. tostring(maxRange)
 end
-
-function RangeCheckSpell:init()
-    self.id = findSpellId(self.name)
-    self.range, self.minRange = getSpellRange(self.id, BOOKTYPE_SPELL)
-    if (self.range == nil) then return nil end
-    return self
-end
-
-function RangeCheckSpell:isInRange(unit)
-	if (IsSpellInRange(self.id, BOOKTYPE_SPELL, unit) == 1) then return true end
-	return nil
-end
-
-function RangeCheckSpell:print()
-    print(self.name .. ": " .. tostring(self.range))
-end
-
--- >>> RangeCheckSpell --------------------------------
-
--- <<< RangeCheckInteract -----------------------------
--- RangeChecker class that implements range checking based on interact distance
-
-local RangeCheckInteract = {}
-
-function RangeCheckInteract:new(index, range)
-    local res = { index = index, range = range, name = "interact" .. index }
-    setmetatable(res, self)
-    self.__index = self
-    return res
-end
-
-function RangeCheckInteract:isInRange(unit)
-    if (CheckInteractDistance(unit, self.index)) then return true end
-    return nil
-end
-
-function RangeCheckInteract:print()
-    print("Interact" .. tostring(self.index) .. ": " .. tostring(self.range))
-end
-
--- >>> RangeCheckInteract -----------------------------
-
--- <<< RCList ------------------------------------------------
--- RangeChecker list that stores RangeCheckers in sorted order
--- We have one for Harm spells and one for Friend spells
-
-local RCList = {}
-function RCList:new(spellList)
-    local res = {}
-    setmetatable(res, self)
-    self.__index = self
-    for i, v in ipairs(InteractList) do
-	    res:insertRangeCheck(RangeCheckInteract:new(v.index, v.range))
-    end
-    if (spellList == nil) then return res end
-    for i, v in ipairs(spellList) do
-        res:insertRangeCheck(RangeCheckSpell:new(v))
-    end
-    return res
-end
-
--- insert new RangeChecker at the correct position
-function RCList:insertRangeCheck(rc)
-    if (rc == nil) then return end
-    for i, v in ipairs(self) do
-        if (rc.range == v.range) then return end
-        if (rc.range > v.range) then
-            table.insert(self, i, rc)
-            return
-        end
-    end
-    table.insert(self, rc)
-end
-
--- return the current range estimate to unit
--- the format is "min - max"
-function RCList:getRange(unit)
-	local min = 0
-    local max = nil
-    for i, v in ipairs(self) do
-        if (v:isInRange(unit)) then
-	        max = v.range
-        elseif (v.minRange and CheckInteractDistance(unit, InteractMinRangeCheckIndex)) then
---        	max = v.minRange 
-			-- we do not bother with using this for the maxRange,
-			-- as it's just a little difference between interact2 and interact3 anyway
-			-- and it would just cause a lot of flicker and would make the code a bit more complex
-        elseif (not max) then
-        	return L.OutOfRange
-        else
-			min = v.range
-		    break;
-        end
-    end
-    if (L.MeleeRange and max <= MeleeRange) then
-    	return L.MeleeRange
-    end
-    return tostring(min) .. " - " .. tostring(max)
-end
-
-function RCList:print()
-    for i, v in ipairs(self) do
-        v:print()
-    end
-end
-
--- >>> RCList ------------------------------------------------
-
--- <<< RangeCheck constants and functions
 
 -- initialize RangeCheck if not yet initialized or if "forced"
 function RangeCheck:init(forced)
 	if (self.initialized and (not forced)) then return end
 	self.initialized = true
 	local _, playerClass = UnitClass("player")
-	self.friendRC = RCList:new(FriendSpells[playerClass])
-	self.harmRC = RCList:new(HarmSpells[playerClass])
-	self.miscRC = RCList:new(nil)
-	self.lastRange = nil
-    if (self.isDebug) then
-        print("FriendRangeCheck:")
-        self.friendRC:print()
-        print("HarmRangeCheck:")
-        self.harmRC:print()
-	end
+	self.friendRC = createCheckerList(FriendSpells[playerClass])
+	self.harmRC = createCheckerList(HarmSpells[playerClass])
+	self.miscRC = createCheckerList(nil)
 end
-
 
 function RangeCheck:OnEvent(event, ...)
 	if (type(self[event]) == 'function') then
 		self[event](self, event, ...)
-	else
-		self:debug("unexpected event: " .. tostring(event))
+	end
+	if (oldLib and type(oldLib[event]) == 'function') then
+		oldLib[event](oldLib, event, ...)
 	end
 end
-
---[[
-function RangeCheck:PLAYER_ALIVE()
--- talent info should be ready, but it's not :( [at least spell ranges are not updated]
--- we'll do RangeCheck:init() when first needed
---	if (db.Enabled) then
--- 		self:init()
---	end
-end
-]]
 
 function RangeCheck:LEARNED_SPELL_IN_TAB()
 	self:init(true)
@@ -313,24 +263,36 @@ function RangeCheck:CHARACTER_POINTS_CHANGED()
 	self:init(true)
 end
 
+local function firstInit(self)
+	self:init()
+	print(MAJOR_VERSION .. "-r" .. MINOR_VERSION .. " initialized")
+end
+
+RangeCheck[INIT_EVENT] = function(self)
+	self.frame:UnregisterEvent(INIT_EVENT)
+	firstInit(self)
+end
+
 local function activate(self, oldLib, oldDeactivate)
-    if oldLib then -- if upgrading
+    if (oldLib) then -- rescue oldLib's frame
     	self.frame = oldLib.frame
-    	self.initialized = oldLib.initialized
-    end
-    if (not self.frame) then
-    	self.frame = createFrame("Frame")
-    	local frame = self.frame
-    	if (not self.initialized) then
-		   	frame:RegisterEvent("MEETINGSTONE_CHANGED"); -- maybe we can use this to initialize once
-		end
+    	if (oldLib.initialized) then
+    		firstInit(self) -- oldLib could already initialize itself, so it's probably safe to call init here
+    	end
+    	self.oldLib = oldLib -- we'll steal the events from oldLib, so we'll forward them to it
+    else
+    	local frame = CreateFrame("Frame")
+    	self.frame = frame
+	   	frame:RegisterEvent(INIT_EVENT);
 		frame:RegisterEvent("LEARNED_SPELL_IN_TAB")
 		frame:RegisterEvent("CHARACTER_POINTS_CHANGED")
-	--	frame:RegisterEvent("PLAYER_ALIVE")
 	--	frame:RegisterEvent("SPELLS_CHANGED")
-	
-		frame:SetScript("OnEvent", self:OnEvent)
     end
+	self.frame:SetScript("OnEvent", function(frame, ...) self:OnEvent(...) end)
+
+	if (oldDeactivate) then -- clean up the old library
+		oldDeactivate(oldLib)
+	end
 end
 
 AceLibrary:Register(RangeCheck, MAJOR_VERSION, MINOR_VERSION, activate)

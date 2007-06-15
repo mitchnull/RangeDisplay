@@ -10,14 +10,12 @@
   range initially).
 
 - Ideally, RangeCheck should be initialized on PLAYER_ALIVE, but
-  unfortunately the spell tooltips are not yet updated at that point, so
-  now I delay the initialization 'till the first target change or first
-  mouseover
+  unfortunately the spell tooltips are not yet updated at that point. I am using
+  MEETINGSTONE_CHANGED now, which seems to be OK for this purpose.
 
-- The minimum range value is not used presently, as it's just a tiny distance
-  in between interact2 and interact3 values, and it would just cause too much flicker.
-  (as a side note, according to my tests, the minumum range is somewhere between 9 and 10
-  yards, and not 8 yards as the tooltip says...)
+- The minimum range value (of hunter shots, for example) is not used presently,
+  as it's just a tiny distance in between interact2 and interact3 values,
+  and it would just cause too much flicker.
+  (as a side note, according to my tests, the minumum range is somewhere
+  between 9 and 10 yards, and not 8 yards as the tooltip says...)
   
-- I've done some testing without Babble, and it seems to work, but it will only work
-  in English locales without Babble.
