@@ -1,22 +1,22 @@
 ## Interface: 20100
-## Title: RangeCheck (version 2.1.1)
+## Title: RangeCheck |cff7fff7f -Ace2-|r
 ## Author: mitch0
 ## Version: 2.1.1
 ## Notes: Estimated range display. type /rangecheck for help
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariablesPerCharacter: RangeCheckDB
-## OptionalDeps: Ace2, Babble-2.2
-## X-Embeds: Ace2, Babble-2.2
+## OptionalDeps: Ace2, Babble-2.2, Gratuity-2.0, RangeCheck-1.0
+## X-Embeds: Ace2, Babble-2.2, Gratuity-2.0, RangeCheck-1.0
 ## X-Category: Combat
 ## X-License: Public Domain
 ## X-AceForum: 6664
 
 libs\AceLibrary\AceLibrary.lua
 libs\Babble-Spell-2.2\Babble-Spell-2.2.lua
+libs\Gratuity-2.0\Gratuity-2.0.lua
+libs\RangeCheck-1.0\RangeCheck-1.0.lua
 
 
 RangeCheck.xml
 RangeCheck.lua
-localization-en.lua
-localization-de.lua

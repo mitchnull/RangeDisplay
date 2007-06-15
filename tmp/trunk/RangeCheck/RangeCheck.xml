@@ -3,8 +3,6 @@
   
   <Script file="RangeCheck.lua"/>
   
-  <GameTooltip name="RangeCheckTip" frameStrata="TOOLTIP" hidden="true" parent="UIParent" inherits="GameTooltipTemplate"/>
-  
   <Frame name="RangeCheckFrame" hidden="true" parent="UIParent" enableMouse="false" movable="true" frameStrata="BACKGROUND">
     <Size>
       <AbsDimension x="100" y="25"/>
