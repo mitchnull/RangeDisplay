@@ -1,22 +1,18 @@
 ## Interface: 20100
-## Title: RangeCheck (version 2.1.1)
+## Title: Lib: RangeCheck-1.0 |cff7fff7f -Ace2-|r
+## Notes: A library to determine estimated range.
 ## Author: mitch0
 ## Version: 2.1.1
-## Notes: Estimated range display. type /rangecheck for help
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
-## SavedVariablesPerCharacter: RangeCheckDB
 ## OptionalDeps: Ace2, Babble-2.2
 ## X-Embeds: Ace2, Babble-2.2
-## X-Category: Combat
+## X-Category: Library
+## X-AceLibrary-RangeCheck-1.0: true
 ## X-License: Public Domain
 ## X-AceForum: 6664
 
 libs\AceLibrary\AceLibrary.lua
 libs\Babble-Spell-2.2\Babble-Spell-2.2.lua
 
-
-RangeCheck.xml
-RangeCheck.lua
-localization-en.lua
-localization-de.lua
+RangeCheck-1.0\RangeCheck-1.0.lua
