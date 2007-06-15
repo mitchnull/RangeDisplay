@@ -422,7 +422,7 @@ end
 
 function RangeCheck:CHARACTER_POINTS_CHANGED()
 	if (db.Enabled) then
-		self.RangeCheck:init(true)
+		self:init(true)
 	end
 end
 
