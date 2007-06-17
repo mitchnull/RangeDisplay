@@ -13,6 +13,7 @@
 ## X-AceForum: 6664
 
 libs\AceLibrary\AceLibrary.lua
+libs\AceLocale-2.2\AceLocale-2.2.lua
 libs\Babble-Spell-2.2\Babble-Spell-2.2.lua
 libs\Gratuity-2.0\Gratuity-2.0.lua
 

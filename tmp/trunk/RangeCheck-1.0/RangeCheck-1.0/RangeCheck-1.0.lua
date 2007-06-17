@@ -112,7 +112,7 @@ local CheckInteractDistance = CheckInteractDistance
 local IsSpellInRange = IsSpellInRange
 
 local function print(text)
-	if ( DEFAULT_CHAT_FRAME ) then 
+	if (DEFAULT_CHAT_FRAME) then 
 		DEFAULT_CHAT_FRAME:AddMessage(text)
 	end
 end
