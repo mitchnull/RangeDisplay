@@ -29,25 +29,21 @@ local L = {}
 
 -- default enUS values
 
-L.RangePattern = "(%d+) yd range"
-L.RangePattern2 = "(%d+)-(%d+) yd range"
-L.RangePatternMelee = "Melee Range"
-
 -- uncomment it if you prefer an Out of range display instead of hiding the display
 -- L.OutOfRange = "Out of range"
 -- L.MeleeRange = "0 - 5"
 L.MeleeRange = "Melee"
 
 if locale == "deDE" then
-	
+	L.MeleeRange = "0 - 5"
 elseif locale == "frFR" then
-	
+	L.MeleeRange = "0 - 5"
 elseif locale == "zhCN" then
-	
+	L.MeleeRange = "0 - 5"
 elseif locale == "zhTW" then
-	
+	L.MeleeRange = "0 - 5"
 elseif locale == "koKR" then
-	
+	L.MeleeRange = "0 - 5"
 elseif locale == "esES" then
 	
 end
@@ -56,6 +52,10 @@ end
 
 
 -- << STATIC CONFIG
+
+local RangePattern = SPELL_RANGE:gsub("%%s", "(%%d+)")
+local RangePattern2 = SPELL_RANGE:gsub("%%s", "(%%d+)-(%%d+)")
+local RangePatternMelee = MELEE_RANGE
 
 -- interact distance based checks. ranges are based on my own measurements (thanks for all the folks who helped me with this)
 local InteractList = { { index = 3, range = 9 }, { index = 2, range = 10 }, { index = 4, range = 28 }}
@@ -126,10 +126,10 @@ local function getSpellRange(spellId, bookType)
     if (not spellId) then return nil end
     if (not bookType) then bookType = BOOKTYPE_SPELL end
 	gratuity:SetSpell(spellId, bookType)
-	if (gratuity:Find(L.RangePatternMelee, 2, 2)) then return MeleeRange end
-	local _, _, minRange, range = gratuity:Find(L.RangePattern2, 2, 2)
+	if (gratuity:Find(RangePatternMelee, 2, 2)) then return MeleeRange end
+	local _, _, minRange, range = gratuity:Find(RangePattern2, 2, 2)
 	if (range) then return tonumber(range), tonumber(minRange) end
-	_, _, range = gratuity:Find(L.RangePattern, 2, 2)
+	_, _, range = gratuity:Find(RangePattern, 2, 2)
 	if (range) then return tonumber(range) end
 	return nil
 end
