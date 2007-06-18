@@ -6,15 +6,9 @@
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## OptionalDeps: Ace2, Babble-2.2, Gratuity-2.0
-## X-Embeds: Ace2, Babble-2.2, Gratuity-2.0
 ## X-Category: Library
 ## X-AceLibrary-RangeCheck-1.0: true
 ## X-License: Public Domain
 ## X-AceForum: 6664
-
-libs\AceLibrary\AceLibrary.lua
-libs\AceLocale-2.2\AceLocale-2.2.lua
-libs\Babble-Spell-2.2\Babble-Spell-2.2.lua
-libs\Gratuity-2.0\Gratuity-2.0.lua
 
 RangeCheck-1.0\RangeCheck-1.0.lua

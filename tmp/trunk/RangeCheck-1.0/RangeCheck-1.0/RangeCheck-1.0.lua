@@ -146,7 +146,6 @@ local function findSpellId(spellName)
 	return nil
 end
 
-
 local function addChecker(t, range, checker)
 	local rc = { ["range"] = range, ["checker"] = checker }
 	for i, v in ipairs(t) do
@@ -228,12 +227,17 @@ function RangeCheck:getRange(unit)
 	end
 end
 
+local lastMin, lastMax, lastStr
 -- returns the range estimate as a string
 function RangeCheck:getRangeAsString(unit)
 	local minRange, maxRange = self:getRange(unit)
 	if (not maxRange) then return L.OutOfRange end
 	if (maxRange <= MeleeRange) then return L.MeleeRange end
-	return tostring(minRange) .. " - " .. tostring(maxRange)
+	if (maxRange == lastMax and minRange == lastMin) then return lastStr end
+	lastMin = minRange
+	lastMax = maxRange
+	lastStr = tostring(minRange) .. " - " .. tostring(maxRange)
+	return lastStr
 end
 
 -- initialize RangeCheck if not yet initialized or if "forced"
