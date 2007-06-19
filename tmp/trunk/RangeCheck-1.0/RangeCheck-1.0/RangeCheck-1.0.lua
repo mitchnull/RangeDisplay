@@ -216,7 +216,6 @@ end
 
 -- returns minRange, maxRange or nil
 function RangeCheck:getRange(unit)
-	-- TODO: check what happens if unit is dead, etc
 	if (not isTargetValid(unit)) then return nil end
 	if (UnitCanAttack("player", unit)) then
 	    return getRange(unit, self.harmRC)
