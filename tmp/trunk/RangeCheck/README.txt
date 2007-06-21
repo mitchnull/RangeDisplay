@@ -7,12 +7,6 @@ a mage's Arcane Missile spell is in range, but the character is out of follow-ra
 
 RangeCheck is just a front-end to RangeCheck-1.0, a library addon to calculate the range estimates.
 
-Melee range is reported as Melee with the default config. You can change it by editing the
-localization in RangeCheck-1.0.lua. 
-
-When you're out of range, the range display is hidden with the default config. You can change this
-also by editing the localization in RangeCheck-1.0.lua.
-
 Options:
 
 /rangecheck on|off
