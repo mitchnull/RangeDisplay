@@ -174,6 +174,9 @@ end
 
 local RangeCheck = {}
 
+-- "export" it, maybe someone will need it for formatting
+RangeCheck.MeleeRange = MeleeRange
+
 -- returns range[, minRange] of the given spell if applicable
 function RangeCheck:getSpellRange(spellId, bookType)
 	return getSpellRange(spellId, bookType)
