@@ -58,8 +58,8 @@ HarmSpells["ROGUE"] = { BS["Deadly Throw"], BS["Blind"], BS["Eviscerate"] }
 FriendSpells["PRIEST"] = { BS["Lesser Heal"], BS["Power Word: Fortitude"] }
 HarmSpells["PRIEST"] = { BS["Mind Soothe"], BS["Smite"], BS["Shadow Word: Pain"], BS["Dispel Magic"], BS["Mind Flay"] }
 
-FriendSpells["PALADIN"] = { BS["Holy Light"], BS["Blessing of Might"],  }
-HarmSpells["PALADIN"] = { BS["Exorcism"], BS["Turn Undead"], BS["Judgement"] } 
+FriendSpells["PALADIN"] = { BS["Holy Light"], BS["Blessing of Might"], BS["Holy Shock"] }
+HarmSpells["PALADIN"] = { BS["Hammer of Wrath"], BS["Holy Shock"], BS["Judgement"] } 
 
 FriendSpells["DRUID"] = { BS["Healing Touch"], BS["Mark of the Wild"] }
 HarmSpells["DRUID"] = { BS["Wrath"], BS["Growl"],  }
