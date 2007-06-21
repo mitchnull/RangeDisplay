@@ -228,9 +228,6 @@ function RangeCheck:OnEvent(event, ...)
 	if (type(self[event]) == 'function') then
 		self[event](self, event, ...)
 	end
-	if (oldLib and type(oldLib[event]) == 'function') then
-		oldLib[event](oldLib, event, ...)
-	end
 end
 
 function RangeCheck:LEARNED_SPELL_IN_TAB()
@@ -257,7 +254,6 @@ local function activate(self, oldLib, oldDeactivate)
     	if (oldLib.initialized) then
     		firstInit(self) -- oldLib could already initialize itself, so it's probably safe to call init here
     	end
-    	self.oldLib = oldLib -- we'll steal the events from oldLib, so we'll forward them to it
     else
     	local frame = CreateFrame("Frame")
     	self.frame = frame
