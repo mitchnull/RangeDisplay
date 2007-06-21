@@ -16,10 +16,13 @@ local MINOR_VERSION = ("$Revision$"):match("%d+")
 if (not AceLibrary) then error(MAJOR_VERSION .. " requires AceLibrary.") end
 if (not AceLibrary:IsNewVersion(MAJOR_VERSION, MINOR_VERSION)) then return end
 
-local BS = AceLibrary("Babble-Spell-2.2");
-if (not BS) then error(MAJOR_VERSION .. " requires Babble-Spell-2.2") end
-local gratuity = AceLibrary("Gratuity-2.0");
-if (not gratuity) then error(MAJOR_VERSION .. " requires Gratuity-2.0") end
+local libBS = "Babble-Spell-2.2"
+local libGratuity = "Gratuity-2.0"
+
+local BS = AceLibrary:HasInstance(libBS) and AceLibrary(libBS)
+if (not BS) then error(MAJOR_VERSION .. " requires " .. libBS) end
+local gratuity = AceLibrary:HasInstance(libGratuity) and AceLibrary(libGratuity)
+if (not gratuity) then error(MAJOR_VERSION .. " requires " .. libGratuity) end
 
 -- << STATIC CONFIG
 
