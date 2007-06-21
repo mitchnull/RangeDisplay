@@ -138,7 +138,7 @@ end
 function RangeCheck:VARIABLES_LOADED()
 	db = RangeCheckDB
 	print(VERSION .. " loaded. Type /rangecheck for help")
-	self:applySettings();
+	self:applySettings()
 end
 
 function RangeCheck:PLAYER_TARGET_CHANGED()
