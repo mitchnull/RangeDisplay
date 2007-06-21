@@ -21,36 +21,6 @@ if (not BS) then error(MAJOR_VERSION .. " requires Babble-Spell-2.2") end
 local gratuity = AceLibrary("Gratuity-2.0");
 if (not gratuity) then error(MAJOR_VERSION .. " requires Gratuity-2.0") end
 
--- << LOCALIZATION
-
-local locale = GetLocale()
-
-local L = {}
-
--- default enUS values
-
--- uncomment it if you prefer an Out of range display instead of hiding the display
--- L.OutOfRange = "Out of range"
--- L.MeleeRange = "0 - 5"
-L.MeleeRange = "Melee"
-
-if locale == "deDE" then
-	L.MeleeRange = "0 - 5"
-elseif locale == "frFR" then
-	L.MeleeRange = "0 - 5"
-elseif locale == "zhCN" then
-	L.MeleeRange = "0 - 5"
-elseif locale == "zhTW" then
-	L.MeleeRange = "0 - 5"
-elseif locale == "koKR" then
-	L.MeleeRange = "0 - 5"
-elseif locale == "esES" then
-	
-end
-
--- >> END OF LOCALIZATION
-
-
 -- << STATIC CONFIG
 
 local RangePattern = SPELL_RANGE:gsub("%%s", "(%%d+)")
@@ -230,8 +200,7 @@ local lastMin, lastMax, lastStr
 -- returns the range estimate as a string
 function RangeCheck:getRangeAsString(unit)
 	local minRange, maxRange = self:getRange(unit)
-	if (not maxRange) then return L.OutOfRange end
-	if (maxRange <= MeleeRange) then return L.MeleeRange end
+	if (not maxRange) then return nil end
 	if (maxRange == lastMax and minRange == lastMin) then return lastStr end
 	lastMin = minRange
 	lastMax = maxRange
