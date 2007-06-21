@@ -202,14 +202,10 @@ function RangeCheck:getRange(unit)
 	end
 end
 
-local lastMin, lastMax, lastStr
 -- returns the range estimate as a string
 function RangeCheck:getRangeAsString(unit)
 	local minRange, maxRange = self:getRange(unit)
 	if (not maxRange) then return nil end
-	if (maxRange == lastMax and minRange == lastMin) then return lastStr end
-	lastMin = minRange
-	lastMax = maxRange
 	lastStr = tostring(minRange) .. " - " .. tostring(maxRange)
 	return lastStr
 end
