@@ -8,9 +8,10 @@
 local VERSION = "RangeCheck-r" .. ("$Revision$"):match("%d+")
 
 if (not AceLibrary) then error(VERSION .. " requires AceLibrary.") end
-local rangeCheck = AceLibrary("RangeCheck-1.0")
-if (not rangeCheck) then error(VERSION .. " requires RangeCheck-1.0") end
 
+local libRC = "RangeCheck-1.0"
+local rc = AceLibrary:HasInstance(libRC) and AceLibrary(libRC)
+if (not rc) then error(VERSION .. " requires " .. libRC) end
 RangeCheck = {}
 
 local DefaultDB = {
@@ -65,7 +66,7 @@ function RangeCheck:OnUpdate(elapsed)
 	lastUpdate = lastUpdate + elapsed
 	if (lastUpdate < UpdateDelay) then return end
 	lastUpdate = 0
-	local range = rangeCheck:getRangeAsString("target")
+	local range = rc:getRangeAsString("target")
 	if (range == lastRange) then return end
 	lastRange = range
 	rangeText:SetText(range)
@@ -151,7 +152,7 @@ function RangeCheck:SlashCmd(args)
 	local _, _, cmd, cmdParam = string.find(string.lower(args), "^%s*(%S+)%s*(%S*)")
 	if (cmd == "on" or cmd == "enable") then
 		db.Enabled = true
-		rangeCheck:init(true)
+		rc:init(true)
 		self:enable()
 		print("RangeCheck enabled")
 	elseif (cmd == "off" or cmd == "disable") then
@@ -184,7 +185,7 @@ function RangeCheck:SlashCmd(args)
 		self:resetPosition()
 		self:setHeight(db.Height)
 		if (db.Enabled) then
-			rangeCheck:init(true)
+			rc:init(true)
 		else
 			self:disable()
 		end
