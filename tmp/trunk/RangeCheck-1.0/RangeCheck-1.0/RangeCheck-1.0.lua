@@ -65,7 +65,7 @@ FriendSpells["DRUID"] = { BS["Healing Touch"], BS["Mark of the Wild"] }
 HarmSpells["DRUID"] = { BS["Wrath"], BS["Growl"],  }
 
 FriendSpells["WARLOCK"] = { BS["Unending Breath"] }
-HarmSpells["WARLOCK"] = { BS["Immolate"], BS["Corruption"], BS["Banish"], BS["Fear"], BS["Shadowburn"] }
+HarmSpells["WARLOCK"] = { BS["Immolate"], BS["Corruption"], BS["Fear"], BS["Shadowburn"] }
 
 -- >> END OF STATIC CONFIG
 
