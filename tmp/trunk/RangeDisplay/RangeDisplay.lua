@@ -1,18 +1,18 @@
 --[[
 
-  RangeCheck displays the estimated range to the current target based on spell ranges and other measurable ranges
+  RangeDisplay displays the estimated range to the current target based on spell ranges and other measurable ranges
   copyright 2007 by mitch
        
 ]]
 
-local VERSION = "RangeCheck-r" .. ("$Revision$"):match("%d+")
+local VERSION = "RangeDisplay-r" .. ("$Revision$"):match("%d+")
 
 if (not AceLibrary) then error(VERSION .. " requires AceLibrary.") end
 
 local libRC = "RangeCheck-1.0"
 local rc = AceLibrary:HasInstance(libRC) and AceLibrary(libRC)
 if (not rc) then error(VERSION .. " requires " .. libRC) end
-RangeCheck = {}
+RangeDisplay = {}
 
 local DefaultDB = {
 	Enabled = true,
@@ -20,15 +20,15 @@ local DefaultDB = {
 	Locked = false
 }
 
-RangeCheckDB = RangeCheckDB or DefaultDB
+RangeDisplayDB = RangeDisplayDB or DefaultDB
 
 -- cached stuff
 local UnitExists = UnitExists
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
-local db = RangeCheckDB
-local rangeText = RangeCheckFrameText
-local rangeFrameBG = RangeCheckFrameBG
-local rangeFrame = RangeCheckFrame
+local db = RangeDisplayDB
+local rangeText = RangeDisplayFrameText
+local rangeFrameBG = RangeDisplayFrameBG
+local rangeFrame = RangeDisplayFrame
 
 local UpdateDelay = .05 -- update frequency == 1/UpdateDelay
 local lastUpdate = 0 -- time since last real update
@@ -46,7 +46,7 @@ local function isTargetValid(unit)
 	return UnitExists(unit) and (not UnitIsDeadOrGhost(unit))
 end
 
-function RangeCheck:applySettings()
+function RangeDisplay:applySettings()
 	if (db.Enabled) then
 		self:enable()
 	else
@@ -62,7 +62,7 @@ function RangeCheck:applySettings()
 	end
 end
 
-function RangeCheck:OnUpdate(elapsed)
+function RangeDisplay:OnUpdate(elapsed)
 	lastUpdate = lastUpdate + elapsed
 	if (lastUpdate < UpdateDelay) then return end
 	lastUpdate = 0
@@ -74,12 +74,12 @@ end
 
 -- frame setup stuff
 
-function RangeCheck:resetPosition()
+function RangeDisplay:resetPosition()
 	rangeFrame:ClearAllPoints()
 	rangeFrame:SetPoint("CENTER", UIParent, "CENTER")
 end
 
-function RangeCheck:lock()
+function RangeDisplay:lock()
 	rangeFrame:EnableMouse(false)
 	rangeFrameBG:Hide()
 	if (not isTargetValid("target")) then
@@ -87,13 +87,13 @@ function RangeCheck:lock()
 	end
 end
 
-function RangeCheck:unlock()
+function RangeDisplay:unlock()
 	rangeFrame:EnableMouse(true)
 	rangeFrame:Show()
 	rangeFrameBG:Show()
 end
 
-function RangeCheck:targetChanged()
+function RangeDisplay:targetChanged()
 	if (isTargetValid("target")) then
 		rangeFrame:Show()
 		lastUpdate = UpdateDelay -- to force update in next OnUpdate()
@@ -102,15 +102,15 @@ function RangeCheck:targetChanged()
 	end
 end
 
-function RangeCheck:enable()
+function RangeDisplay:enable()
 	self:targetChanged()
 end
 
-function RangeCheck:disable()
+function RangeDisplay:disable()
 	rangeFrame:Hide()
 end
 
-function RangeCheck:setHeight(height)
+function RangeDisplay:setHeight(height)
 	local path, _, flags = rangeText:GetFont()
 	rangeText:SetFont(path, height, flags)
 end
@@ -118,55 +118,55 @@ end
 
 -- boring stuff
 
-function RangeCheck:OnLoad()
+function RangeDisplay:OnLoad()
 	-- register our slash command
-	SLASH_RANGECHECK1 = "/rangecheck"
-	SlashCmdList["RANGECHECK"] = function(msg)
-		RangeCheck:SlashCmd(msg)
+	SLASH_RANGEDISPLAY1 = "/rangedisplay"
+	SlashCmdList["RANGEDISPLAY"] = function(msg)
+		RangeDisplay:SlashCmd(msg)
 	end
 
 	this:RegisterEvent("VARIABLES_LOADED")
 	this:RegisterEvent("PLAYER_TARGET_CHANGED")
 end
 
-function RangeCheck:OnEvent(event, ...)
+function RangeDisplay:OnEvent(event, ...)
 	if (type(self[event]) == 'function') then
 		self[event](self, event, ...)
 	end
 end
 
-function RangeCheck:VARIABLES_LOADED()
-	db = RangeCheckDB
-	print(VERSION .. " loaded. Type /rangecheck for help")
+function RangeDisplay:VARIABLES_LOADED()
+	db = RangeDisplayDB
+	print(VERSION .. " loaded. Type /rangedisplay for help")
 	self:applySettings()
 end
 
-function RangeCheck:PLAYER_TARGET_CHANGED()
+function RangeDisplay:PLAYER_TARGET_CHANGED()
 	if (db.Enabled) then
 		self:targetChanged()
 	end
 end
 
-function RangeCheck:SlashCmd(args)
+function RangeDisplay:SlashCmd(args)
 	if (args == nil) then return end
 	local _, _, cmd, cmdParam = string.find(string.lower(args), "^%s*(%S+)%s*(%S*)")
 	if (cmd == "on" or cmd == "enable") then
 		db.Enabled = true
 		rc:init(true)
 		self:enable()
-		print("RangeCheck enabled")
+		print("RangeDisplay enabled")
 	elseif (cmd == "off" or cmd == "disable") then
 		db.Enabled = false
 		self:disable()
-		print("RangeCheck disabled")
+		print("RangeDisplay disabled")
 	elseif (cmd == "lock") then
 		db.Locked = true
 		self:lock()
-		print("RangeCheck locked")
+		print("RangeDisplay locked")
 	elseif (cmd == "unlock") then
 		db.Locked = false
 		self:unlock()
-		print("RangeCheck is unlocked")
+		print("RangeDisplay is unlocked")
 	elseif (cmd == "height" or cmdParam == "h") then
 			local _, _, h = string.find(args, "(%d+\.?%d*)")
 			if (h == nil) then
@@ -177,11 +177,11 @@ function RangeCheck:SlashCmd(args)
 			if (5 <= hh and hh < 40) then
 				self:setHeight(hh)
 				db.Height = hh
-				print("RangeCheckHeight set to " .. tostring(hh))
+				print("RangeDisplayHeight set to " .. tostring(hh))
 			end
 	elseif (cmd == "reset") then
-		RangeCheckDB = DefaultDB
-		db = RangeCheckDB
+		RangeDisplayDB = DefaultDB
+		db = RangeDisplayDB
 		self:resetPosition()
 		self:setHeight(db.Height)
 		if (db.Enabled) then
@@ -194,8 +194,8 @@ function RangeCheck:SlashCmd(args)
 	end
 end
 
-function RangeCheck:showStatus()
-	print("usage: /rangecheck lock | unlock | enable | disable | height XX | reset")
+function RangeDisplay:showStatus()
+	print("usage: /rangedisplay lock | unlock | enable | disable | height XX | reset")
 	for k, v in pairs(db) do
 		print(k .. ": " .. tostring(v))
 	end

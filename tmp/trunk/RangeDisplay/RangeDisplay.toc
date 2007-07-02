@@ -1,11 +1,11 @@
 ## Interface: 20100
-## Title: RangeCheck |cff7fff7f -Ace2-|r
+## Title: RangeDisplay |cff7fff7f -Ace2-|r
 ## Author: mitch0
 ## Version: 2.1.1
-## Notes: Estimated range display. type /rangecheck for help
+## Notes: Estimated range display. type /rangedisplay for help
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
-## SavedVariablesPerCharacter: RangeCheckDB
+## SavedVariablesPerCharacter: RangeDisplayDB
 ## OptionalDeps: Ace2, Babble-2.2, Gratuity-2.0, RangeCheck-1.0
 ## X-Embeds: Ace2, Babble-2.2, Gratuity-2.0, RangeCheck-1.0
 ## X-Category: Combat
@@ -19,5 +19,5 @@ libs\Gratuity-2.0\Gratuity-2.0.lua
 libs\RangeCheck-1.0\RangeCheck-1.0.lua
 
 
-RangeCheck.xml
-RangeCheck.lua
+RangeDisplay.xml
+RangeDisplay.lua
