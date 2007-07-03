@@ -5,7 +5,7 @@
   
   <Frame name="RangeDisplayFrame" hidden="true" parent="UIParent" enableMouse="false" movable="true" frameStrata="BACKGROUND">
     <Size>
-      <AbsDimension x="100" y="25"/>
+      <AbsDimension x="120" y="30"/>
     </Size>
     <Anchors>
       <Anchor point="CENTER"/>
@@ -13,14 +13,14 @@
     <Layers>
       <Layer level="BACKGROUND">
         <Texture name="$parentBG">
-          <Color r="0.0" g="0.0" b="0.0" a="0.25"/>
+          <Color r="0.0" g="0.0" b="0.0" a="0.33"/>
         </Texture>
       </Layer>
       <Layer level="OVERLAY">
         <!-- or outline="THICK"--> 
         <FontString name="$parentText" inherits="GameFontNormal" justifyH="CENTER" outline="NORMAL">
           <FontHeight>
-            <AbsValue val="16"/>
+            <AbsValue val="24"/>
           </FontHeight>
           <Anchors>
             <Anchor point="CENTER" relativeTo="$parent" relativePoint="CENTER">
@@ -31,7 +31,7 @@
           </Anchors>
         </FontString>
       </Layer>
-    </Layers>
+    </Layers> 
     <Scripts>
       <OnLoad> RangeDisplay:OnLoad() </OnLoad>
       <OnEvent> RangeDisplay:OnEvent(event, ...) </OnEvent>
@@ -39,6 +39,5 @@
       <OnMouseUp> this:StopMovingOrSizing() </OnMouseUp>
       <OnUpdate> RangeDisplay:OnUpdate(elapsed) </OnUpdate>
     </Scripts>
-    
   </Frame>
 </Ui>

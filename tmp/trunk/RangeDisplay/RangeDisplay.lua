@@ -13,15 +13,19 @@ local libRC = "RangeCheck-1.0"
 local rc = AceLibrary:HasInstance(libRC) and AceLibrary(libRC)
 if (not rc) then error(VERSION .. " requires " .. libRC) end
 local dewdrop = AceLibrary:HasInstance("Dewdrop-2.0") and AceLibrary("Dewdrop-2.0")
+local waterfall = AceLibrary:HasInstance("Waterfall-1.0") and AceLibrary("Waterfall-1.0")
+local L = AceLibrary("AceLocale-2.2"):new("RangeDisplay")
 
 RangeDisplay = {}
 
 local DefaultDB = {
 	Enabled = true,
-	Height = 24,
+	FontSize = 24,
 	ShowOutOfRange = nil,
 	CheckVisible = nil,
-	Locked = false
+	Locked = false,
+	X = 0,
+	Y = 0,
 }
 
 RangeDisplayDB = RangeDisplayDB or DefaultDB
@@ -41,32 +45,32 @@ local options = {
 	args = {
 		Enabled = {
 			type = 'toggle',
-			name = "Enabled",
-			desc = "Enable/Disable the mod",
+			name = L["Enabled"],
+			desc = L["Enable/Disable the mod"],
 			order = 100,
 		},
 		Locked = {
 			type = 'toggle',
-			name = "Locked",
-			desc = "Lock/Unlock display frame",
+			name = L["Locked"],
+			desc = L["Lock/Unlock display frame"],
 			order = 110,
 		},
 		ShowOutOfRange = {
 			type = 'toggle',
-			name = "Show out of range",
-			desc = "Display minRange if the unit is out of range, or hide the display",
+			name = L["Show out of range"],
+			desc = L["Display max checked range if the unit is out of range, or hide the display"],
 			order = 120,
 		},
 		CheckVisible = {
 			type = 'toggle',
-			name = "Check visibility",
-			desc = "If set, the max range will be 'visibility range'",
+			name = L["Check visibility"],
+			desc = L["If set, the max range will be 'visibility range'"],
 			order = 130,
 		},
-		Height = {
+		FontSize = {
 			type = 'range',
-			name = "Font size",
-			desc = "Font size",
+			name = L["Font size"],
+			desc = L["Set the font size"],
 			min = MinHeight,
 			max = MaxHeight,
 			step = 1,
@@ -74,8 +78,8 @@ local options = {
 		},
 		Reset = {
 			type = 'execute',
-			name = "Reset",
-			desc = "Restore default settings",
+			name = L["Reset"],
+			desc = L["Restore default settings"],
 			func = "reset",
 			order = 999,
 		},
@@ -86,9 +90,31 @@ local options = {
 local UnitExists = UnitExists
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 local db = RangeDisplayDB
-local rangeText = RangeDisplayFrameText
-local rangeFrameBG = RangeDisplayFrameBG
-local rangeFrame = RangeDisplayFrame
+
+-- frame stuff
+
+local rangeFrame = CreateFrame("Frame", "RangeDisplayFrame", UIParent)
+rangeFrame:SetFrameStrata("HIGH")
+rangeFrame:EnableMouse(false)
+rangeFrame:SetMovable(true)
+rangeFrame:SetWidth(120)
+rangeFrame:SetHeight(30)
+rangeFrame:ClearAllPoints()
+rangeFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+
+local rangeFrameBG = rangeFrame:CreateTexture("RangeDisplayFrameBG", "BACKGROUND")
+rangeFrameBG:SetTexture(0, 0, 0, 0.33)
+
+local rangeFrameText = rangeFrame:CreateTexture("RangeDisplayFrameText", "OVERLAY", "MasterFont")
+rangeFrameText:SetJustifyH("CENTER")
+rangeFrameText:SetPoint("CENTER", rangeFrame, "CENTER", -1, 0)
+
+rangeFrame:SetScript("OnLoad", function() RangeDisplay:OnLoad() end)
+rangeFrame:SetScript("OnEvent", function(this, event, ...) RangeDisplay:OnEvent(event, ...) end)
+rangeFrame:SetScript("OnMouseDown", function(this) this:StartMoving() end)
+rangeFrame:SetScript("OnMouseUp", function(this) this:StopMovingOrSizing() end)
+rangeFrame:SetScript("OnUpdate", function(this, elapsed) RangeDisplay:OnUpdate(elapsed) end)
+
 
 local lastUpdate = 0 -- time since last real update
 local lastRange = nil
@@ -105,17 +131,17 @@ local function isTargetValid(unit)
 	return UnitExists(unit) and (not UnitIsDeadOrGhost(unit))
 end
 
-function RangeDisplay:OnUpdate(elapsed)
-	lastUpdate = lastUpdate + elapsed
-	if (lastUpdate < UpdateDelay) then return end
-	lastUpdate = 0
-	local range = rc:getRangeAsString("target", db.CheckVisible, db.ShowOutOfRange)
-	if (range == lastRange) then return end
-	lastRange = range
-	rangeText:SetText(range)
-end
+function RangeDisplay:setupFrame()
+	db.X = db.X or 0
+	db.Y = db.Y or 0
+	rangeFrame:ClearAllPoints()
+	rangeFrame:SetPoint("CENTER", UIParent, "CENTER", db.X, db.Y)
 
--- config stuff
+	-- TODO: make font and style configurable
+	local font = GameFontNormal:GetFont()
+	db.FontSize = db.FontSize or DefaultDB.FontSize
+	rangeFrameText:SetFont(font, db.FontSize, "OUTLINE")
+end
 
 function RangeDisplay:getOption(name)
 	return db[name]
@@ -137,8 +163,8 @@ function RangeDisplay:applySettings()
 	else
 		self:unlock()
 	end
-	if (db.Height) then
-		self:setHeight(db.Height)
+	if (db.FontSize) then
+		self:setFontSize(db.FontSize)
 	end
 end
 
@@ -158,22 +184,15 @@ function RangeDisplay:resetPosition()
 end
 
 function RangeDisplay:lock()
-	if (dewdrop) then
-		dewdrop:Unregister(rangeFrame)
-	end
 	rangeFrame:EnableMouse(false)
 	rangeFrameBG:Hide()
 	if (not isTargetValid("target")) then
 		rangeFrame:Hide()
 	end
+	_, _, _ , db.X, db.Y = rangeFrame:GetPoint()
 end
 
 function RangeDisplay:unlock()
-	if (dewdrop) then
-		dewdrop:Register(rangeFrame, 'children', function()
-				dewdrop:FeedAceOptionsTable(options)
-			end)
-	end
 	rangeFrame:EnableMouse(true)
 	rangeFrame:Show()
 	rangeFrameBG:Show()
@@ -196,9 +215,9 @@ function RangeDisplay:disable()
 	rangeFrame:Hide()
 end
 
-function RangeDisplay:setHeight(height)
-	local path, _, flags = rangeText:GetFont()
-	rangeText:SetFont(path, height, flags)
+function RangeDisplay:setFontSize(fontSize)
+	local path, _, flags = rangeFrameText:GetFont()
+	rangeFrameText:SetFont(path, fontSize, flags)
 end
 
 -- boring stuff
@@ -222,6 +241,19 @@ end
 
 function RangeDisplay:VARIABLES_LOADED()
 	db = RangeDisplayDB
+	setupFrame()
+	if (dewdrop) then
+		dewdrop:Register(rangeFrame, 'children', function()
+			dewdrop:AddLine('text', L["RangeDisplay"], 'isTitle', true)
+			dewdrop:FeedAceOptionsTable(options)
+		end)
+	end
+	if (waterfall) then
+		waterfall:Register("RangeDisplay", 
+			'aceOptions', options,
+			'title', L["RangeDisplay"],
+			'treeLevels', 1);
+	end
 	print(VERSION .. " loaded. Type /rangedisplay for help")
 	self:applySettings()
 end
@@ -232,53 +264,82 @@ function RangeDisplay:PLAYER_TARGET_CHANGED()
 	end
 end
 
+function RangeDisplay:OnUpdate(elapsed)
+	lastUpdate = lastUpdate + elapsed
+	if (lastUpdate < UpdateDelay) then return end
+	lastUpdate = 0
+	local range = rc:getRangeAsString("target", db.CheckVisible, db.ShowOutOfRange)
+	if (range == lastRange) then return end
+	lastRange = range
+	rangeFrameText:SetText(range)
+end
+
 function RangeDisplay:SlashCmd(args)
-	if (dewdrop) then
-		dewdrop:Open(rangeFrame, 'children', function()
-				dewdrop:FeedAceOptionsTable(options)
-			end)
-		return
-	end
-	if (args == nil) then return end
+	args = args or ""
 	local _, _, cmd, cmdParam = string.find(string.lower(args), "^%s*(%S+)%s*(%S*)")
-	if (cmd == "on" or cmd == "enable") then
+	if (cmd == "enable") then
 		db.Enabled = true
 		rc:init(true)
 		self:enable()
-		print("RangeDisplay enabled")
-	elseif (cmd == "off" or cmd == "disable") then
+	elseif (cmd == "disable") then
 		db.Enabled = false
 		self:disable()
-		print("RangeDisplay disabled")
-	elseif (cmd == "lock") then
+	elseif ("lock") then
 		db.Locked = true
 		self:lock()
-		print("RangeDisplay locked")
-	elseif (cmd == "unlock") then
+	elseif ("unlock") then
 		db.Locked = false
 		self:unlock()
-		print("RangeDisplay is unlocked")
-	elseif (cmd == "height" or cmdParam == "h") then
-			local _, _, h = string.find(args, "(%d+\.?%d*)")
-			if (h == nil) then
-				self:showStatus()
-				return
-			end
-			local hh = tonumber(h)
-			if (MinHeight <= hh and hh < MaxHeight) then
-				self:setHeight(hh)
-				db.Height = hh
-				print("RangeDisplayHeight set to " .. tostring(hh))
-			end
+	elseif ("fontsize") then
+		local _, _, h = string.find(args, "(%d+\.?%d*)")
+		if (h == nil) then
+			self:showStatus()
+			return
+		end
+		local hh = tonumber(h)
+		if (MinHeight <= hh and hh <= MaxHeight) then
+			self:setFontSize(hh)
+			db.FontSize = hh
+		end
+	elseif (cmd == "togglesor") then
+		db.ShowOutOfRange = ~db.ShowOutOfRange
+	elseif (cmd == "togglecv") then
+		db.CheckVisible = ~db.CheckVisible
 	elseif (cmd == "reset") then
 		self:reset()
+	elseif (cmd == "config") then
+		if (waterfall) then
+			waterfall:Open("RangeDisplay")
+		elseif (dewdrop) then
+			dewdrop:Open(rangeFrame)
+		else
+			print("Either Waterfall or Dewdrop is needed for this option")
+		end
+	elseif (cmd == "configdd") then
+		if (dewdrop) then
+			dewdrop:Open(rangeFrame)
+		else
+			print("Dewdrop is needed for this option")
+		end
+	elseif (cmd == "configwf") then
+		if (waterfall) then
+			waterfall:Open("RangeDisplay")
+		else
+			print("Waterfall is needed for this option")
+		end
 	else
-		self:showStatus()
+		if (waterfall) then
+			waterfall:Open("RangeDisplay")
+		elseif (dewdrop) then
+			dewdrop:Open(rangeFrame)
+		else
+			self:showStatus()
+		end
 	end
 end
 
 function RangeDisplay:showStatus()
-	print("usage: /rangedisplay lock | unlock | enable | disable | height XX | reset")
+	print("usage: /rangedisplay enable | disable | lock | unlock | fontsize XX | togglesor | togglecv | reset | config[dd|wf]")
 	for k, v in pairs(db) do
 		print(k .. ": " .. tostring(v))
 	end

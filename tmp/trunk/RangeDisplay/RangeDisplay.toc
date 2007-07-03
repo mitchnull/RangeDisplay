@@ -6,18 +6,12 @@
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariablesPerCharacter: RangeDisplayDB
-## OptionalDeps: Ace2, Babble-2.2, Gratuity-2.0, RangeCheck-1.0, Dewdrop-2.0
-## X-Embeds: Ace2, Babble-2.2, Gratuity-2.0, RangeCheck-1.0
+## OptionalDeps: Ace2, Babble-2.2, GratuityLib, RangeCheck-1.0, DewdropLib, Waterfall-1.0
+## X-Embeds: Ace2, Babble-2.2, GratuityLib, RangeCheck-1.0
 ## X-Category: Combat
 ## X-License: Public Domain
 ## X-AceForum: 6664
 
-libs\AceLibrary\AceLibrary.lua
-libs\AceLocale-2.2\AceLocale-2.2.lua
-libs\Babble-Spell-2.2\Babble-Spell-2.2.lua
-libs\Gratuity-2.0\Gratuity-2.0.lua
-libs\RangeCheck-1.0\RangeCheck-1.0.lua
+embeds.xml
 
-
-RangeDisplay.xml
 RangeDisplay.lua
