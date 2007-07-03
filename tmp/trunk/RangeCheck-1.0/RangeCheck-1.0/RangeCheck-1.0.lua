@@ -37,6 +37,7 @@ local InteractList = { { index = 3, range = 9 }, { index = 2, range = 10 }, { in
 local InteractMinRangeCheckIndex = 2
 local RealMinRange = 9.5 -- this is the 8yd range as measured... go figure...
 local MeleeRange = 5
+local VisibleRange = 100
 
 -- list of friendly spells that have different ranges
 local FriendSpells = {}
@@ -83,6 +84,7 @@ local tonumber = tonumber
 local tostring = tostring
 local CheckInteractDistance = CheckInteractDistance
 local IsSpellInRange = IsSpellInRange
+local UnitIsVisible = UnitIsVisible
 
 local function print(text)
 	if (DEFAULT_CHAT_FRAME) then 
@@ -133,39 +135,44 @@ end
 
 local function createCheckerList(spellList)
 	local res = {}
+    if (spellList) then
+	    for i, v in ipairs(spellList) do
+	    	local spellId = findSpellId(v)
+	    	local range, minRange = getSpellRange(spellId, BOOKTYP_SPELL)
+	    	if (range) then
+	    		if (minRange) then
+	    			addChecker(res, range, function(unit)
+	    				if (IsSpellInRange(spellId, BOOKTYPE_SPELL, unit) == 1 or CheckInteractDistance(unit, InteractMinRangeCheckIndex)) then return true end
+	    			end)
+	    		else
+	    			addChecker(res, range, function(unit)
+	    				if (IsSpellInRange(spellId, BOOKTYPE_SPELL, unit) == 1) then return true end
+	    			end)
+	    		end
+	    	end
+	    end
+    end
 	for i, v in ipairs(InteractList) do
 		addChecker(res, v.range, function(unit)
 			if (CheckInteractDistance(unit, v.index)) then return true end
 		end)
     end
-    if (not spellList) then return res end
-    for i, v in ipairs(spellList) do
-    	local spellId = findSpellId(v)
-    	local range, minRange = getSpellRange(spellId, BOOKTYP_SPELL)
-    	if (range) then
-    		if (minRange) then
-    			addChecker(res, range, function(unit)
-    				if (IsSpellInRange(spellId, BOOKTYPE_SPELL, unit) == 1 or CheckInteractDistance(unit, InteractMinRangeCheckIndex)) then return true end
-    			end)
-    		else
-    			addChecker(res, range, function(unit)
-    				if (IsSpellInRange(spellId, BOOKTYPE_SPELL, unit) == 1) then return true end
-    			end)
-    		end
-    	end
-    end
     return res
 end
 
 -- returns minRange, maxRange or nil
-local function getRange(unit, checkerList)
-	local min = 0
-    local max = nil
+local function getRange(unit, checkerList, checkVisible)
+	local max = nil
+    if (checkVisible) then
+    	if (UnitIsVisible(unit)) then
+    		max = VisibleRange
+    	else
+    		return VisibleRange, nil
+    	end
+    end
     for i, rc in ipairs(checkerList) do
         if (rc.checker(unit)) then
 	        max = rc.range
-        elseif (not max) then
-        	return nil
         else
 			return rc.range, max
         end
@@ -191,23 +198,25 @@ function RangeCheck:findSpellId(spellName)
 end
 
 -- returns minRange, maxRange or nil
-function RangeCheck:getRange(unit)
+function RangeCheck:getRange(unit, checkVisible)
 	if (not isTargetValid(unit)) then return nil end
 	if (UnitCanAttack("player", unit)) then
-	    return getRange(unit, self.harmRC)
+	    return getRange(unit, self.harmRC, checkVisible)
 	elseif (UnitCanAssist("player", unit)) then
-	    return getRange(unit, self.friendRC)
+	    return getRange(unit, self.friendRC, checkVisible)
 	else
-		return getRange(unit, self.miscRC)
+		return getRange(unit, self.miscRC, checkVisible)
 	end
 end
 
 -- returns the range estimate as a string
-function RangeCheck:getRangeAsString(unit)
-	local minRange, maxRange = self:getRange(unit)
-	if (not maxRange) then return nil end
-	lastStr = tostring(minRange) .. " - " .. tostring(maxRange)
-	return lastStr
+function RangeCheck:getRangeAsString(unit, checkVisible, showOutOfRange)
+	local minRange, maxRange = self:getRange(unit, checkVisible)
+	if (not minRange) then return nil end
+	if (not maxRange) then
+		return showOutOfRange and tostring(minRange) .. " +" or nil
+	end
+	return tostring(minRange) .. " - " .. tostring(maxRange)
 end
 
 -- initialize RangeCheck if not yet initialized or if "forced"
@@ -253,7 +262,7 @@ local function activate(self, oldLib, oldDeactivate)
     else
     	local frame = CreateFrame("Frame")
     	self.frame = frame
-	   	frame:RegisterEvent(INIT_EVENT);
+	   	frame:RegisterEvent(INIT_EVENT)
 		frame:RegisterEvent("LEARNED_SPELL_IN_TAB")
 		frame:RegisterEvent("CHARACTER_POINTS_CHANGED")
 	--	frame:RegisterEvent("SPELLS_CHANGED")
