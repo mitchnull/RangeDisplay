@@ -12,15 +12,75 @@ if (not AceLibrary) then error(VERSION .. " requires AceLibrary.") end
 local libRC = "RangeCheck-1.0"
 local rc = AceLibrary:HasInstance(libRC) and AceLibrary(libRC)
 if (not rc) then error(VERSION .. " requires " .. libRC) end
+local dewdrop = AceLibrary:HasInstance("Dewdrop-2.0") and AceLibrary("Dewdrop-2.0")
+
 RangeDisplay = {}
 
 local DefaultDB = {
 	Enabled = true,
 	Height = 24,
+	ShowOutOfRange = nil,
+	CheckVisible = nil,
 	Locked = false
 }
 
 RangeDisplayDB = RangeDisplayDB or DefaultDB
+
+local UpdateDelay = .1 -- update frequency == 1/UpdateDelay
+local MinHeight = 5
+local MaxHeight = 40
+
+-- options table
+-- TODO: localization
+local options = {
+	type = "group",
+	pass = true,
+	handler = RangeDisplay,
+	get = "getOption",
+	set = "setOption",
+	args = {
+		Enabled = {
+			type = 'toggle',
+			name = "Enabled",
+			desc = "Enable/Disable the mod",
+			order = 100,
+		},
+		Locked = {
+			type = 'toggle',
+			name = "Locked",
+			desc = "Lock/Unlock display frame",
+			order = 110,
+		},
+		ShowOutOfRange = {
+			type = 'toggle',
+			name = "Show out of range",
+			desc = "Display minRange if the unit is out of range, or hide the display",
+			order = 120,
+		},
+		CheckVisible = {
+			type = 'toggle',
+			name = "Check visibility",
+			desc = "If set, the max range will be 'visibility range'",
+			order = 130,
+		},
+		Height = {
+			type = 'range',
+			name = "Font size",
+			desc = "Font size",
+			min = MinHeight,
+			max = MaxHeight,
+			step = 1,
+			order = 140,
+		},
+		Reset = {
+			type = 'execute',
+			name = "Reset",
+			desc = "Restore default settings",
+			func = "reset",
+			order = 999,
+		},
+	},
+}
 
 -- cached stuff
 local UnitExists = UnitExists
@@ -30,7 +90,6 @@ local rangeText = RangeDisplayFrameText
 local rangeFrameBG = RangeDisplayFrameBG
 local rangeFrame = RangeDisplayFrame
 
-local UpdateDelay = .05 -- update frequency == 1/UpdateDelay
 local lastUpdate = 0 -- time since last real update
 local lastRange = nil
 
@@ -44,6 +103,27 @@ end
 
 local function isTargetValid(unit)
 	return UnitExists(unit) and (not UnitIsDeadOrGhost(unit))
+end
+
+function RangeDisplay:OnUpdate(elapsed)
+	lastUpdate = lastUpdate + elapsed
+	if (lastUpdate < UpdateDelay) then return end
+	lastUpdate = 0
+	local range = rc:getRangeAsString("target", db.CheckVisible, db.ShowOutOfRange)
+	if (range == lastRange) then return end
+	lastRange = range
+	rangeText:SetText(range)
+end
+
+-- config stuff
+
+function RangeDisplay:getOption(name)
+	return db[name]
+end
+
+function RangeDisplay:setOption(name, value)
+	db[name] = value
+	self:applySettings()
 end
 
 function RangeDisplay:applySettings()
@@ -62,17 +142,15 @@ function RangeDisplay:applySettings()
 	end
 end
 
-function RangeDisplay:OnUpdate(elapsed)
-	lastUpdate = lastUpdate + elapsed
-	if (lastUpdate < UpdateDelay) then return end
-	lastUpdate = 0
-	local range = rc:getRangeAsString("target")
-	if (range == lastRange) then return end
-	lastRange = range
-	rangeText:SetText(range)
+function RangeDisplay:reset()
+	RangeDisplayDB = DefaultDB
+	db = RangeDisplayDB
+	self:resetPosition()
+	self:applySettings()
+	if (db.Enabled) then
+		rc:init(true)
+	end
 end
-
--- frame setup stuff
 
 function RangeDisplay:resetPosition()
 	rangeFrame:ClearAllPoints()
@@ -80,6 +158,9 @@ function RangeDisplay:resetPosition()
 end
 
 function RangeDisplay:lock()
+	if (dewdrop) then
+		dewdrop:Unregister(rangeFrame)
+	end
 	rangeFrame:EnableMouse(false)
 	rangeFrameBG:Hide()
 	if (not isTargetValid("target")) then
@@ -88,6 +169,11 @@ function RangeDisplay:lock()
 end
 
 function RangeDisplay:unlock()
+	if (dewdrop) then
+		dewdrop:Register(rangeFrame, 'children', function()
+				dewdrop:FeedAceOptionsTable(options)
+			end)
+	end
 	rangeFrame:EnableMouse(true)
 	rangeFrame:Show()
 	rangeFrameBG:Show()
@@ -114,7 +200,6 @@ function RangeDisplay:setHeight(height)
 	local path, _, flags = rangeText:GetFont()
 	rangeText:SetFont(path, height, flags)
 end
-
 
 -- boring stuff
 
@@ -148,6 +233,12 @@ function RangeDisplay:PLAYER_TARGET_CHANGED()
 end
 
 function RangeDisplay:SlashCmd(args)
+	if (dewdrop) then
+		dewdrop:Open(rangeFrame, 'children', function()
+				dewdrop:FeedAceOptionsTable(options)
+			end)
+		return
+	end
 	if (args == nil) then return end
 	local _, _, cmd, cmdParam = string.find(string.lower(args), "^%s*(%S+)%s*(%S*)")
 	if (cmd == "on" or cmd == "enable") then
@@ -174,21 +265,13 @@ function RangeDisplay:SlashCmd(args)
 				return
 			end
 			local hh = tonumber(h)
-			if (5 <= hh and hh < 40) then
+			if (MinHeight <= hh and hh < MaxHeight) then
 				self:setHeight(hh)
 				db.Height = hh
 				print("RangeDisplayHeight set to " .. tostring(hh))
 			end
 	elseif (cmd == "reset") then
-		RangeDisplayDB = DefaultDB
-		db = RangeDisplayDB
-		self:resetPosition()
-		self:setHeight(db.Height)
-		if (db.Enabled) then
-			rc:init(true)
-		else
-			self:disable()
-		end
+		self:reset()
 	else
 		self:showStatus()
 	end

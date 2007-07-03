@@ -6,7 +6,7 @@
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariablesPerCharacter: RangeDisplayDB
-## OptionalDeps: Ace2, Babble-2.2, Gratuity-2.0, RangeCheck-1.0
+## OptionalDeps: Ace2, Babble-2.2, Gratuity-2.0, RangeCheck-1.0, Dewdrop-2.0
 ## X-Embeds: Ace2, Babble-2.2, Gratuity-2.0, RangeCheck-1.0
 ## X-Category: Combat
 ## X-License: Public Domain
