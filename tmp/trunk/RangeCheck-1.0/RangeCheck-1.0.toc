@@ -4,8 +4,7 @@
 ## Author: mitch0
 ## Version: 2.1.1
 ## DefaultState: Enabled
-## LoadOnDemand: 0
-## OptionalDeps: Ace2, Babble-2.2, Gratuity-2.0
+## OptionalDeps: Ace2, Babble-2.2, GratuityLib
 ## X-Category: Library
 ## X-AceLibrary-RangeCheck-1.0: true
 ## X-License: Public Domain
