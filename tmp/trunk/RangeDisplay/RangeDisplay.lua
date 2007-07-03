@@ -28,6 +28,7 @@ local DefaultDB = {
 	Y = 0,
 }
 
+-- FIXME: deep copy here!!!
 RangeDisplayDB = RangeDisplayDB or DefaultDB
 
 local UpdateDelay = .1 -- update frequency == 1/UpdateDelay
@@ -35,9 +36,9 @@ local MinHeight = 5
 local MaxHeight = 40
 
 -- options table
--- TODO: localization
 local options = {
 	type = "group",
+	name = L["RangeDisplay"],
 	pass = true,
 	handler = RangeDisplay,
 	get = "getOption",
@@ -103,17 +104,23 @@ rangeFrame:ClearAllPoints()
 rangeFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 
 local rangeFrameBG = rangeFrame:CreateTexture("RangeDisplayFrameBG", "BACKGROUND")
-rangeFrameBG:SetTexture(0, 0, 0, 0.33)
+rangeFrameBG:SetTexture(0, 0, 0, 0.42)
+rangeFrameBG:SetWidth(rangeFrame:GetWidth())
+rangeFrameBG:SetHeight(rangeFrame:GetHeight())
+rangeFrameBG:ClearAllPoints()
+rangeFrameBG:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
 
-local rangeFrameText = rangeFrame:CreateTexture("RangeDisplayFrameText", "OVERLAY", "MasterFont")
+local rangeFrameText = rangeFrame:CreateFontString("RangeDisplayFrameText", "OVERLAY", "GameFontNormal")
 rangeFrameText:SetJustifyH("CENTER")
-rangeFrameText:SetPoint("CENTER", rangeFrame, "CENTER", -1, 0)
+rangeFrameText:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
 
-rangeFrame:SetScript("OnLoad", function() RangeDisplay:OnLoad() end)
 rangeFrame:SetScript("OnEvent", function(this, event, ...) RangeDisplay:OnEvent(event, ...) end)
 rangeFrame:SetScript("OnMouseDown", function(this) this:StartMoving() end)
 rangeFrame:SetScript("OnMouseUp", function(this) this:StopMovingOrSizing() end)
 rangeFrame:SetScript("OnUpdate", function(this, elapsed) RangeDisplay:OnUpdate(elapsed) end)
+
+rangeFrame:RegisterEvent("ADDON_LOADED")
+rangeFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 
 
 local lastUpdate = 0 -- time since last real update
@@ -140,7 +147,7 @@ function RangeDisplay:setupFrame()
 	-- TODO: make font and style configurable
 	local font = GameFontNormal:GetFont()
 	db.FontSize = db.FontSize or DefaultDB.FontSize
-	rangeFrameText:SetFont(font, db.FontSize, "OUTLINE")
+ 	rangeFrameText:SetFont(font, db.FontSize, db.FontStyle)
 end
 
 function RangeDisplay:getOption(name)
@@ -169,6 +176,7 @@ function RangeDisplay:applySettings()
 end
 
 function RangeDisplay:reset()
+-- FIXME: deep copy here!!!
 	RangeDisplayDB = DefaultDB
 	db = RangeDisplayDB
 	self:resetPosition()
@@ -180,7 +188,7 @@ end
 
 function RangeDisplay:resetPosition()
 	rangeFrame:ClearAllPoints()
-	rangeFrame:SetPoint("CENTER", UIParent, "CENTER")
+	rangeFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 end
 
 function RangeDisplay:lock()
@@ -222,15 +230,8 @@ end
 
 -- boring stuff
 
-function RangeDisplay:OnLoad()
-	-- register our slash command
-	SLASH_RANGEDISPLAY1 = "/rangedisplay"
-	SlashCmdList["RANGEDISPLAY"] = function(msg)
-		RangeDisplay:SlashCmd(msg)
-	end
+function RangeDisplay:OnLoad(this)
 
-	this:RegisterEvent("VARIABLES_LOADED")
-	this:RegisterEvent("PLAYER_TARGET_CHANGED")
 end
 
 function RangeDisplay:OnEvent(event, ...)
@@ -239,9 +240,16 @@ function RangeDisplay:OnEvent(event, ...)
 	end
 end
 
-function RangeDisplay:VARIABLES_LOADED()
+function RangeDisplay:ADDON_LOADED(event, name)
+	if (name ~= "RangeDisplay") then return end
+	-- register our slash command
+	SLASH_RANGEDISPLAY1 = "/rangedisplay"
+	SlashCmdList["RANGEDISPLAY"] = function(msg)
+		RangeDisplay:SlashCmd(msg)
+	end
+	
 	db = RangeDisplayDB
-	setupFrame()
+	self:setupFrame()
 	if (dewdrop) then
 		dewdrop:Register(rangeFrame, 'children', function()
 			dewdrop:AddLine('text', L["RangeDisplay"], 'isTitle', true)
@@ -252,7 +260,9 @@ function RangeDisplay:VARIABLES_LOADED()
 		waterfall:Register("RangeDisplay", 
 			'aceOptions', options,
 			'title', L["RangeDisplay"],
-			'treeLevels', 1);
+--			'treeLevels', 1,
+			'colorR', 0.99, 'colorG', 0.88, 'colorB', 0.55
+		)
 	end
 	print(VERSION .. " loaded. Type /rangedisplay for help")
 	self:applySettings()
@@ -284,15 +294,15 @@ function RangeDisplay:SlashCmd(args)
 	elseif (cmd == "disable") then
 		db.Enabled = false
 		self:disable()
-	elseif ("lock") then
+	elseif (cmd == "lock") then
 		db.Locked = true
 		self:lock()
-	elseif ("unlock") then
+	elseif (cmd == "unlock") then
 		db.Locked = false
 		self:unlock()
-	elseif ("fontsize") then
+	elseif (cmd == "fontsize") then
 		local _, _, h = string.find(args, "(%d+\.?%d*)")
-		if (h == nil) then
+		if (not h) then
 			self:showStatus()
 			return
 		end
@@ -302,9 +312,9 @@ function RangeDisplay:SlashCmd(args)
 			db.FontSize = hh
 		end
 	elseif (cmd == "togglesor") then
-		db.ShowOutOfRange = ~db.ShowOutOfRange
+		db.ShowOutOfRange = not db.ShowOutOfRange
 	elseif (cmd == "togglecv") then
-		db.CheckVisible = ~db.CheckVisible
+		db.CheckVisible = not db.CheckVisible
 	elseif (cmd == "reset") then
 		self:reset()
 	elseif (cmd == "config") then
@@ -327,19 +337,14 @@ function RangeDisplay:SlashCmd(args)
 		else
 			print("Waterfall is needed for this option")
 		end
+	elseif (cmd == "dumpdb") then
+		self:dumpDB()
 	else
-		if (waterfall) then
-			waterfall:Open("RangeDisplay")
-		elseif (dewdrop) then
-			dewdrop:Open(rangeFrame)
-		else
-			self:showStatus()
-		end
+		print("usage: /rangedisplay enable | disable | lock | unlock | fontsize XX | togglesor | togglecv | reset | config[dd|wf]")
 	end
 end
 
-function RangeDisplay:showStatus()
-	print("usage: /rangedisplay enable | disable | lock | unlock | fontsize XX | togglesor | togglecv | reset | config[dd|wf]")
+function RangeDisplay:dumpDB()
 	for k, v in pairs(db) do
 		print(k .. ": " .. tostring(v))
 	end
