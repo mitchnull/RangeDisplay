@@ -184,8 +184,17 @@ end
 
 local RangeCheck = {}
 
+-- pre-initialize the checkerLists here so that we can return some meaningful result even if
+-- someone manages to call us before we're properly initialized. miscRC should be independent of
+-- race/class/talents, so it's safe to initialize it here
+-- friendRC and harmRC will be properly initialized later when we have all the necessary data for them
+RangeCheck.miscRC = createCheckerList(nil)
+RangeCheck.friendRC = RangeCheck.miscRC
+RangeCheck.harmRC = RangeCheck.miscRC
+
 -- "export" it, maybe someone will need it for formatting
 RangeCheck.MeleeRange = MeleeRange
+RangeCheck.VisibleRange = VisibleRange
 
 -- returns range[, minRange] of the given spell if applicable
 function RangeCheck:getSpellRange(spellId, bookType)
