@@ -9,10 +9,6 @@
   Missiles and Frostbolt are all listed, even though they all have a 30 yd
   range initially).
 
-- Ideally, RangeCheck should be initialized on PLAYER_ALIVE, but
-  unfortunately the spell tooltips are not yet updated at that point. I am using
-  MEETINGSTONE_CHANGED now, which seems to be OK for this purpose.
-
 - The minimum range value (of hunter shots, for example) is not used presently,
   as it's just a tiny distance in between interact2 and interact3 values,
   and it would just cause too much flicker.
