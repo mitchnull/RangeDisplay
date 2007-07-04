@@ -16,4 +16,4 @@ L:RegisterTranslations("enUS", function() return {
 ["RangeDisplay"] = true,
 
 } end)
-			
+

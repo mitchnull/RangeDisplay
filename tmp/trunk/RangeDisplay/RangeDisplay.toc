@@ -15,6 +15,6 @@
 
 embeds.xml
 
-locales\enUS.lua
+localization-enUS.lua
 
 RangeDisplay.lua
