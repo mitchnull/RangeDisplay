@@ -6,7 +6,7 @@ Website: http://www.wowace.com/wiki/RangeCheck-1.0
 Documentation: http://www.wowace.com/wiki/RangeCheck-1.0
 SVN: http://svn.wowace.com/wowace/trunk/RangeCheck-1.0/
 Description: A range checking library based on interact distances and spell ranges
-Dependencies: AceLibrary, Babble-2.0, Gratuity-2.0
+Dependencies: AceLibrary, Babble-2.2, GratuityLib
 License: Public Domain
 ]]
 

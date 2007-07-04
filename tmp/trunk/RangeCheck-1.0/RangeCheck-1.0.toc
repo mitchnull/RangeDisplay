@@ -2,12 +2,13 @@
 ## Title: Lib: RangeCheck-1.0 |cff7fff7f -Ace2-|r
 ## Notes: A library to determine estimated range.
 ## Author: mitch0
-## Version: 2.1.1
+## Version: 2.1.2
 ## DefaultState: Enabled
 ## OptionalDeps: Ace2, Babble-2.2, GratuityLib
 ## X-Category: Library
 ## X-AceLibrary-RangeCheck-1.0: true
 ## X-License: Public Domain
 ## X-AceForum: 6664
+## X-RelSite-WoWI:7299
 
 RangeCheck-1.0\RangeCheck-1.0.lua
