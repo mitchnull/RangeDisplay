@@ -45,19 +45,22 @@ local FriendSpells = {}
 local HarmSpells = {}
 
 FriendSpells["MAGE"] = { BS["Remove Lesser Curse"], BS["Arcane Brilliance"] }
-HarmSpells["MAGE"] = { BS["Fire Blast"], BS["Arcane Missiles"], BS["Frostbolt"], BS["Scorch"], BS["Fireball"], BS["Detect Magic"] }
+HarmSpells["MAGE"] = { BS["Shoot"], BS["Fire Blast"], BS["Arcane Missiles"], BS["Frostbolt"], BS["Scorch"], BS["Fireball"], BS["Detect Magic"] }
 
-HarmSpells["HUNTER"] = { BS["Auto Shot"], BS["Scatter Shot"], BS["Wing Clip"] }
+FriendSpells["HUNTER"] = {}
+HarmSpells["HUNTER"] = { BS["Throw"], BS["Auto Shot"], BS["Scatter Shot"], BS["Wing Clip"] }
 
-HarmSpells["WARRIOR"] = { BS["Charge"], BS["Rend"] }
+FriendSpells["WARRIOR"] = {}
+HarmSpells["WARRIOR"] = { BS["Shoot"], BS["Throw"], BS["Charge"], BS["Rend"] }
 
 FriendSpells["SHAMAN"] = { BS["Healing Wave"], BS["Cure Poison"] }
 HarmSpells["SHAMAN"] = { BS["Lightning Bolt"], BS["Purge"], BS["Earth Shock"] }
 
-HarmSpells["ROGUE"] = { BS["Deadly Throw"], BS["Blind"], BS["Eviscerate"] }
+FriendSpells["ROGUE"] = {}
+HarmSpells["ROGUE"] = { BS["Throw"], BS["Deadly Throw"], BS["Blind"], BS["Eviscerate"] }
 
 FriendSpells["PRIEST"] = { BS["Lesser Heal"], BS["Power Word: Fortitude"] }
-HarmSpells["PRIEST"] = { BS["Mind Soothe"], BS["Smite"], BS["Shadow Word: Pain"], BS["Dispel Magic"], BS["Mind Flay"] }
+HarmSpells["PRIEST"] = { BS["Shoot"], BS["Mind Soothe"], BS["Smite"], BS["Shadow Word: Pain"], BS["Dispel Magic"], BS["Mind Flay"] }
 
 FriendSpells["PALADIN"] = { BS["Holy Light"], BS["Blessing of Might"], BS["Holy Shock"] }
 HarmSpells["PALADIN"] = { BS["Hammer of Wrath"], BS["Holy Shock"], BS["Judgement"] } 
@@ -66,13 +69,19 @@ FriendSpells["DRUID"] = { BS["Healing Touch"], BS["Mark of the Wild"] }
 HarmSpells["DRUID"] = { BS["Wrath"], BS["Growl"],  }
 
 FriendSpells["WARLOCK"] = { BS["Unending Breath"] }
-HarmSpells["WARLOCK"] = { BS["Immolate"], BS["Corruption"], BS["Fear"], BS["Shadowburn"] }
+HarmSpells["WARLOCK"] = { BS["Shoot"], BS["Immolate"], BS["Corruption"], BS["Fear"], BS["Shadowburn"] }
+
+-- This could've been done by checking player race as well and creating tables for those, but it's easier like this
+for k, v in pairs(FriendSpells) do
+	tinsert(v, BS["Gift of the Naaru"])
+end
+for k, v in pairs(HarmSpells) do
+	tinsert(v, BS["Mana Tap"])
+end
 
 -- >> END OF STATIC CONFIG
 
-local INIT_EVENT = "MEETINGSTONE_CHANGED"
-
--- helper functions and cache
+-- cache
 
 local BOOKTYPE_SPELL = BOOKTYPE_SPELL
 local GetSpellName = GetSpellName
@@ -85,6 +94,9 @@ local tostring = tostring
 local CheckInteractDistance = CheckInteractDistance
 local IsSpellInRange = IsSpellInRange
 local UnitIsVisible = UnitIsVisible
+local tinsert = tinsert
+
+-- helper functions
 
 local function print(text)
 	if (DEFAULT_CHAT_FRAME) then 
@@ -126,11 +138,11 @@ local function addChecker(t, range, checker)
 	for i, v in ipairs(t) do
 		if (rc.range == v.range) then return end
         if (rc.range > v.range) then
-        	table.insert(t, i, rc)
+        	tinsert(t, i, rc)
         	return
     	end
 	end
-	table.insert(t, rc)
+	tinsert(t, rc)
 end
 
 local function createCheckerList(spellList)
@@ -252,31 +264,22 @@ function RangeCheck:CHARACTER_POINTS_CHANGED()
 	self:init(true)
 end
 
-local function firstInit(self)
-	self:init()
-	print(MAJOR_VERSION .. "-r" .. MINOR_VERSION .. " initialized")
-end
-
-RangeCheck[INIT_EVENT] = function(self)
-	self.frame:UnregisterEvent(INIT_EVENT)
-	firstInit(self)
-end
-
 local function activate(self, oldLib, oldDeactivate)
     if (oldLib) then -- rescue oldLib's frame
     	self.frame = oldLib.frame
-    	if (oldLib.initialized) then
-    		firstInit(self) -- oldLib could already initialize itself, so it's probably safe to call init here
-    	end
     else
     	local frame = CreateFrame("Frame")
     	self.frame = frame
-	   	frame:RegisterEvent(INIT_EVENT)
 		frame:RegisterEvent("LEARNED_SPELL_IN_TAB")
 		frame:RegisterEvent("CHARACTER_POINTS_CHANGED")
 	--	frame:RegisterEvent("SPELLS_CHANGED")
     end
 	self.frame:SetScript("OnEvent", function(frame, ...) self:OnEvent(...) end)
+	self.frame:SetScript("OnUpdate", function(frame, ...)
+		self:init()
+		frame:SetScript("OnUpdate", nil)
+		print(MAJOR_VERSION .. "-r" .. MINOR_VERSION .. " initialized")
+	end)
 
 	if (oldDeactivate) then -- clean up the old library
 		oldDeactivate(oldLib)
