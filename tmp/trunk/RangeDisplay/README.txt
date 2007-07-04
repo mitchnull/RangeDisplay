@@ -26,8 +26,8 @@ Options:
   locks the RangeDisplay display frame
 /rangedisplay fontsize NUM
   sets the font size of the RangeDisplay display to NUM
-/rangedisplay togglesor
-  toggles the ShowOutOfRange setting; if it is on, out of range will be
+/rangedisplay toggleord
+  toggles the OutOfRangeDisplay setting; if it is on, out of range will be
   displayed as "40 +" (for example), instead of hiding the display
 /rangedisplay togglecv
   toggles the CheckVisible setting; if it is on, 'visibility' range will

@@ -7,7 +7,7 @@
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: delayed
 ## SavedVariablesPerCharacter: RangeDisplayDB
-## OptionalDeps: Ace2, Babble-2.2, GratuityLib, RangeCheck-1.0, DewdropLib, Waterfall-1.0
+## OptionalDeps: Ace2, Babble-2.2, GratuityLib, RangeCheck-1.0, DewdropLib, Waterfall-1.0, SharedMediaLib
 ## X-Embeds: Ace2, Babble-2.2, GratuityLib, RangeCheck-1.0
 ## X-Category: Combat
 ## X-License: Public Domain
