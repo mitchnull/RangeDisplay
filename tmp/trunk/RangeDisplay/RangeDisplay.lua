@@ -220,7 +220,7 @@ function RangeDisplay:applySettings()
 	end
 	rangeFrame:ClearAllPoints()
 	rangeFrame:SetPoint("CENTER", UIParent, "CENTER", db.X, db.Y)
-	local font, fontSize, fontOutline = rangeFrameText:getFont()
+	local font, fontSize, fontOutline = rangeFrameText:GetFont()
 	fontOutline = fontOutline or ""
 	if (db.Font ~= font or db.FontSize ~= fontSize or db.FontOutline ~= fontOutline) then
 		if (not pcall(trySetFont)) then
