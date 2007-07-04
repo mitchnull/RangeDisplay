@@ -19,7 +19,7 @@ local rc = AceLibrary:HasInstance(libRC) and AceLibrary(libRC)
 if (not rc) then error(VERSION .. " requires " .. libRC) end
 local dewdrop = AceLibrary:HasInstance("Dewdrop-2.0") and AceLibrary("Dewdrop-2.0")
 local waterfall = AceLibrary:HasInstance("Waterfall-1.0") and AceLibrary("Waterfall-1.0")
-local SML = AceLibrary:HasInstance("Dewdrop-2.0") and AceLibrary("Dewdrop-2.0")
+local SML = AceLibrary:HasInstance("SharedMedia-1.0") and AceLibrary("SharedMedia-1.0")
 local L = AceLibrary("AceLocale-2.2"):new("RangeDisplay")
 
 RangeDisplay = {}
