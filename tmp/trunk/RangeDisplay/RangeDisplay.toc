@@ -1,7 +1,7 @@
 ## Interface: 20100
 ## Title: RangeDisplay |cff7fff7f -Ace2-|r
 ## Author: mitch0
-## Version: 2.1.1
+## Version: 2.1.2
 ## Notes: Estimated range display. type /rangedisplay for help
 ## DefaultState: Enabled
 ## LoadManagers: AddonLoader
@@ -12,6 +12,7 @@
 ## X-Category: Combat
 ## X-License: Public Domain
 ## X-AceForum: 6664
+## X-RelSite-WoWI: 7297
 
 embeds.xml
 

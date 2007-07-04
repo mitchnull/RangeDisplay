@@ -1,8 +1,13 @@
 --[[
-
-  RangeDisplay displays the estimated range to the current target based on spell ranges and other measurable ranges
-  copyright 2007 by mitch
-       
+Name: RangeDisplay
+Revision: $Revision$
+Author(s): mitch0
+Website: http://www.wowace.com/wiki/RangeDisplay
+Documentation: http://www.wowace.com/wiki/RangeDisplay
+SVN: http://svn.wowace.com/wowace/trunk/RangeDisplay/
+Description: RangeDisplay displays the estimated range to the current target based on spell ranges and other measurable ranges
+Dependencies: AceLibrary, Babble-2.2, GratuityLib, RangeCheck-1.0, DewdropLib(optional), Waterfall-1.0(optional), SharedMediaLib(optional)
+License: Public Domain
 ]]
 
 local VERSION = "RangeDisplay-r" .. ("$Revision$"):match("%d+")
