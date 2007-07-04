@@ -21,6 +21,8 @@ local dewdrop = AceLibrary:HasInstance("Dewdrop-2.0") and AceLibrary("Dewdrop-2.
 local waterfall = AceLibrary:HasInstance("Waterfall-1.0") and AceLibrary("Waterfall-1.0")
 local SML = AceLibrary:HasInstance("SharedMedia-1.0") and AceLibrary("SharedMedia-1.0")
 local L = AceLibrary("AceLocale-2.2"):new("RangeDisplay")
+local _ -- throwaway
+
 
 RangeDisplay = {}
 
@@ -41,6 +43,8 @@ local DefaultDB = {
 	OutOfRangeDisplay = false,
 	CheckVisibility = false,
 	Locked = false,
+	Point = "CENTER",
+	RelPoint = "CENTER",
 	X = 0,
 	Y = 0,
 	ColorR = 1.0,
@@ -67,7 +71,17 @@ local db = RangeDisplayDB
 
 -- options table stuff
 
-local Fonts = SML and SML:List("font") or { [DefaultFont] = L["Default"] }
+local Fonts = {}
+local smlFonts = SML and SML:List("font")
+if (smlFonts) then 
+	for k, v in pairs(smlFonts) do
+		local font = SML:Fetch("font", v)
+		if (font) then
+			Fonts[font] = v
+		end
+	end
+end
+Fonts[DefaultFont] = L["Default"]
 
 local FontOutlines = {
 	[""] = L["None"],
@@ -148,36 +162,6 @@ local options = {
 	},
 }
 
--- frame stuff
-
-local rangeFrame = CreateFrame("Frame", "RangeDisplayFrame", UIParent)
-rangeFrame:SetFrameStrata("HIGH")
-rangeFrame:EnableMouse(false)
-rangeFrame:SetMovable(true)
-rangeFrame:SetWidth(120)
-rangeFrame:SetHeight(30)
-rangeFrame:ClearAllPoints()
-rangeFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-
-local rangeFrameBG = rangeFrame:CreateTexture("RangeDisplayFrameBG", "BACKGROUND")
-rangeFrameBG:SetTexture(0, 0, 0, 0.42)
-rangeFrameBG:SetWidth(rangeFrame:GetWidth())
-rangeFrameBG:SetHeight(rangeFrame:GetHeight())
-rangeFrameBG:ClearAllPoints()
-rangeFrameBG:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
-
-local rangeFrameText = rangeFrame:CreateFontString("RangeDisplayFrameText", "OVERLAY", "GameFontNormal")
-rangeFrameText:SetJustifyH("CENTER")
-rangeFrameText:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
-
-rangeFrame:SetScript("OnEvent", function(this, event, ...) RangeDisplay:OnEvent(event, ...) end)
-rangeFrame:SetScript("OnMouseDown", function(this) this:StartMoving() end)
-rangeFrame:SetScript("OnMouseUp", function(this) this:StopMovingOrSizing() end)
-rangeFrame:SetScript("OnUpdate", function(this, elapsed) RangeDisplay:OnUpdate(elapsed) end)
-
-rangeFrame:RegisterEvent("ADDON_LOADED")
-rangeFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
-
 -- helper functions
 
 local function print(text)
@@ -190,6 +174,48 @@ local function isTargetValid(unit)
 	return UnitExists(unit) and (not UnitIsDeadOrGhost(unit))
 end
 
+-- frame stuff
+
+local isMoving = false
+local rangeFrame = CreateFrame("Frame", "RangeDisplayFrame", UIParent)
+rangeFrame:SetFrameStrata("HIGH")
+rangeFrame:EnableMouse(false)
+rangeFrame:SetClampedToScreen()
+rangeFrame:SetMovable(true)
+rangeFrame:SetWidth(120)
+rangeFrame:SetHeight(30)
+rangeFrame:SetPoint(DefaultDB.Point, UIParent, DefaultDB.RelPoint, DefaultDB.X, DefaultDB.Y)
+
+local rangeFrameBG = rangeFrame:CreateTexture("RangeDisplayFrameBG", "BACKGROUND")
+rangeFrameBG:SetTexture(0, 0, 0, 0.42)
+rangeFrameBG:SetWidth(rangeFrame:GetWidth())
+rangeFrameBG:SetHeight(rangeFrame:GetHeight())
+rangeFrameBG:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
+
+local rangeFrameText = rangeFrame:CreateFontString("RangeDisplayFrameText", "OVERLAY", "GameFontNormal")
+rangeFrameText:SetFont(DefaultFont, DefaultDB.FontSize, DefaultDB.FontOutline)
+rangeFrameText:SetJustifyH("CENTER")
+rangeFrameText:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
+
+rangeFrame:SetScript("OnEvent", function(this, event, ...) RangeDisplay:OnEvent(event, ...) end)
+rangeFrame:SetScript("OnMouseDown", function(this, button)
+		if (button == "LeftButton") then
+			this:StartMoving()
+			isMoving = true
+		end
+	end)
+rangeFrame:SetScript("OnMouseUp", function(this, button)
+	if (isMoving and button == "LeftButton") then
+	    this:StopMovingOrSizing()
+		isMoving = false
+	 	db.Point, _, db.RelPoint, db.X, db.Y = rangeFrame:GetPoint()
+	 end
+ end)
+rangeFrame:SetScript("OnUpdate", function(this, elapsed) RangeDisplay:OnUpdate(elapsed) end)
+
+rangeFrame:RegisterEvent("ADDON_LOADED")
+rangeFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
+
 -- config stuff
 
 function RangeDisplay:setOption(name, value)
@@ -197,13 +223,9 @@ function RangeDisplay:setOption(name, value)
 	self:applySettings()
 end
 
-function RangeDisplay:setColor(name, r, g, b)
+function RangeDisplay:setColor(r, g, b)
 	db.ColorR, db.ColorG, db.ColorB = r, g, b
 	rangeFrameText:SetTextColor(db.ColorR, db.ColorG, db.ColorB)
-end
-
-local function trySetFont()
-	rangeFrameText:SetFont(db.Font, db.FontSize, db.FontOutline)
 end
 
 function RangeDisplay:applySettings()
@@ -219,13 +241,11 @@ function RangeDisplay:applySettings()
 		self:unlock()
 	end
 	rangeFrame:ClearAllPoints()
-	rangeFrame:SetPoint("CENTER", UIParent, "CENTER", db.X, db.Y)
+	rangeFrame:SetPoint(db.Point, UIParent, db.RelPoint, db.X, db.Y)
 	local font, fontSize, fontOutline = rangeFrameText:GetFont()
 	fontOutline = fontOutline or ""
 	if (db.Font ~= font or db.FontSize ~= fontSize or db.FontOutline ~= fontOutline) then
-		if (not pcall(trySetFont)) then
-		 	rangeFrameText:SetFont(DefaultDB.Font, DefaultDB.FontSize, DefaultDB.FontOutline)
-		end
+	 	rangeFrameText:SetFont(db.Font, db.FontSize, db.FontOutline)
 	end
 	rangeFrameText:SetTextColor(db.ColorR, db.ColorG, db.ColorB)
 end
@@ -245,7 +265,6 @@ function RangeDisplay:lock()
 	if (not isTargetValid("target")) then
 		rangeFrame:Hide()
 	end
-	_, _, _ , db.X, db.Y = rangeFrame:GetPoint()
 end
 
 function RangeDisplay:unlock()
