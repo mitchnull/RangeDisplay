@@ -281,7 +281,7 @@ function RangeDisplay:ADDON_LOADED(event, name)
 	db = RangeDisplayDB
 	-- make sure we have sensible values in db
 	for k, v in pairs(DefaultDB) do
-		if (db[k] == nil) then db[k] = v
+		if (db[k] == nil) then db[k] = v end
 	end
 	if (dewdrop) then
 		dewdrop:Register(rangeFrame, 'children', function()
