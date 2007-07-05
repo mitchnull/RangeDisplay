@@ -90,7 +90,6 @@ local UnitCanAssist = UnitCanAssist
 local UnitExists = UnitExists
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 local tonumber = tonumber
-local tostring = tostring
 local CheckInteractDistance = CheckInteractDistance
 local IsSpellInRange = IsSpellInRange
 local UnitIsVisible = UnitIsVisible
@@ -235,9 +234,9 @@ function RangeCheck:getRangeAsString(unit, checkVisible, showOutOfRange)
 	local minRange, maxRange = self:getRange(unit, checkVisible)
 	if (not minRange) then return nil end
 	if (not maxRange) then
-		return showOutOfRange and tostring(minRange) .. " +" or nil
+		return showOutOfRange and minRange .. " +" or nil
 	end
-	return tostring(minRange) .. " - " .. tostring(maxRange)
+	return minRange .. " - " .. maxRange
 end
 
 -- initialize RangeCheck if not yet initialized or if "forced"
