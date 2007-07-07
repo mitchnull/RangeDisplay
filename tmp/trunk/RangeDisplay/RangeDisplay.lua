@@ -31,13 +31,14 @@ RangeDisplay = {}
 local UpdateDelay = .1 -- update frequency == 1/UpdateDelay
 local MinFontSize = 5
 local MaxFontSize = 40
-local DefaultFont = GameFontNormal:GetFont()
+local DefaultFontName = "Friz Quadrata TT"
+local DefaultFontPath = GameFontNormal:GetFont()
 
 -- SavedVariables stuff
 
 local DefaultDB = {
 	Enabled = true,
-	Font = DefaultFont,
+	Font = DefaultFontName,
 	FontSize = 24,
 	FontOutline = "",
 	OutOfRangeDisplay = false,
@@ -71,17 +72,13 @@ local db = RangeDisplayDB
 
 -- options table stuff
 
-local Fonts = {}
-local smlFonts = SML and SML:List("font")
-if (smlFonts) then 
-	for k, v in pairs(smlFonts) do
-		local font = SML:Fetch("font", v)
-		if (font) then
-			Fonts[font] = v
-		end
-	end
+local Fonts
+if (SML) then
+--	SML:Register("font", DefaultFontName, DefaultFontPath)
+	Fonts = SML:List("font")
+else
+	Fonts = { [1] = DefaultFontName }
 end
-Fonts[DefaultFont] = L["Default"]
 
 local FontOutlines = {
 	[""] = L["None"],
@@ -157,6 +154,7 @@ local options = {
 			name = L["Reset"],
 			desc = L["Restore default settings"],
 			func = "reset",
+			confirm = true,
 			order = 999,
 		},
 	},
@@ -193,18 +191,26 @@ rangeFrameBG:SetHeight(rangeFrame:GetHeight())
 rangeFrameBG:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
 
 local rangeFrameText = rangeFrame:CreateFontString("RangeDisplayFrameText", "OVERLAY", "GameFontNormal")
-rangeFrameText:SetFont(DefaultFont, DefaultDB.FontSize, DefaultDB.FontOutline)
+rangeFrameText:SetFont(DefaultFontPath, DefaultDB.FontSize, DefaultDB.FontOutline)
 rangeFrameText:SetJustifyH("CENTER")
 rangeFrameText:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
 
 rangeFrame:SetScript("OnEvent", function(this, event, ...) RangeDisplay:OnEvent(event, ...) end)
 rangeFrame:SetScript("OnMouseDown", function(this, button)
-		if (button == "LeftButton") then
-			this:StartMoving()
-			isMoving = true
-		end
-	end)
+	if (not button) then
+		-- some addon is hooking us but doesn't pass button. argh...
+		button = arg1
+	end
+	if (button == "LeftButton") then
+		this:StartMoving()
+		isMoving = true
+	end
+end)
 rangeFrame:SetScript("OnMouseUp", function(this, button)
+	if (not button) then
+		-- some addon is hooking us but doesn't pass button. argh...
+		button = arg1
+	end
 	if (isMoving and button == "LeftButton") then
 	    this:StopMovingOrSizing()
 		isMoving = false
@@ -242,10 +248,11 @@ function RangeDisplay:applySettings()
 	end
 	rangeFrame:ClearAllPoints()
 	rangeFrame:SetPoint(db.Point, UIParent, db.RelPoint, db.X, db.Y)
-	local font, fontSize, fontOutline = rangeFrameText:GetFont()
+	local dbFontPath = SML and SML:Fetch("font", db.Font) or DefaultFontPath
+	local fontPath, fontSize, fontOutline = rangeFrameText:GetFont()
 	fontOutline = fontOutline or ""
-	if (db.Font ~= font or db.FontSize ~= fontSize or db.FontOutline ~= fontOutline) then
-	 	rangeFrameText:SetFont(db.Font, db.FontSize, db.FontOutline)
+	if (dbFontPath ~= fontPath or db.FontSize ~= fontSize or db.FontOutline ~= fontOutline) then
+	 	rangeFrameText:SetFont(dbFontPath, db.FontSize, db.FontOutline)
 	end
 	rangeFrameText:SetTextColor(db.ColorR, db.ColorG, db.ColorB)
 end
