@@ -60,7 +60,7 @@ FriendSpells["ROGUE"] = {}
 HarmSpells["ROGUE"] = { BS["Throw"], BS["Deadly Throw"], BS["Blind"], BS["Eviscerate"] }
 
 FriendSpells["PRIEST"] = { BS["Lesser Heal"], BS["Power Word: Fortitude"] }
-HarmSpells["PRIEST"] = { BS["Shoot"], BS["Mind Soothe"], BS["Smite"], BS["Shadow Word: Pain"], BS["Dispel Magic"], BS["Mind Flay"] }
+HarmSpells["PRIEST"] = { BS["Shoot"], BS["Smite"], BS["Shadow Word: Pain"], BS["Dispel Magic"], BS["Mind Flay"] }
 
 FriendSpells["PALADIN"] = { BS["Holy Light"], BS["Blessing of Might"], BS["Holy Shock"] }
 HarmSpells["PALADIN"] = { BS["Hammer of Wrath"], BS["Holy Shock"], BS["Judgement"] } 
