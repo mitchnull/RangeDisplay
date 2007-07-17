@@ -277,6 +277,7 @@ local function activate(self, oldLib, oldDeactivate)
 	self.frame:SetScript("OnUpdate", function(frame, ...)
 		self:init()
 		frame:SetScript("OnUpdate", nil)
+		frame:Hide()
 		print(MAJOR_VERSION .. "-r" .. MINOR_VERSION .. " initialized")
 	end)
 
