@@ -94,6 +94,8 @@ local CheckInteractDistance = CheckInteractDistance
 local IsSpellInRange = IsSpellInRange
 local UnitIsVisible = UnitIsVisible
 local tinsert = tinsert
+local GetInventoryItemLink = GetInventoryItemLink
+local HandSlotId = GetInventorySlotInfo("HandsSlot")
 
 -- helper functions
 
@@ -247,6 +249,7 @@ function RangeCheck:init(forced)
 	self.friendRC = createCheckerList(FriendSpells[playerClass])
 	self.harmRC = createCheckerList(HarmSpells[playerClass])
 	self.miscRC = createCheckerList(nil)
+	self.handSlotItem = GetInventoryItemLink("player", HandSlotId)
 end
 
 function RangeCheck:OnEvent(event, ...)
@@ -263,6 +266,12 @@ function RangeCheck:CHARACTER_POINTS_CHANGED()
 	self:init(true)
 end
 
+function RangeCheck:UNIT_INVENTORY_CHANGED(event, unit)
+	if (self.initialized and unit == "player" and self.handSlotItem ~= GetInventoryItemLink("player", HandSlotId)) then
+		self:init(true)
+	end
+end
+
 local function activate(self, oldLib, oldDeactivate)
     if (oldLib) then -- rescue oldLib's frame
     	self.frame = oldLib.frame
@@ -271,7 +280,11 @@ local function activate(self, oldLib, oldDeactivate)
     	self.frame = frame
 		frame:RegisterEvent("LEARNED_SPELL_IN_TAB")
 		frame:RegisterEvent("CHARACTER_POINTS_CHANGED")
-	--	frame:RegisterEvent("SPELLS_CHANGED")
+		local _, playerClass = UnitClass("player")
+		if (playerClass == "MAGE" or playerClass == "SHAMAN") then
+			-- Mage and Shaman gladiator gloves modify spell ranges
+			frame:RegisterEvent("UNIT_INVENTORY_CHANGED")
+		end
     end
 	self.frame:SetScript("OnEvent", function(frame, ...) self:OnEvent(...) end)
 	self.frame:SetScript("OnUpdate", function(frame, ...)

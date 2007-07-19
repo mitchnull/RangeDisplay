@@ -2,7 +2,7 @@
 ## Title: Lib: RangeCheck-1.0 |cff7fff7f -Ace2-|r
 ## Notes: A library to determine estimated range.
 ## Author: mitch0
-## Version: 2.1.2
+## Version: 1.0
 ## DefaultState: Enabled
 ## OptionalDeps: Ace2, Babble-2.2, GratuityLib
 ## X-Category: Library
