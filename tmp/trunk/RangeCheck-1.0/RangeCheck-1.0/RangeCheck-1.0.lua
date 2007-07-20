@@ -246,6 +246,14 @@ function RangeCheck:init(forced)
 	if (self.initialized and (not forced)) then return end
 	self.initialized = true
 	local _, playerClass = UnitClass("player")
+	if (playerClass == "HUNTER") then
+		-- There seems to be a bug with hunters near 10yd:
+		-- sometimes we return out-of-range here. Could be caused by Hawk Eye
+		-- talent somehow. Needs more testing, but this might fix it.
+		-- We can't use this for warriors though, as Charge has a max range of
+		-- 25 so it would mess up the 25-28 yd range
+		InteractMinRangeCheckIndex = 4
+	end
 	self.friendRC = createCheckerList(FriendSpells[playerClass])
 	self.harmRC = createCheckerList(HarmSpells[playerClass])
 	self.miscRC = createCheckerList(nil)
