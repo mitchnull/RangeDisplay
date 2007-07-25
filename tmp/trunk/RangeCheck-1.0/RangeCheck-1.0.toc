@@ -5,6 +5,7 @@
 ## Version: 1.0
 ## DefaultState: Enabled
 ## OptionalDeps: Ace2, Babble-2.2, GratuityLib
+## LoadOnDemand: 1
 ## X-Category: Library
 ## X-AceLibrary-RangeCheck-1.0: true
 ## X-License: Public Domain
