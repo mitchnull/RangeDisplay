@@ -1,12 +1,12 @@
 ## Interface: 20100
 ## Title: RangeDisplay |cff7fff7f -Ace2-|r
 ## Author: mitch0
-## Version: 2.1.2
+## Version: 2.1.3
 ## Notes: Estimated range display. type /rangedisplay for help
 ## DefaultState: Enabled
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: delayed
-## SavedVariablesPerCharacter: RangeDisplayDB
+## SavedVariables: RangeDisplayDB
 ## OptionalDeps: Ace2, Babble-2.2, GratuityLib, RangeCheck-1.0, DewdropLib, Waterfall-1.0, SharedMediaLib
 ## X-Embeds: Ace2, Babble-2.2, GratuityLib, RangeCheck-1.0
 ## X-Category: Combat

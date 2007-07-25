@@ -13,33 +13,43 @@ based range), the addon will display 28 - 30.
 RangeDisplay is just a front-end to RangeCheck-1.0, a library addon to
 calculate the range estimates.
 
+Note: RangeDisplay can only check for some specific distances, thus determining
+a minimum and maximum range to the target. Some of these ranges are rather
+large, so the range update may be slow, as it takes time to cover a bigger
+distance.  Unfortunately there is no way (that I know of) of providing higher
+resolution for range estimates.
+
 Options:
 
-/rangedisplay enable
-  enables RangeDisplay
-/rangedisplay disable
-  disables RangeDisplay
-/rangedisplay unlock
-  unlocks the RangeDisplay display frame, so you can drag it to a
-  position you like
-/rangedisplay lock
-  locks the RangeDisplay display frame
-/rangedisplay fontsize NUM
-  sets the font size of the RangeDisplay display to NUM
-/rangedisplay toggleord
-  toggles the OutOfRangeDisplay setting; if it is on, out of range will be
-  displayed as "40 +" (for example), instead of hiding the display
-/rangedisplay togglecv
-  toggles the CheckVisible setting; if it is on, 'visibility' range will
-  be the max range displayed (~100 yd) 
-/rangedisplay config
-  open one of the config GUIs, if available
-/rangedisplay configdd
-  open the Dewdrop config GUI, if available
-/rangedisplay configwf
-  open the Waterfall config GUI, if available
-/rangedisplay reset
-  resets the configuration for this character to default values
+/rangedisplay standby
+  Toggle RangeDisplay on/off.
+/rangedisplay locked
+  Toggle the locked state of RangeDisplay frame.
+  While unlocked, you can drag it to a position you like with the left mouse
+  button and open its DewDrop menu by right-clicking on the frame.
+  While it is locked, you can click-thru the display.
+/rangedisplay color
+  Set the color of the RangeDisplay text.
+/rangedisplay font
+  Set the font of the RangeDisplay text.
+/rangedisplay fontOutline
+  Set the outline style for the font of the RangeDisplay text.
+/rangedisplay fontSize
+  Sets the font size of the RangeDisplay text.
+/rangedisplay strata
+  Set the frame strata of the RangeDisplay frame.
+/rangedisplay outOfRangeDisplay
+  Toggle the OutOfRangeDisplay setting. If it is on, out of range will be
+  displayed as "40 +" (for example), instead of hiding the display.
+/rangedisplay checkVisibility
+  Toggle the CheckVisibility setting. If it is on, 'visibility' range will
+  be the max range displayed (~100 yd).
+/rangedisplay enemyOnly
+  Toggle showing the range for enemy players only, or for all units.
+/rangedisplay configDD
+  Open the Dewdrop config GUI, if available.
+/rangedisplay configWF
+  Open the Waterfall config GUI, if available.
 
 Install instructions:
 

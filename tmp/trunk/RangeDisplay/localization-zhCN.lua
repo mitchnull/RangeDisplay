@@ -1,8 +1,6 @@
 local L = AceLibrary("AceLocale-2.2"):new("RangeDisplay")
 L:RegisterTranslations("zhCN", function() return {
 		
--- ["Enabled"] = true,
--- ["Enable/Disable the mod"] = true,
 -- ["Locked"] = true,
 -- ["Lock/Unlock display frame"] = true,
 -- ["Out of range display"] = true,
@@ -17,13 +15,19 @@ L:RegisterTranslations("zhCN", function() return {
 -- ["Normal"] = true,
 -- ["Thick"] = true,
 -- ["Color"] = true,
--- ["Reset"] = true,
--- ["Restore default settings"] = true,
+-- ["ConfigDD"] = true,
+-- ["Configure via DewDrop"] = true,
+-- ["ConfigWF"] = true,
+-- ["Configure via Waterfall"] = true,
 -- ["RangeDisplay"] = true,
--- ["Either Waterfall or Dewdrop is needed for this option"] = true,
--- ["Dewdrop is needed for this option"] = true,
--- ["Waterfall is needed for this option"] = true,
 -- ["%s loaded. Type /rangedisplay for help"] = true,
+-- ["Enemy only"] = true,
+-- ["Show range for enemy targets only"] = true,
+-- ["Strata"] = true,
+-- ["Frame strata"] = true,
+-- ["High"] = true,
+-- ["Medium"] = true,
+-- ["Low"] = true,
 
 } end)
 

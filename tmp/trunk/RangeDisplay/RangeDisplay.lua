@@ -24,7 +24,10 @@ local L = AceLibrary("AceLocale-2.2"):new("RangeDisplay")
 local _ -- throwaway
 
 
-RangeDisplay = {}
+RangeDisplay = AceLibrary("AceAddon-2.0"):new("AceConsole-2.0", "AceDB-2.0", "AceEvent-2.0")
+RangeDisplay.version = VERSION
+RangeDisplay:RegisterDB("RangeDisplayDB")
+local db
 
 -- hard-coded config stuff
 
@@ -34,41 +37,32 @@ local MaxFontSize = 40
 local DefaultFontName = "Friz Quadrata TT"
 local DefaultFontPath = GameFontNormal:GetFont()
 
--- SavedVariables stuff
+-- Default DB stuff
 
 local DefaultDB = {
-	Enabled = true,
-	Font = DefaultFontName,
-	FontSize = 24,
-	FontOutline = "",
-	OutOfRangeDisplay = false,
-	CheckVisibility = false,
-	Locked = false,
-	Point = "CENTER",
-	RelPoint = "CENTER",
-	X = 0,
-	Y = 0,
-	ColorR = 1.0,
-	ColorG = 0.82,
-	ColorB = 0,
+	font = DefaultFontName,
+	fontSize = 24,
+	fontOutline = "",
+	outOfRangeDisplay = false,
+	checkVisibility = false,
+	enemyOnly = false,
+	locked = false,
+	point = "CENTER",
+	relPoint = "CENTER",
+	x = 0,
+	y = 0,
+	colorR = 1.0,
+	colorG = 0.82,
+	colorB = 0,
+	strata = "HIGH",
 }
-
-local function dupDefaultDB()
-	local res = {}
-	for k, v in pairs(DefaultDB) do
-		res[k] = v
-	end
-	return res
-end
-
-RangeDisplayDB = RangeDisplayDB or dupDefaultDB()
 
 -- cached stuff
 
 local UnitExists = UnitExists
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
-
-local db = RangeDisplayDB
+local UnitCanAttack = UnitCanAttack
+local UnitIsUnit = UnitIsUnit
 
 -- options table stuff
 
@@ -86,6 +80,12 @@ local FontOutlines = {
 	["THICKOUTLINE"] = L["Thick"],
 }
 
+local FrameStratas = {
+	["HIGH"] = L["High"],
+	["MEDIUM"] = L["Medium"],
+	["LOW"] = L["Low"],
+}
+
 local options = {
 	type = "group",
 	name = L["RangeDisplay"],
@@ -94,38 +94,38 @@ local options = {
 	get = function(name) return db[name] end,
 	set = "setOption",
 	args = {
-		Enabled = {
-			type = 'toggle',
-			name = L["Enabled"],
-			desc = L["Enable/Disable the mod"],
-			order = 100,
-		},
-		Locked = {
+		locked = {
 			type = 'toggle',
 			name = L["Locked"],
 			desc = L["Lock/Unlock display frame"],
 			order = 110,
 		},
-		OutOfRangeDisplay = {
+		enemyOnly = {
+			type = 'toggle',
+			name = L["Enemy only"],
+			desc = L["Show range for enemy targets only"],
+			order = 115,
+		},
+		outOfRangeDisplay = {
 			type = 'toggle',
 			name = L["Out of range display"],
 			desc = L["Show/Hide display if the target is out of range"],
 			order = 120,
 		},
-		CheckVisibility = {
+		checkVisibility = {
 			type = 'toggle',
 			name = L["Check visibility"],
 			desc = L["If set, the max range to check will be 'visibility range'"],
 			order = 130,
 		},
-		Font = {
+		font = {
 			type = 'text',
 			name = L["Font"],
 			desc = L["Font"],
 			validate = Fonts,
 			order = 135
 		},
-		FontSize = {
+		fontSize = {
 			type = 'range',
 			name = L["Font size"],
 			desc = L["Font size"],
@@ -134,93 +134,90 @@ local options = {
 			step = 1,
 			order = 140,
 		},
-		FontOutline = {
+		fontOutline = {
 			type = 'text',
 			name = L["Font outline"],
 			desc = L["Font outline"],
 			validate = FontOutlines,
 			order = 150,
 		},
-		Color = {
+		color = {
 			type = 'color',
 			name = L["Color"],
 			desc = L["Color"],
 			set = "setColor",
-			get = function() return db.ColorR, db.ColorG, db.ColorB end,
+			get = function() return db.colorR, db.colorG, db.colorB end,
 			order = 160,
 		},
-		Reset = {
-			type = 'execute',
-			name = L["Reset"],
-			desc = L["Restore default settings"],
-			func = "reset",
-			confirm = true,
-			order = 999,
+		strata = {
+			type = 'text',
+			name = L["Strata"],
+			desc = L["Frame strata"],
+			validate = FrameStratas,
+			order = 170,
 		},
 	},
 }
 
 -- helper functions
 
-local function print(text)
-	if (DEFAULT_CHAT_FRAME) then 
-		DEFAULT_CHAT_FRAME:AddMessage(text)
-	end
-end
-
 local function isTargetValid(unit)
 	return UnitExists(unit) and (not UnitIsDeadOrGhost(unit))
+			and (not db.enemyOnly or UnitCanAttack("player", unit))
+			and (not UnitIsUnit(unit, "player"))
 end
 
 -- frame stuff
 
-local isMoving = false
-local rangeFrame = CreateFrame("Frame", "RangeDisplayFrame", UIParent)
-rangeFrame:SetFrameStrata("HIGH")
-rangeFrame:EnableMouse(false)
-rangeFrame:SetClampedToScreen()
-rangeFrame:SetMovable(true)
-rangeFrame:SetWidth(120)
-rangeFrame:SetHeight(30)
-rangeFrame:SetPoint(DefaultDB.Point, UIParent, DefaultDB.RelPoint, DefaultDB.X, DefaultDB.Y)
+function RangeDisplay:createFrame()
+	self.isMoving = false
+	local rangeFrame = CreateFrame("Frame", "RangeDisplayFrame", UIParent)
+	rangeFrame:Hide()
+	rangeFrame:SetFrameStrata(DefaultDB.strata)
+	rangeFrame:EnableMouse(false)
+	rangeFrame:SetClampedToScreen()
+	rangeFrame:SetMovable(true)
+	rangeFrame:SetWidth(120)
+	rangeFrame:SetHeight(30)
+	rangeFrame:SetPoint(DefaultDB.point, UIParent, DefaultDB.relPoint, DefaultDB.x, DefaultDB.y)
+	self.rangeFrame = rangeFrame
 
-local rangeFrameBG = rangeFrame:CreateTexture("RangeDisplayFrameBG", "BACKGROUND")
-rangeFrameBG:SetTexture(0, 0, 0, 0.42)
-rangeFrameBG:SetWidth(rangeFrame:GetWidth())
-rangeFrameBG:SetHeight(rangeFrame:GetHeight())
-rangeFrameBG:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
+	local rangeFrameBG = rangeFrame:CreateTexture("RangeDisplayFrameBG", "BACKGROUND")
+	rangeFrameBG:SetTexture(0, 0, 0, 0.42)
+	rangeFrameBG:SetWidth(rangeFrame:GetWidth())
+	rangeFrameBG:SetHeight(rangeFrame:GetHeight())
+	rangeFrameBG:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
+	self.rangeFrameBG = rangeFrameBG
 
-local rangeFrameText = rangeFrame:CreateFontString("RangeDisplayFrameText", "OVERLAY", "GameFontNormal")
-rangeFrameText:SetFont(DefaultFontPath, DefaultDB.FontSize, DefaultDB.FontOutline)
-rangeFrameText:SetJustifyH("CENTER")
-rangeFrameText:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
+	local rangeFrameText = rangeFrame:CreateFontString("RangeDisplayFrameText", "OVERLAY", "GameFontNormal")
+	rangeFrameText:SetFont(DefaultFontPath, DefaultDB.fontSize, DefaultDB.fontOutline)
+	rangeFrameText:SetJustifyH("CENTER")
+	rangeFrameText:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
+	self.rangeFrameText = rangeFrameText
 
-rangeFrame:SetScript("OnEvent", function(this, event, ...) RangeDisplay:OnEvent(event, ...) end)
-rangeFrame:SetScript("OnMouseDown", function(this, button)
-	if (not button) then
-		-- some addon is hooking us but doesn't pass button. argh...
-		button = arg1
-	end
-	if (button == "LeftButton") then
-		this:StartMoving()
-		isMoving = true
-	end
-end)
-rangeFrame:SetScript("OnMouseUp", function(this, button)
-	if (not button) then
-		-- some addon is hooking us but doesn't pass button. argh...
-		button = arg1
-	end
-	if (isMoving and button == "LeftButton") then
-	    this:StopMovingOrSizing()
-		isMoving = false
-	 	db.Point, _, db.RelPoint, db.X, db.Y = rangeFrame:GetPoint()
-	 end
- end)
-rangeFrame:SetScript("OnUpdate", function(this, elapsed) RangeDisplay:OnUpdate(elapsed) end)
-
-rangeFrame:RegisterEvent("ADDON_LOADED")
-rangeFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
+	rangeFrame:SetScript("OnMouseDown", function(this, button)
+		if (not button) then
+			-- some addon is hooking us but doesn't pass button. argh...
+			button = arg1
+		end
+		if (button == "LeftButton") then
+			this:StartMoving()
+			self.isMoving = true
+		end
+	end)
+	rangeFrame:SetScript("OnMouseUp", function(this, button)
+		if (not button) then
+			-- some addon is hooking us but doesn't pass button. argh...
+			button = arg1
+		end
+		if (self.isMoving and button == "LeftButton") then
+			this:StopMovingOrSizing()
+			self.isMoving = false
+			db.point, _, db.relPoint, db.x, db.y = rangeFrame:GetPoint()
+		end
+	end)
+	rangeFrame:SetScript("OnUpdate", function(this, elapsed) self:OnUpdate(elapsed) end)
+end
 
 -- config stuff
 
@@ -230,105 +227,109 @@ function RangeDisplay:setOption(name, value)
 end
 
 function RangeDisplay:setColor(r, g, b)
-	db.ColorR, db.ColorG, db.ColorB = r, g, b
-	rangeFrameText:SetTextColor(db.ColorR, db.ColorG, db.ColorB)
+	db.colorR, db.colorG, db.colorB = r, g, b
+	if (self:IsActive()) then
+		self.rangeFrameText:SetTextColor(db.colorR, db.colorG, db.colorB)
+	end
 end
 
 function RangeDisplay:applySettings()
-	if (db.Enabled) then
-		self:enable()
-	else
-		self:disable()
-		return
-	end
-	if (db.Locked) then
+	if (not self:IsActive()) then return end
+	if (db.locked) then
 		self:lock()
 	else
 		self:unlock()
 	end
-	rangeFrame:ClearAllPoints()
-	rangeFrame:SetPoint(db.Point, UIParent, db.RelPoint, db.X, db.Y)
-	local dbFontPath = SML and SML:Fetch("font", db.Font) or DefaultFontPath
-	local fontPath, fontSize, fontOutline = rangeFrameText:GetFont()
+	self.rangeFrame:ClearAllPoints()
+	self.rangeFrame:SetPoint(db.point, UIParent, db.relPoint, db.x, db.y)
+	self.rangeFrame:SetFrameStrata(db.strata)
+	local dbFontPath = SML and SML:Fetch("font", db.font) or DefaultFontPath
+	local fontPath, fontSize, fontOutline = self.rangeFrameText:GetFont()
 	fontOutline = fontOutline or ""
-	if (dbFontPath ~= fontPath or db.FontSize ~= fontSize or db.FontOutline ~= fontOutline) then
-	 	rangeFrameText:SetFont(dbFontPath, db.FontSize, db.FontOutline)
+	if (dbFontPath ~= fontPath or db.fontSize ~= fontSize or db.fontOutline ~= fontOutline) then
+		self.rangeFrameText:SetFont(dbFontPath, db.fontSize, db.fontOutline)
 	end
-	rangeFrameText:SetTextColor(db.ColorR, db.ColorG, db.ColorB)
-end
-
-function RangeDisplay:reset()
-	RangeDisplayDB = dupDefaultDB()
-	db = RangeDisplayDB
-	self:applySettings()
-	if (db.Enabled) then
-		rc:init(true)
-	end
+	self.rangeFrameText:SetTextColor(db.colorR, db.colorG, db.colorB)
+	self:targetChanged()
 end
 
 function RangeDisplay:lock()
-	rangeFrame:EnableMouse(false)
-	rangeFrameBG:Hide()
+	self.rangeFrame:EnableMouse(false)
+	self.rangeFrameBG:Hide()
 	if (not isTargetValid("target")) then
-		rangeFrame:Hide()
+		self.rangeFrame:Hide()
 	end
 end
 
 function RangeDisplay:unlock()
-	rangeFrame:EnableMouse(true)
-	rangeFrame:Show()
-	rangeFrameBG:Show()
+	self.rangeFrame:EnableMouse(true)
+	self.rangeFrame:Show()
+	self.rangeFrameBG:Show()
 end
 
-function RangeDisplay:enable()
+function RangeDisplay:OnEnable(first)
+	self:OnProfileEnable()
+	self:RegisterEvent("PLAYER_TARGET_CHANGED")
 	self:targetChanged()
 end
 
-function RangeDisplay:disable()
-	rangeFrame:Hide()
+function RangeDisplay:OnDisable()
+	self:UnregisterAllEvents();
+	if (self.rangeFrame) then
+		self.rangeFrame:Hide()
+	end
+end
+
+function RangeDisplay:OnProfileEnable()
+	db = self.db.profile
+	self:applySettings()
 end
 
 -- boring stuff
 
-function RangeDisplay:OnEvent(event, ...)
-	if (type(self[event]) == 'function') then
-		self[event](self, event, ...)
+function RangeDisplay:OnInitialize(event, name)
+	if (not self.rangeFrame) then
+		self:createFrame()
 	end
-end
+	self:RegisterDefaults("profile", DefaultDB)
+	db = self.db.profile
 
-function RangeDisplay:ADDON_LOADED(event, name)
-	if (name ~= "RangeDisplay") then return end
-	-- register our slash command
-	SLASH_RANGEDISPLAY1 = "/rangedisplay"
-	SlashCmdList["RANGEDISPLAY"] = function(msg)
-		RangeDisplay:SlashCmd(msg)
-	end
-	
-	db = RangeDisplayDB
-	-- make sure we have sensible values in db
-	for k, v in pairs(DefaultDB) do
-		if (db[k] == nil) then db[k] = v end
-	end
 	if (dewdrop) then
-		dewdrop:Register(rangeFrame, 'children', function()
+		dewdrop:Register(self.rangeFrame, 'children', function()
 			dewdrop:AddLine('text', L["RangeDisplay"], 'isTitle', true)
 			dewdrop:FeedAceOptionsTable(options)
 		end)
+		options.args.configdd = {
+			type = 'execute',
+			name = L["ConfigDD"],
+			desc = L["Configure via DewDrop"],
+			func = function() dewdrop:Open(self.rangeFrame) end,
+			guiHidden = true,
+			order = 800,
+		}
 	end
+
 	if (waterfall) then
 		waterfall:Register("RangeDisplay", 
 			'aceOptions', options,
 			'title', L["RangeDisplay"],
 			'treeLevels', 1,
-			'colorR', DefaultDB.ColorR, 'colorG', DefaultDB.ColorG, 'colorB', DefaultDB.ColorB
+			'colorR', DefaultDB.colorR, 'colorG', DefaultDB.colorG, 'colorB', DefaultDB.colorB
 		)
+		options.args.configwf = {
+			type = 'execute',
+			name = L["ConfigWF"],
+			desc = L["Configure via Waterfall"],
+			func = function() waterfall:Open("RangeDisplay") end,
+			guiHidden = true,
+			order = 810,
+		}
 	end
-	self:applySettings()
-	print(L["%s loaded. Type /rangedisplay for help"]:format(VERSION))
+	self:RegisterChatCommand({"/rangedisplay"}, options)
 end
 
 function RangeDisplay:PLAYER_TARGET_CHANGED()
-	if (db.Enabled) then
+	if (self:IsActive()) then
 		self:targetChanged()
 	end
 end
@@ -339,87 +340,18 @@ function RangeDisplay:OnUpdate(elapsed)
 	lastUpdate = lastUpdate + elapsed
 	if (lastUpdate < UpdateDelay) then return end
 	lastUpdate = 0
-	local range = rc:getRangeAsString("target", db.CheckVisibility, db.OutOfRangeDisplay)
+	local range = rc:getRangeAsString("target", db.checkVisibility, db.outOfRangeDisplay)
 	if (range == lastRange) then return end
 	lastRange = range
-	rangeFrameText:SetText(range)
+	self.rangeFrameText:SetText(range)
 end
 
 function RangeDisplay:targetChanged()
 	if (isTargetValid("target")) then
-		rangeFrame:Show()
+		self.rangeFrame:Show()
 		lastUpdate = UpdateDelay -- to force update in next OnUpdate()
-	elseif (db.Locked) then
-		rangeFrame:Hide()
-	end
-end
-
-local usage = "usage: /rangedisplay enable | disable | lock | unlock | fontsize XX | toggleord | togglecv | reset | config[dd|wf]"
-function RangeDisplay:SlashCmd(args)
-	args = args or ""
-	local _, _, cmd, cmdParam = string.find(string.lower(args), "^%s*(%S+)%s*(%S*)")
-	if (cmd == "enable") then
-		db.Enabled = true
-		rc:init(true)
-	elseif (cmd == "disable") then
-		db.Enabled = false
-	elseif (cmd == "lock") then
-		db.Locked = true
-	elseif (cmd == "unlock") then
-		db.Locked = false
-	elseif (cmd == "fontsize") then
-		local _, _, h = string.find(args, "(%d+\.?%d*)")
-		if (not h) then
-			print(usage)
-			return
-		end
-		local hh = tonumber(h)
-		if (hh < MinFontSize) then hh = MinFontSize end
-		if (hh > MaxFontSize) then hh = MaxFontSize end
-		db.FontSize = hh
-	elseif (cmd == "toggleord") then
-		db.OutOfRangeDisplay = not db.OutOfRangeDisplay
-	elseif (cmd == "togglecv") then
-		db.CheckVisibility = not db.CheckVisibility
-	elseif (cmd == "reset") then
-		self:reset()
-		return
-	elseif (cmd == "config") then
-		if (waterfall) then
-			waterfall:Open("RangeDisplay")
-		elseif (dewdrop) then
-			dewdrop:Open(rangeFrame)
-		else
-			print(L["Either Waterfall or Dewdrop is needed for this option"])
-		end
-		return
-	elseif (cmd == "configdd") then
-		if (dewdrop) then
-			dewdrop:Open(rangeFrame)
-		else
-			print(L["Dewdrop is needed for this option"])
-		end
-		return
-	elseif (cmd == "configwf") then
-		if (waterfall) then
-			waterfall:Open("RangeDisplay")
-		else
-			print(L["Waterfall is needed for this option"])
-		end
-		return
-	elseif (cmd == "dumpdb") then
-		self:dumpDB()
-		return
-	else
-		print(usage)
-		return
-	end
-	self:applySettings()
-end
-
-function RangeDisplay:dumpDB()
-	for k, v in pairs(db) do
-		print(k .. ": " .. tostring(v))
+	elseif (db.locked) then
+		self.rangeFrame:Hide()
 	end
 end
 
