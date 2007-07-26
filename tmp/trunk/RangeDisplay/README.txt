@@ -10,8 +10,10 @@ your current target.  If, for example, a mage's Arcane Missile spell is
 in range, but the character is out of follow-range (an interact distance
 based range), the addon will display 28 - 30. 
 
-RangeDisplay is just a front-end to RangeCheck-1.0, a library addon to
-calculate the range estimates.
+RangeDisplay is a front-end to RangeCheck-1.0, a library addon to
+calculate the range estimates. DogTag-1.0 also supports RangeCheck-1.0 via
+the [Range] tag, thus you can get range display in addons using DogTag
+to build texts, like PitBull (unit frames) and CowTip (tooltip).
 
 Note: RangeDisplay can only check for some specific distances, thus determining
 a minimum and maximum range to the target. Some of these ranges are rather
@@ -69,11 +71,18 @@ addons, too:
 - DewdropLib
 - Waterfall-1.0
 
+If you want to select different fonts, you also need:
+
+- SharedMediaLib
+- SharedMedia
+
 After installing, RangeDisplay will be enabled by default, and unlocked,
 so you'll see a semi-transparent rectangle in the center of your UI that
 you can drag to a position you like.  After finding a good place for it
-you should lock the frame with "/rangedisplay lock", so that it won't
+you should lock the frame with "/rangedisplay locked", so that it won't
 eat your mouse clicks.
 
 The original forum for RangeDisplay (and RangeCheck-1.0) is at
 http://www.wowace.com/forums/index.php?topic=6664
+
+The official release can be downloaded from http://www.wowinterface.com/downloads/info7297
