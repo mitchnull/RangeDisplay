@@ -299,7 +299,9 @@ local function activate(self, oldLib, oldDeactivate)
 		self:init()
 		frame:SetScript("OnUpdate", nil)
 		frame:Hide()
-		print(MAJOR_VERSION .. "-r" .. MINOR_VERSION .. " initialized")
+		if (not StopTheSpam) then
+			print(MAJOR_VERSION .. "-r" .. MINOR_VERSION .. " initialized")
+		end
 	end)
 
 	if (oldDeactivate) then -- clean up the old library
