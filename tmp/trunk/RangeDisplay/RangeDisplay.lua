@@ -269,7 +269,7 @@ end
 
 function RangeDisplay:OnEnable(first)
 	self:OnProfileEnable()
-	self:RegisterEvent("PLAYER_TARGET_CHANGED")
+	self:RegisterEvent("PLAYER_TARGET_CHANGED", "targetChanged")
 	self:targetChanged()
 end
 
@@ -325,12 +325,6 @@ function RangeDisplay:OnInitialize(event, name)
 		}
 	end
 	self:RegisterChatCommand({"/rangedisplay"}, options)
-end
-
-function RangeDisplay:PLAYER_TARGET_CHANGED()
-	if (self:IsActive()) then
-		self:targetChanged()
-	end
 end
 
 local lastUpdate = 0 -- time since last real update
