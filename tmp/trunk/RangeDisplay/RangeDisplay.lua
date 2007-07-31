@@ -274,7 +274,6 @@ function RangeDisplay:OnEnable(first)
 end
 
 function RangeDisplay:OnDisable()
-	self:UnregisterAllEvents();
 	if (self.rangeFrame) then
 		self.rangeFrame:Hide()
 	end
