@@ -21,7 +21,6 @@ L:RegisterTranslations("deDE", function() return {
  ["Configure via DewDrop"] = "DewDrop zum Konfigurieren verwenden",
 -- ["ConfigWF"] = "ConfigWF",
  ["Configure via Waterfall"] = "Waterfall zum Konfigurieren verwenden",
--- ["RangeDisplay"] = "Reichweiten Anzeige",
  ["%s loaded. Type /rangedisplay for help"] = "%s geladen. /rangedisplay für Hilfe",
  ["Enemy only"] = "Nur Feinde",
  ["Show range for enemy targets only"] = "Zeige nur Reichweiten für feindliche Ziele",

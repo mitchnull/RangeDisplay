@@ -19,7 +19,6 @@ L:RegisterTranslations("esES", function() return {
 -- ["Configure via DewDrop"] = true,
 -- ["ConfigWF"] = true,
 -- ["Configure via Waterfall"] = true,
--- ["RangeDisplay"] = true,
 -- ["%s loaded. Type /rangedisplay for help"] = true,
 -- ["Enemy only"] = true,
 -- ["Show range for enemy targets only"] = true,

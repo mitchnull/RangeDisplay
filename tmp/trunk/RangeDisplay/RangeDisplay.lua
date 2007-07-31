@@ -88,7 +88,7 @@ local FrameStratas = {
 
 local options = {
 	type = "group",
-	name = L["RangeDisplay"],
+	name = "RangeDisplay",
 	pass = true,
 	handler = RangeDisplay,
 	get = function(name) return db[name] end,
@@ -195,28 +195,28 @@ function RangeDisplay:createFrame()
 	rangeFrameText:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
 	self.rangeFrameText = rangeFrameText
 
-	rangeFrame:SetScript("OnMouseDown", function(this, button)
+	rangeFrame:SetScript("OnMouseDown", function(frame, button)
 		if (not button) then
 			-- some addon is hooking us but doesn't pass button. argh...
 			button = arg1
 		end
 		if (button == "LeftButton") then
-			this:StartMoving()
+			self.rangeFrame:StartMoving()
 			self.isMoving = true
 		end
 	end)
-	rangeFrame:SetScript("OnMouseUp", function(this, button)
+	rangeFrame:SetScript("OnMouseUp", function(frame, button)
 		if (not button) then
 			-- some addon is hooking us but doesn't pass button. argh...
 			button = arg1
 		end
 		if (self.isMoving and button == "LeftButton") then
-			this:StopMovingOrSizing()
+			self.rangeFrame:StopMovingOrSizing()
 			self.isMoving = false
 			db.point, _, db.relPoint, db.x, db.y = rangeFrame:GetPoint()
 		end
 	end)
-	rangeFrame:SetScript("OnUpdate", function(this, elapsed) self:OnUpdate(elapsed) end)
+	rangeFrame:SetScript("OnUpdate", function(frame, elapsed) self:OnUpdate(elapsed) end)
 end
 
 -- config stuff
@@ -296,7 +296,7 @@ function RangeDisplay:OnInitialize(event, name)
 
 	if (dewdrop) then
 		dewdrop:Register(self.rangeFrame, 'children', function()
-			dewdrop:AddLine('text', L["RangeDisplay"], 'isTitle', true)
+			dewdrop:AddLine('text', "RangeDisplay", 'isTitle', true)
 			dewdrop:FeedAceOptionsTable(options)
 		end)
 		options.args.configdd = {
@@ -312,7 +312,7 @@ function RangeDisplay:OnInitialize(event, name)
 	if (waterfall) then
 		waterfall:Register("RangeDisplay", 
 			'aceOptions', options,
-			'title', L["RangeDisplay"],
+			'title', "RangeDisplay",
 			'treeLevels', 1,
 			'colorR', DefaultDB.colorR, 'colorG', DefaultDB.colorG, 'colorB', DefaultDB.colorB
 		)

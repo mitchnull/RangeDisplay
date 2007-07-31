@@ -19,7 +19,6 @@ L:RegisterTranslations("koKR", function() return {
 ["Configure via DewDrop"] = "DewDrop 환경 설정",
 ["ConfigWF"] = "WF설정",
 ["Configure via Waterfall"] = "Waterfall 환경 설정",
-["RangeDisplay"] = "RangeDisplay",
 ["%s loaded. Type /rangedisplay for help"] = "%s 불려옵니다. 도움말을 보실려면 /rangedisplay 를 입력하세요.",
 ["Enemy only"] = "적대적 대상",
 ["Show range for enemy targets only"] = "적대적 대상만 거리 표시",
