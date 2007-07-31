@@ -34,7 +34,7 @@ local RangePatternMelee = MELEE_RANGE
 local DefaultInteractList = {
 	[3] = 8,
 	[2] = 9,
-	[4] = 27,
+	[4] = 28,
 }
 
 -- interact list overrides for races
