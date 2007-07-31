@@ -293,6 +293,40 @@ function RangeDisplay:OnInitialize(event, name)
 	self:RegisterDefaults("profile", DefaultDB)
 	db = self.db.profile
 
+	if (db.debug) then
+		options.args.startMeasurement = {
+			type = 'execute',
+			name = "StartMeasurement",
+			desc = "StartMeasurement",
+			aliases = "mon",
+			func = function()
+				if (not db.measurements) then
+					db.measurements = {}
+				end
+				db.measurements[UnitName("player")] = {}
+				rc:startMeasurement("target", db.measurements[UnitName("player")])
+			end,
+		}
+		options.args.stopMeasurement = {
+			type = 'execute',
+			name = "StopMeasurement",
+			desc = "StopMeasurement",
+			aliases = "moff",
+			func = function()
+				rc:stopMeasurement()
+			end,
+		}
+		options.args.clearMeasurement = {
+			type = 'execute',
+			name = "ClearMeasurement",
+			desc = "ClearMeasurement",
+			aliases = "mc",
+			func = function()
+				db.measurements = nil
+			end,
+		}
+	end
+
 	if (dewdrop) then
 		dewdrop:Register(self.rangeFrame, 'children', function()
 			dewdrop:AddLine('text', "RangeDisplay", 'isTitle', true)
