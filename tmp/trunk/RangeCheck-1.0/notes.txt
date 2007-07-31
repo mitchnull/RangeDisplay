@@ -1,7 +1,3 @@
-- Currently RangeCheck is only tested extensively for the Mage class, 
-  I've included the data for other classes as well, but I couldn't test them.
-  I'm not sure if the Melee range works correctly for druids, for example.
-
 - Spell ranges are automatically parsed from the spell's tooltip text,
   so talent specific changes should be automatically taken care of (like
   Arctic Reach for frost mages). You should list all spells that can
@@ -9,9 +5,7 @@
   Missiles and Frostbolt are all listed, even though they all have a 30 yd
   range initially).
 
-- The minimum range value (of hunter shots, for example) is not used presently,
-  as it's just a tiny distance in between interact2 and interact3 values,
-  and it would just cause too much flicker.
-  (as a side note, according to my tests, the minumum range is somewhere
-  between 9 and 10 yards, and not 8 yards as the tooltip says...)
-  
+- Interact distances are a bit off with regards to spell ranges. I decided to
+  keep spell ranges as the "standard" and adjusted the interact distances
+  to fit in
+

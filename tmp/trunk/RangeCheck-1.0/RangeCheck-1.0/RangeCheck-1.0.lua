@@ -31,11 +31,23 @@ local RangePattern2 = SPELL_RANGE:gsub("%%s", "(%%d+)-(%%d+)")
 local RangePatternMelee = MELEE_RANGE
 
 -- interact distance based checks. ranges are based on my own measurements (thanks for all the folks who helped me with this)
-local InteractList = { { index = 3, range = 9 }, { index = 2, range = 10 }, { index = 4, range = 28 }}
+local DefaultInteractList = {
+	[3] = 8,
+	[2] = 9,
+	[4] = 27,
+}
+
+-- interact list overrides for races
+local InteractLists = {
+	["Tauren"] = {
+		[3] = 6,
+		[2] = 7,
+		[4] = 25,
+	},
+}
 
 -- interact distance to check if a spell with minimum range fails due to the min range or the max range
 local InteractMinRangeCheckIndex = 2
-local RealMinRange = 9.5 -- this is the 8yd range as measured... go figure...
 local MeleeRange = 5
 local VisibleRange = 100
 
@@ -134,8 +146,9 @@ local function findSpellId(spellName)
 	return nil
 end
 
-local function addChecker(t, range, checker)
-	local rc = { ["range"] = range, ["checker"] = checker }
+-- minRange should be nil if there's no minRange, not 0
+local function addChecker(t, range, minRange, checker)
+	local rc = { ["range"] = range, ["minRange"] = minRange, ["checker"] = checker }
 	for i, v in ipairs(t) do
 		if (rc.range == v.range) then return end
         if (rc.range > v.range) then
@@ -146,28 +159,23 @@ local function addChecker(t, range, checker)
 	tinsert(t, rc)
 end
 
-local function createCheckerList(spellList)
+local function createCheckerList(spellList, interactList)
 	local res = {}
     if (spellList) then
 	    for i, v in ipairs(spellList) do
 	    	local spellId = findSpellId(v)
 	    	local range, minRange = getSpellRange(spellId, BOOKTYP_SPELL)
 	    	if (range) then
-	    		if (minRange) then
-	    			addChecker(res, range, function(unit)
-	    				if (IsSpellInRange(spellId, BOOKTYPE_SPELL, unit) == 1 or CheckInteractDistance(unit, InteractMinRangeCheckIndex)) then return true end
-	    			end)
-	    		else
-	    			addChecker(res, range, function(unit)
-	    				if (IsSpellInRange(spellId, BOOKTYPE_SPELL, unit) == 1) then return true end
-	    			end)
-	    		end
-	    	end
+				addChecker(res, range, minRange, function(unit)
+					if (IsSpellInRange(spellId, BOOKTYPE_SPELL, unit) == 1) then return true end
+				end)
+			end
 	    end
     end
-	for i, v in ipairs(InteractList) do
-		addChecker(res, v.range, function(unit)
-			if (CheckInteractDistance(unit, v.index)) then return true end
+	if (not interactList) then interactList = DefaultInteractList end
+	for index, range in pairs(interactList) do
+		addChecker(res, range, nil, function(unit)
+			if (CheckInteractDistance(unit, index)) then return true end
 		end)
     end
     return res
@@ -175,7 +183,7 @@ end
 
 -- returns minRange, maxRange or nil
 local function getRange(unit, checkerList, checkVisible)
-	local max = nil
+	local min, max = 0, nil
     if (checkVisible) then
     	if (UnitIsVisible(unit)) then
     		max = VisibleRange
@@ -184,13 +192,22 @@ local function getRange(unit, checkerList, checkVisible)
     	end
     end
     for i, rc in ipairs(checkerList) do
-        if (rc.checker(unit)) then
-	        max = rc.range
-        else
-			return rc.range, max
-        end
+		if (not max or max >= rc.range) then
+			if (rc.checker(unit)) then
+				max = rc.range
+				if (rc.minRange) then
+					min = rc.minRange
+				end
+			elseif (rc.minRange and CheckInteractDistance(unit, InteractMinRangeCheckIndex)) then
+				max = rc.minRange
+			elseif (min > rc.range) then
+				return min, max
+			else
+				return rc.range, max
+			end
+		end
     end
-    return 0, max
+    return min, max
 end
 
 -- OK, here comes the actual lib
@@ -201,7 +218,7 @@ local RangeCheck = {}
 -- someone manages to call us before we're properly initialized. miscRC should be independent of
 -- race/class/talents, so it's safe to initialize it here
 -- friendRC and harmRC will be properly initialized later when we have all the necessary data for them
-RangeCheck.miscRC = createCheckerList(nil)
+RangeCheck.miscRC = createCheckerList()
 RangeCheck.friendRC = RangeCheck.miscRC
 RangeCheck.harmRC = RangeCheck.miscRC
 
@@ -246,17 +263,16 @@ function RangeCheck:init(forced)
 	if (self.initialized and (not forced)) then return end
 	self.initialized = true
 	local _, playerClass = UnitClass("player")
-	if (playerClass == "HUNTER") then
-		-- There seems to be a bug with hunters near 10yd:
-		-- sometimes we return out-of-range here. Could be caused by Hawk Eye
-		-- talent somehow. Needs more testing, but this might fix it.
-		-- We can't use this for warriors though, as Charge has a max range of
-		-- 25 so it would mess up the 25-28 yd range
+	local _, playerRace = UnitRace("player")
+	if (playerClass == "HUNTER" or playerRace == "Tauren") then
+		-- for Hunters it's best to use interact4 (~27yd),
+		-- and for Taurens interact4 is actually closer than 25yd and interact2 is closer than 8yd, so we can't use that
 		InteractMinRangeCheckIndex = 4
 	end
-	self.friendRC = createCheckerList(FriendSpells[playerClass])
-	self.harmRC = createCheckerList(HarmSpells[playerClass])
-	self.miscRC = createCheckerList(nil)
+	local interactList = InteractLists[playerRace]
+	self.friendRC = createCheckerList(FriendSpells[playerClass], interactList)
+	self.harmRC = createCheckerList(HarmSpells[playerClass], interactList)
+	self.miscRC = createCheckerList(nil, interactList)
 	self.handSlotItem = GetInventoryItemLink("player", HandSlotId)
 end
 
@@ -305,6 +321,86 @@ local function activate(self, oldLib, oldDeactivate)
 		oldDeactivate(oldLib)
 	end
 end
+
+-- << DEBUG STUFF
+
+function RangeCheck:startMeasurement(unit, resultTable)
+	if (self.measurements) then
+		print(MAJOR_VERSION .. ": measurements already running")
+		return
+	end
+	print(MAJOR_VERSION .. ": starting measurements")
+	local _, playerClass = UnitClass("player")
+	local spellList
+	if (UnitCanAttack("player", unit)) then
+		spellList = HarmSpells[playerClass]
+	elseif (UnitCanAssist("player", unit)) then
+		spellList = FriendSpells[playerClass]
+	end
+	self.spellsToMeasure = {}
+	if (spellList) then
+		for _, name in ipairs(spellList) do
+			local spellId = self:findSpellId(name)
+			if (spellId) then
+				self.spellsToMeasure[name] = spellId
+			end
+		end
+	end
+	self.measurements = resultTable
+	self.measurementUnit = unit
+	self.measurementStart = GetTime()
+	self.lastMeasurements = {}
+	self:updateMeasurements()
+	self.frame:SetScript("OnUpdate", function(frame, elapsed) self:updateMeasurements() end)
+	self.frame:Show()
+end
+
+function RangeCheck:stopMeasurement()
+	print(MAJOR_VERSION .. ": stopping measurements")
+	self.frame:Hide()
+	self.frame:SetScript("OnUpdate", nil)
+	self.measurements = nil
+end
+
+local GetTime = GetTime
+local GetPlayerMapPosition = GetPlayerMapPosition
+function RangeCheck:updateMeasurements()
+	local now = GetTime() - self.measurementStart
+	local x, y = GetPlayerMapPosition("player");
+	local t = self.measurements[now]
+	local unit = self.measurementUnit
+	for name, id in pairs(self.spellsToMeasure) do
+		local last = self.lastMeasurements[name]
+		local curr = (IsSpellInRange(id, BOOKTYPE_SPELL, unit) == 1) and true or false
+		if (last == nil or last ~= curr) then
+			print("### " .. tostring(name) .. ": " .. tostring(last) .. " ->  " .. tostring(curr))
+			if (t == nil) then
+				t = {}
+				t.x, t.y, t.stamp, t.states = x, y, now, {}
+				self.measurements[now] = t
+			end
+			t.states[name]= curr
+			self.lastMeasurements[name] = curr
+		end
+	end
+	for i, v in pairs(DefaultInteractList) do
+		local name = "interact" .. i
+		local last = self.lastMeasurements[name]
+		local curr = CheckInteractDistance(unit, i) and true or false
+		if (last == nil or last ~= curr) then
+			print("### " .. tostring(name) .. ": " .. tostring(last) .. " ->  " .. tostring(curr))
+			if (t == nil) then
+				t = {}
+				t.x, t.y, t.stamp, t.states = x, y, now, {}
+				self.measurements[now] = t
+			end
+			t.states[name] = curr
+			self.lastMeasurements[name] = curr
+		end
+	end
+end
+
+-- >> DEBUG STUFF
 
 AceLibrary:Register(RangeCheck, MAJOR_VERSION, MINOR_VERSION, activate)
 RangeCheck = nil
