@@ -13,7 +13,7 @@
 ## X-License: Public Domain
 ## X-AceForum: 6664
 ## X-RelSite-WoWI: 7297
-## X-Credits: sayclub (koKR), lcncg (zhCN, zhTW), Carylon (deDE)
+## X-Credits: sayclub (koKR), lcncg (zhCN, zhTW), Carylon (deDE), Pixel (frFR)
 
 embeds.xml
 
