@@ -1,9 +1,9 @@
--- frFR by |Pixel|
+﻿-- frFR by |Pixel|
 local L = AceLibrary("AceLocale-2.2"):new("RangeDisplay")
 L:RegisterTranslations("frFR", function() return {
-		
+
 ["Locked"] = "Vérouillé",
-["Lock/Unlock display frame"] = "(Dé)Vérouille la fenêtre"
+["Lock/Unlock display frame"] = "(Dé)Vérouille la fenêtre",
 ["Out of range display"] = "Affichage de la portée",
 ["Show/Hide display if the target is out of range"] = "Affiche/cache l'affichage si la cible est hors de portée",
 ["Check visibility"] = "Visibilité",
