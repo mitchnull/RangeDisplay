@@ -56,7 +56,7 @@ local FriendSpells = {}
 -- list of harmful spells that have different ranges
 local HarmSpells = {}
 
-FriendSpells["MAGE"] = { BS["Remove Lesser Curse"], BS["Arcane Brilliance"] }
+FriendSpells["MAGE"] = { BS["Arcane Intellect"], BS["Arcane Brilliance"] }
 HarmSpells["MAGE"] = { BS["Shoot"], BS["Fire Blast"], BS["Arcane Missiles"], BS["Frostbolt"], BS["Scorch"], BS["Fireball"], BS["Detect Magic"] }
 
 FriendSpells["HUNTER"] = {}
