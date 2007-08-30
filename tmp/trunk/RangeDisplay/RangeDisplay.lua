@@ -46,6 +46,7 @@ local DefaultDB = {
 	outOfRangeDisplay = false,
 	checkVisibility = false,
 	enemyOnly = false,
+	maxRangeOnly = false,
 	locked = false,
 	point = "CENTER",
 	relPoint = "CENTER",
@@ -105,6 +106,12 @@ local options = {
 			name = L["Enemy only"],
 			desc = L["Show range for enemy targets only"],
 			order = 115,
+		},
+		maxRangeOnly = {
+			type = 'toggle',
+			name = L["Max range only"],
+			desc = L["Show the maximum range only"],
+			order = 116,
 		},
 		outOfRangeDisplay = {
 			type = 'toggle',
@@ -166,6 +173,11 @@ local function isTargetValid(unit)
 			and (not db.enemyOnly or UnitCanAttack("player", unit))
 			and (not UnitIsUnit(unit, "player"))
 end
+
+-- internal vars
+
+local lastUpdate = 0 -- time since last real update
+local lastMinRange, lastMaxRange
 
 -- frame stuff
 
@@ -250,6 +262,7 @@ function RangeDisplay:applySettings()
 		self.rangeFrameText:SetFont(dbFontPath, db.fontSize, db.fontOutline)
 	end
 	self.rangeFrameText:SetTextColor(db.colorR, db.colorG, db.colorB)
+	lastMinRange, lastMaxRange = false, false -- to force update
 	self:targetChanged()
 end
 
@@ -361,16 +374,30 @@ function RangeDisplay:OnInitialize(event, name)
 	self:RegisterChatCommand({"/rangedisplay"}, options)
 end
 
-local lastUpdate = 0 -- time since last real update
-local lastRange = nil
 function RangeDisplay:OnUpdate(elapsed)
 	lastUpdate = lastUpdate + elapsed
 	if (lastUpdate < UpdateDelay) then return end
 	lastUpdate = 0
-	local range = rc:getRangeAsString("target", db.checkVisibility, db.outOfRangeDisplay)
-	if (range == lastRange) then return end
-	lastRange = range
+	local minRange, maxRange = rc:getRange("target", db.checkVisibility)
+	if (minRange == lastMinRange and maxRange == lastMaxRange) then return end
+	lastMinRange, lastMaxRange = minRange, maxRange
+	local range = nil
+	if (minRange) then
+		if (maxRange) then
+			if (db.maxRangeOnly) then
+				range = maxRange
+			else
+				range = minRange .. " - " .. maxRange
+			end
+		elseif (db.outOfRangeDisplay) then
+			range = minRange .. " +"
+		end
+	end
 	self.rangeFrameText:SetText(range)
+	-- TODO: optionally re-color for range. GUI config to be designed...
+	-- if (not db.Colors) then return end
+	-- local r, g, b = self:getColorForRange(minRange, maxRange)
+	-- self.rangeFrameText:SetTextColor(r, g, b)
 end
 
 function RangeDisplay:targetChanged()

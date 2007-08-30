@@ -9,6 +9,8 @@ L:RegisterTranslations("deDE", function() return {
  ["Show/Hide display if the target is out of range"] = "Zeige/verstecke Anzeige falls das Ziel ausser Reichweite ist",
  ["Check visibility"] = "Prüfe Sichtbarkeit",
  ["If set, the max range to check will be 'visibility range'"] = "Wenn aktiv, ist die Sichtweite die Maximalreichweite, die geprüft wird",
+-- ["Max range only"] = true,
+-- ["Show the maximum range only"] = true,
  ["Font"] = "Schriftart",
  ["Default"] = "Default",
  ["Font size"] = "Schriftgröße",

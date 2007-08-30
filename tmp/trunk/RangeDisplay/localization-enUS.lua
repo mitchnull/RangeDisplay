@@ -7,6 +7,8 @@ L:RegisterTranslations("enUS", function() return {
 ["Show/Hide display if the target is out of range"] = true,
 ["Check visibility"] = true,
 ["If set, the max range to check will be 'visibility range'"] = true,
+["Max range only"] = true,
+["Show the maximum range only"] = true,
 ["Font"] = true,
 ["Default"] = true,
 ["Font size"] = true,

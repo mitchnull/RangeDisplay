@@ -7,6 +7,8 @@ L:RegisterTranslations("koKR", function() return {
 ["Show/Hide display if the target is out of range"] = "대상이 유효 거리 밖일 때 표시하거나 숨깁니다.",
 ["Check visibility"] = "눈에 보이는 범위 체크",
 ["If set, the max range to check will be 'visibility range'"] = "설정시, 체크할 최대 범위는 '눈에 보이는 범위'입니다.",
+-- ["Max range only"] = true,
+-- ["Show the maximum range only"] = true,
 ["Font"] = "글꼴",
 ["Default"] = "기본값",
 ["Font size"] = "글꼴 크기",
