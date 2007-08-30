@@ -44,10 +44,13 @@ local InteractLists = {
 		[2] = 7,
 		[4] = 25,
 	},
+	["Scourge"] = {
+		[3] = 7,
+		[2] = 8,
+		[4] = 27,
+	},
 }
 
--- interact distance to check if a spell with minimum range fails due to the min range or the max range
-local InteractMinRangeCheckIndex = 2
 local MeleeRange = 5
 local VisibleRange = 100
 
@@ -56,32 +59,96 @@ local FriendSpells = {}
 -- list of harmful spells that have different ranges
 local HarmSpells = {}
 
-FriendSpells["MAGE"] = { BS["Arcane Intellect"], BS["Arcane Brilliance"] }
-HarmSpells["MAGE"] = { BS["Shoot"], BS["Fire Blast"], BS["Arcane Missiles"], BS["Frostbolt"], BS["Scorch"], BS["Fireball"], BS["Detect Magic"] }
+FriendSpells["DRUID"] = {
+	BS["Healing Touch"], -- 40
+	BS["Mark of the Wild"], -- 30
+}
+HarmSpells["DRUID"] = {
+	BS["Wrath"], -- 30 (Nature's Reach: 33, 36)
+	BS["Feral Charge"], -- 8-25
+	BS["Growl"], -- 5
+}
 
 FriendSpells["HUNTER"] = {}
-HarmSpells["HUNTER"] = { BS["Throw"], BS["Auto Shot"], BS["Scatter Shot"], BS["Wing Clip"] }
+HarmSpells["HUNTER"] = {
+	BS["Auto Shot"], -- 8-35 (Hawk Eye: 37, 39, 41)
+	BS["Throw"], -- 30
+	BS["Scatter Shot"], -- 15 (Hawk Eye: 17, 19, 21)
+	BS["Wing Clip"], -- 5
+}
 
-FriendSpells["WARRIOR"] = {}
-HarmSpells["WARRIOR"] = { BS["Shoot"], BS["Throw"], BS["Charge"], BS["Rend"] }
+FriendSpells["MAGE"] = {
+	BS["Arcane Brilliance"], -- 40
+	BS["Arcane Intellect"], -- 30
+}
+HarmSpells["MAGE"] = {
+	BS["Detect Magic"], -- 40
+	BS["Fireball"], -- 35 ( Flame Throwing: 38, 41 )
+	BS["Frostbolt"], -- 30 ( Arctic Reach: 33, 36 )
+	BS["Scorch"], -- 30 (Flame Throwing: 33, 36 )
+	BS["Shoot"], -- 30
+	BS["Fire Blast"], -- 20 (Flame Throwing: 23, 26; Gladiator Gloves: +5)
+}
 
-FriendSpells["SHAMAN"] = { BS["Healing Wave"], BS["Cure Poison"] }
-HarmSpells["SHAMAN"] = { BS["Lightning Bolt"], BS["Purge"], BS["Earth Shock"] }
+FriendSpells["PALADIN"] = {
+	BS["Holy Light"], -- 40
+	BS["Blessing of Might"], -- 30
+	BS["Holy Shock"], -- 20
+}
+HarmSpells["PALADIN"] = {
+	BS["Hammer of Wrath"],  -- 30
+	BS["Holy Shock"], -- 20
+	BS["Judgement"], -- 10
+	BS["Crusader Strike"], -- 5
+} 
+
+FriendSpells["PRIEST"] = {
+	BS["Lesser Heal"], -- 40
+	BS["Power Word: Fortitude"], -- 30
+}
+HarmSpells["PRIEST"] = {
+	BS["Smite"], -- 30 (Holy Reach: 33, 36)
+	BS["Shadow Word: Pain"], -- 30 (Shadow Reach: 33, 36)
+	BS["Shoot"], -- 30
+	BS["Mind Flay"], -- 20 (Shadow Reach: 22, 24)
+}
 
 FriendSpells["ROGUE"] = {}
-HarmSpells["ROGUE"] = { BS["Throw"], BS["Deadly Throw"], BS["Blind"], BS["Eviscerate"] }
+HarmSpells["ROGUE"] = {
+	BS["Throw"], -- 8-30
+	BS["Blind"], -- 10 (Dirty Tricks: 12, 15)
+	BS["Eviscerate"], -- 5
+}
 
-FriendSpells["PRIEST"] = { BS["Lesser Heal"], BS["Power Word: Fortitude"] }
-HarmSpells["PRIEST"] = { BS["Shoot"], BS["Smite"], BS["Shadow Word: Pain"], BS["Dispel Magic"], BS["Mind Flay"] }
+FriendSpells["SHAMAN"] = {
+	BS["Healing Wave"], -- 40
+	BS["Cure Poison"], -- 30
+}
+HarmSpells["SHAMAN"] = {
+	BS["Lightning Bolt"], -- 30 (Storm Reach: 33, 36)
+	BS["Purge"], -- 30
+	BS["Earth Shock"], -- 20 (Gladiator Gloves: +5)
+}
 
-FriendSpells["PALADIN"] = { BS["Holy Light"], BS["Blessing of Might"], BS["Holy Shock"] }
-HarmSpells["PALADIN"] = { BS["Hammer of Wrath"], BS["Holy Shock"], BS["Judgement"] } 
+FriendSpells["WARRIOR"] = {}
+HarmSpells["WARRIOR"] = {
+	BS["Shoot"], -- 8-30
+	BS["Throw"], -- 8-30
+	BS["Charge"], -- 8-25
+	BS["Intimidating Shout"], -- 10
+	BS["Rend"], -- 5
+}
 
-FriendSpells["DRUID"] = { BS["Healing Touch"], BS["Mark of the Wild"] }
-HarmSpells["DRUID"] = { BS["Wrath"], BS["Growl"],  }
-
-FriendSpells["WARLOCK"] = { BS["Unending Breath"] }
-HarmSpells["WARLOCK"] = { BS["Shoot"], BS["Immolate"], BS["Corruption"], BS["Fear"], BS["Shadowburn"] }
+FriendSpells["WARLOCK"] = {
+	BS["Unending Breath"], -- 30 (demo)
+}
+HarmSpells["WARLOCK"] = {
+	BS["Shoot"], -- 30
+	BS["Immolate"], -- 30 (Destructive Reach: 33, 36)
+	BS["Corruption"], -- 30 (Grim Reach: 33, 36)
+	BS["Fear"], -- 20 (Grim Reach: 22, 24)
+	BS["Shadowburn"], -- 20 (Destructive Reach: 22, 24)
+}
 
 -- This could've been done by checking player race as well and creating tables for those, but it's easier like this
 for k, v in pairs(FriendSpells) do
@@ -116,6 +183,9 @@ local function print(text)
 		DEFAULT_CHAT_FRAME:AddMessage(text)
 	end
 end
+
+-- minRangeCheck is a function to check if spells with minimum range are really out of range, or fail due to range < minRange. See :init() for its setup
+local minRangeCheck = function(unit) return CheckInteractDistance(unit, 2) end
 
 local function isTargetValid(unit)
 	return UnitExists(unit) and (not UnitIsDeadOrGhost(unit))
@@ -192,13 +262,13 @@ local function getRange(unit, checkerList, checkVisible)
     	end
     end
     for i, rc in ipairs(checkerList) do
-		if (not max or max >= rc.range) then
+		if (not max or max > rc.range) then
 			if (rc.checker(unit)) then
 				max = rc.range
 				if (rc.minRange) then
 					min = rc.minRange
 				end
-			elseif (rc.minRange and CheckInteractDistance(unit, InteractMinRangeCheckIndex)) then
+			elseif (rc.minRange and minRangeCheck(unit)) then
 				max = rc.minRange
 			elseif (min > rc.range) then
 				return min, max
@@ -264,11 +334,35 @@ function RangeCheck:init(forced)
 	self.initialized = true
 	local _, playerClass = UnitClass("player")
 	local _, playerRace = UnitRace("player")
-	if (playerClass == "HUNTER" or playerRace == "Tauren") then
-		-- for Hunters it's best to use interact4 (~27yd),
-		-- and for Taurens interact4 is actually closer than 25yd and interact2 is closer than 8yd, so we can't use that
-		InteractMinRangeCheckIndex = 4
+
+	minRangeCheck = nil
+	if (playerClass == "WARRIOR") then
+		-- for warriors, use Intimidating Shout if available
+		local spellId = findSpellId(BS["Intimidating Shout"])
+		if (spellId) then
+			minRangeCheck = function(unit)
+				return (IsSpellInRange(spellId, BOOKTYPE_SPELL, unit) == 1)
+			end
+		end
+	elseif (playerClass == "ROGUE") then
+		-- for rogues, use Blind if available
+		local spellId = findSpellId(BS["Blind"])
+		if (spellId) then
+			minRangeCheck = function(unit)
+				return (IsSpellInRange(spellId, BOOKTYPE_SPELL, unit) == 1)
+			end
+		end
 	end
+	if (not minRangeCheck) then
+		if  (playerClass == "HUNTER" or playerRace == "Tauren") then
+			-- for hunters, use interact4 as it's safer
+			-- for Taurens interact4 is actually closer than 25yd and interact2 is closer than 8yd, so we can't use that
+			minRangeCheck = function(unit) return CheckInteractDistance(unit, 4) end
+		else
+			minRangeCheck = function(unit) return CheckInteractDistance(unit, 2) end
+		end
+	end
+
 	local interactList = InteractLists[playerRace]
 	self.friendRC = createCheckerList(FriendSpells[playerClass], interactList)
 	self.harmRC = createCheckerList(HarmSpells[playerClass], interactList)
