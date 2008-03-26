@@ -9,8 +9,6 @@
 <Script file="libs\AceDB-2.0\AceDB-2.0.lua"/>
 <Script file="libs\AceEvent-2.0\AceEvent-2.0.lua"/>
 <Script file="libs\AceLocale-2.2\AceLocale-2.2.lua"/>
-<Script file="libs\Babble-Spell-2.2\Babble-Spell-2.2.lua"/>
-<Script file="libs\Gratuity-2.0\Gratuity-2.0.lua"/>
 <Script file="libs\RangeCheck-2.0\RangeCheck-2.0.lua"/>
 
 </Ui>
