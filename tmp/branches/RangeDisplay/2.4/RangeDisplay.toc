@@ -16,13 +16,6 @@
 ## X-Credits: sayclub (koKR), lcncg (zhCN, zhTW), Carylon (deDE), Pixel (frFR)
 
 embeds.xml
-
-localization-enUS.lua
-localization-deDE.lua
-localization-esES.lua
-localization-frFR.lua
-localization-koKR.lua
-localization-zhCN.lua
-localization-zhTW.lua
+localizations\localizations.xml
 
 RangeDisplay.lua
