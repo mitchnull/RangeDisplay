@@ -7,8 +7,8 @@
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: delayed
 ## SavedVariables: RangeDisplayDB
-## OptionalDeps: Ace2, Babble-2.2, GratuityLib, RangeCheck-1.0, DewdropLib, Waterfall-1.0, SharedMediaLib
-## X-Embeds: Ace2, Babble-2.2, GratuityLib, RangeCheck-1.0
+## OptionalDeps: LibStub, LibRangeCheck-2.0, Ace2, DewdropLib, Waterfall-1.0, SharedMediaLib
+## X-Embeds: LibRangeCheck-2.0, Ace2
 ## X-Category: Combat
 ## X-License: Public Domain
 ## X-AceForum: 6664
@@ -16,13 +16,6 @@
 ## X-Credits: sayclub (koKR), lcncg (zhCN, zhTW), Carylon (deDE), Pixel (frFR)
 
 embeds.xml
-
-localization-enUS.lua
-localization-deDE.lua
-localization-esES.lua
-localization-frFR.lua
-localization-koKR.lua
-localization-zhCN.lua
-localization-zhTW.lua
+localizations\localizations.xml
 
 RangeDisplay.lua

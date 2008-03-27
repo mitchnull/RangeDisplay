@@ -6,7 +6,7 @@ Website: http://www.wowace.com/wiki/RangeDisplay
 Documentation: http://www.wowace.com/wiki/RangeDisplay
 SVN: http://svn.wowace.com/wowace/trunk/RangeDisplay/
 Description: RangeDisplay displays the estimated range to the current target based on spell ranges and other measurable ranges
-Dependencies: AceLibrary, Babble-2.2, GratuityLib, RangeCheck-1.0, DewdropLib(optional), Waterfall-1.0(optional), SharedMediaLib(optional)
+Dependencies: LibStub, LibRangeCheck-2.0, AceLibrary, DewdropLib(optional), Waterfall-1.0(optional), SharedMediaLib(optional)
 License: Public Domain
 ]]
 
@@ -14,9 +14,8 @@ local VERSION = "RangeDisplay-r" .. ("$Revision$"):match("%d+")
 
 if (not AceLibrary) then error(VERSION .. " requires AceLibrary.") end
 
-local libRC = "RangeCheck-1.0"
-local rc = AceLibrary:HasInstance(libRC) and AceLibrary(libRC)
-if (not rc) then error(VERSION .. " requires " .. libRC) end
+local rc = LibStub:GetLibrary("LibRangeCheck-2.0");
+
 local dewdrop = AceLibrary:HasInstance("Dewdrop-2.0") and AceLibrary("Dewdrop-2.0")
 local waterfall = AceLibrary:HasInstance("Waterfall-1.0") and AceLibrary("Waterfall-1.0")
 local SML = AceLibrary:HasInstance("SharedMedia-1.0") and AceLibrary("SharedMedia-1.0")
