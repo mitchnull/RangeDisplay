@@ -227,7 +227,12 @@ function RangeDisplay:createFrame()
 			db.point, _, db.relPoint, db.x, db.y = rangeFrame:GetPoint()
 		end
 	end)
-	rangeFrame:SetScript("OnUpdate", function(frame, elapsed) self:OnUpdate(elapsed) end)
+	rangeFrame:SetScript("OnUpdate", function(frame, elapsed)
+		lastUpdate = lastUpdate + elapsed
+		if (lastUpdate < UpdateDelay) then return end
+		lastUpdate = 0
+		self:OnUpdate(elapsed)
+	end)
 end
 
 -- config stuff
@@ -374,9 +379,6 @@ function RangeDisplay:OnInitialize(event, name)
 end
 
 function RangeDisplay:OnUpdate(elapsed)
-	lastUpdate = lastUpdate + elapsed
-	if (lastUpdate < UpdateDelay) then return end
-	lastUpdate = 0
 	local minRange, maxRange = rc:getRange("target", db.checkVisibility)
 	if (minRange == lastMinRange and maxRange == lastMaxRange) then return end
 	lastMinRange, lastMaxRange = minRange, maxRange

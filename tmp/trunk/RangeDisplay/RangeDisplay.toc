@@ -1,4 +1,4 @@
-## Interface: 20300
+## Interface: 20400
 ## Title: RangeDisplay |cff7fff7f -Ace2-|r
 ## Author: mitch0
 ## Version: 2.1.3
