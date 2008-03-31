@@ -1,14 +1,14 @@
 ## Interface: 20400
-## Title: RangeDisplay |cff7fff7f -Ace2-|r
+## Title: RangeDisplay
 ## Author: mitch0
-## Version: 2.1.3
+## Version: 3.0
 ## Notes: Estimated range display. type /rangedisplay for help
 ## DefaultState: Enabled
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: delayed
-## SavedVariables: RangeDisplayDB
-## OptionalDeps: LibStub, LibRangeCheck-2.0, Ace2, DewdropLib, Waterfall-1.0, SharedMediaLib
-## X-Embeds: LibRangeCheck-2.0, Ace2
+## SavedVariables: RangeDisplayDB3
+## OptionalDeps: LibStub, LibRangeCheck-2.0, Ace3, LibSharedMedia-3.0
+## X-Embeds: LibRangeCheck-2.0, Ace3
 ## X-Category: Combat
 ## X-License: Public Domain
 ## X-AceForum: 6664

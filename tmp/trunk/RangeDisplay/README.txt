@@ -48,22 +48,14 @@ Options:
   be the max range displayed (~100 yd).
 /rangedisplay enemyOnly
   Toggle showing the range for enemy players only, or for all units.
-/rangedisplay configDD
-  Open the Dewdrop config GUI, if available.
-/rangedisplay configWF
-  Open the Waterfall config GUI, if available.
+/rangedisplay config
+  Open the config GUI
 
 Install instructions:
 
-If you want to use the GUI config, you have to install one of these
-addons, too:
-
-- DewdropLib
-- Waterfall-1.0
-
 If you want to select different fonts, you also need:
 
-- SharedMediaLib
+- LibSharedMedia-3.0
 - SharedMedia
 
 After installing, RangeDisplay will be enabled by default, and unlocked,

@@ -6,27 +6,32 @@ Website: http://www.wowace.com/wiki/RangeDisplay
 Documentation: http://www.wowace.com/wiki/RangeDisplay
 SVN: http://svn.wowace.com/wowace/trunk/RangeDisplay/
 Description: RangeDisplay displays the estimated range to the current target based on spell ranges and other measurable ranges
-Dependencies: LibStub, LibRangeCheck-2.0, AceLibrary, DewdropLib(optional), Waterfall-1.0(optional), SharedMediaLib(optional)
+Dependencies: LibStub, LibRangeCheck-2.0, Ace3, LibSharedMedia-3.0(optional)
 License: Public Domain
 ]]
 
-local VERSION = "RangeDisplay-r" .. ("$Revision$"):match("%d+")
+local AppName = "RangeDisplay"
+local VERSION = AppName .. "-r" .. ("$Revision$"):match("%d+")
 
-if (not AceLibrary) then error(VERSION .. " requires AceLibrary.") end
+local rc = LibStub("LibRangeCheck-2.0")
+local AceConfig = LibStub("AceConfig-3.0")
+local ACD = LibStub("AceConfigDialog-3.0")
+local L = LibStub("AceLocale-3.0"):GetLocale(AppName)
+local SML = LibStub:GetLibrary("LibSharedMedia-3.0", true)
 
-local rc = LibStub:GetLibrary("LibRangeCheck-2.0");
+-- internal vars
 
-local dewdrop = AceLibrary:HasInstance("Dewdrop-2.0") and AceLibrary("Dewdrop-2.0")
-local waterfall = AceLibrary:HasInstance("Waterfall-1.0") and AceLibrary("Waterfall-1.0")
-local SML = AceLibrary:HasInstance("SharedMedia-1.0") and AceLibrary("SharedMedia-1.0")
-local L = AceLibrary("AceLocale-2.2"):new("RangeDisplay")
+local db
+local lastUpdate = 0 -- time since last real update
+local lastMinRange, lastMaxRange
 local _ -- throwaway
 
+-- cached stuff
 
-RangeDisplay = AceLibrary("AceAddon-2.0"):new("AceConsole-2.0", "AceDB-2.0", "AceEvent-2.0")
-RangeDisplay.version = VERSION
-RangeDisplay:RegisterDB("RangeDisplayDB")
-local db
+local UnitExists = UnitExists
+local UnitIsDeadOrGhost = UnitIsDeadOrGhost
+local UnitCanAttack = UnitCanAttack
+local UnitIsUnit = UnitIsUnit
 
 -- hard-coded config stuff
 
@@ -36,42 +41,46 @@ local MaxFontSize = 40
 local DefaultFontName = "Friz Quadrata TT"
 local DefaultFontPath = GameFontNormal:GetFont()
 
+---------------------------------
+
+RangeDisplay = LibStub("AceAddon-3.0"):NewAddon(AppName, "AceConsole-3.0", "AceEvent-3.0")
+RangeDisplay:SetDefaultModuleState(false)
+
+RangeDisplay.version = VERSION
+
 -- Default DB stuff
 
-local DefaultDB = {
-	font = DefaultFontName,
-	fontSize = 24,
-	fontOutline = "",
-	outOfRangeDisplay = false,
-	checkVisibility = false,
-	enemyOnly = false,
-	maxRangeOnly = false,
-	locked = false,
-	point = "CENTER",
-	relPoint = "CENTER",
-	x = 0,
-	y = 0,
-	colorR = 1.0,
-	colorG = 0.82,
-	colorB = 0,
-	strata = "HIGH",
+local defaults = {
+	profile = {
+		font = DefaultFontName,
+		fontSize = 24,
+		fontOutline = "",
+		outOfRangeDisplay = false,
+		checkVisibility = false,
+		enemyOnly = false,
+		maxRangeOnly = false,
+		locked = false,
+		point = "CENTER",
+		relPoint = "CENTER",
+		x = 0,
+		y = 0,
+		colorR = 1.0,
+		colorG = 0.82,
+		colorB = 0,
+		strata = "HIGH",
+	},
 }
-
--- cached stuff
-
-local UnitExists = UnitExists
-local UnitIsDeadOrGhost = UnitIsDeadOrGhost
-local UnitCanAttack = UnitCanAttack
-local UnitIsUnit = UnitIsUnit
 
 -- options table stuff
 
-local Fonts
-if (SML) then
---	SML:Register("font", DefaultFontName, DefaultFontPath)
-	Fonts = SML:List("font")
-else
-	Fonts = { [1] = DefaultFontName }
+local Fonts = SML and SML:List("font") or { [1] = DefaultFontName }
+
+local function getFonts()
+	local res = {}
+	for i, v in ipairs(Fonts) do
+		res[v] = v
+	end
+	return res
 end
 
 local FontOutlines = {
@@ -88,10 +97,9 @@ local FrameStratas = {
 
 local options = {
 	type = "group",
-	name = "RangeDisplay",
-	pass = true,
+	name = AppName,
 	handler = RangeDisplay,
-	get = function(name) return db[name] end,
+	get = function(info) return db[info[#info]] end,
 	set = "setOption",
 	args = {
 		locked = {
@@ -125,10 +133,10 @@ local options = {
 			order = 130,
 		},
 		font = {
-			type = 'text',
+			type = 'select',
 			name = L["Font"],
 			desc = L["Font"],
-			validate = Fonts,
+			values = getFonts,
 			order = 135
 		},
 		fontSize = {
@@ -141,10 +149,10 @@ local options = {
 			order = 140,
 		},
 		fontOutline = {
-			type = 'text',
+			type = 'select',
 			name = L["Font outline"],
 			desc = L["Font outline"],
-			validate = FontOutlines,
+			values = FontOutlines,
 			order = 150,
 		},
 		color = {
@@ -156,14 +164,32 @@ local options = {
 			order = 160,
 		},
 		strata = {
-			type = 'text',
+			type = 'select',
 			name = L["Strata"],
 			desc = L["Frame strata"],
-			validate = FrameStratas,
+			values = FrameStratas,
 			order = 170,
 		},
+        config = {
+            type = 'execute',
+            name = L["Configure"],
+            desc = L["Bring up GUI configure dialog"],
+            guiHidden = true,
+            order = 300,
+            func = function() RangeDisplay:OpenConfigDialog() end,
+        },
 	},
 }
+
+function RangeDisplay:OpenConfigDialog()
+    local f = ACD.OpenFrames[AppName]
+    ACD:Open(AppName)
+    if not f then
+        f = ACD.OpenFrames[AppName]
+        f:SetWidth(400)
+        f:SetHeight(500)
+    end
+end
 
 -- helper functions
 
@@ -173,24 +199,19 @@ local function isTargetValid(unit)
 			and (not UnitIsUnit(unit, "player"))
 end
 
--- internal vars
-
-local lastUpdate = 0 -- time since last real update
-local lastMinRange, lastMaxRange
-
 -- frame stuff
 
 function RangeDisplay:createFrame()
 	self.isMoving = false
 	local rangeFrame = CreateFrame("Frame", "RangeDisplayFrame", UIParent)
 	rangeFrame:Hide()
-	rangeFrame:SetFrameStrata(DefaultDB.strata)
+	rangeFrame:SetFrameStrata(defaults.profile.strata)
 	rangeFrame:EnableMouse(false)
 	rangeFrame:SetClampedToScreen()
 	rangeFrame:SetMovable(true)
 	rangeFrame:SetWidth(120)
 	rangeFrame:SetHeight(30)
-	rangeFrame:SetPoint(DefaultDB.point, UIParent, DefaultDB.relPoint, DefaultDB.x, DefaultDB.y)
+	rangeFrame:SetPoint(defaults.profile.point, UIParent, defaults.profile.relPoint, defaults.profile.x, defaults.profile.y)
 	self.rangeFrame = rangeFrame
 
 	local rangeFrameBG = rangeFrame:CreateTexture("RangeDisplayFrameBG", "BACKGROUND")
@@ -201,7 +222,7 @@ function RangeDisplay:createFrame()
 	self.rangeFrameBG = rangeFrameBG
 
 	local rangeFrameText = rangeFrame:CreateFontString("RangeDisplayFrameText", "OVERLAY", "GameFontNormal")
-	rangeFrameText:SetFont(DefaultFontPath, DefaultDB.fontSize, DefaultDB.fontOutline)
+	rangeFrameText:SetFont(DefaultFontPath, defaults.profile.fontSize, defaults.profile.fontOutline)
 	rangeFrameText:SetJustifyH("CENTER")
 	rangeFrameText:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
 	self.rangeFrameText = rangeFrameText
@@ -214,6 +235,8 @@ function RangeDisplay:createFrame()
 		if (button == "LeftButton") then
 			self.rangeFrame:StartMoving()
 			self.isMoving = true
+        elseif (button == "RightButton") then
+            self:OpenConfigDialog()
 		end
 	end)
 	rangeFrame:SetScript("OnMouseUp", function(frame, button)
@@ -237,20 +260,22 @@ end
 
 -- config stuff
 
-function RangeDisplay:setOption(name, value)
-	db[name] = value
+function RangeDisplay:setOption(info, value)
+	db[info[#info]] = value
 	self:applySettings()
 end
 
-function RangeDisplay:setColor(r, g, b)
+function RangeDisplay:setColor(info, r, g, b)
 	db.colorR, db.colorG, db.colorB = r, g, b
-	if (self:IsActive()) then
+	if (self:IsEnabled()) then
 		self.rangeFrameText:SetTextColor(db.colorR, db.colorG, db.colorB)
 	end
 end
 
 function RangeDisplay:applySettings()
-	if (not self:IsActive()) then return end
+	if (not self:IsEnabled()) then
+		return
+	end
 	if (db.locked) then
 		self:lock()
 	else
@@ -284,38 +309,14 @@ function RangeDisplay:unlock()
 	self.rangeFrameBG:Show()
 end
 
-function RangeDisplay:OnEnable(first)
-	self:OnProfileEnable()
-	self:RegisterEvent("PLAYER_TARGET_CHANGED", "targetChanged")
-	self:targetChanged()
-end
-
-function RangeDisplay:OnDisable()
-	if (self.rangeFrame) then
-		self.rangeFrame:Hide()
-	end
-end
-
-function RangeDisplay:OnProfileEnable()
-	db = self.db.profile
-	self:applySettings()
-end
-
--- boring stuff
-
-function RangeDisplay:OnInitialize(event, name)
-	if (not self.rangeFrame) then
-		self:createFrame()
-	end
-	self:RegisterDefaults("profile", DefaultDB)
-	db = self.db.profile
-
+function RangeDisplay:OnInitialize()
+    self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
+    db = self.db.profile
 	if (db.debug) then
 		options.args.startMeasurement = {
 			type = 'execute',
 			name = "StartMeasurement",
 			desc = "StartMeasurement",
-			aliases = "mon",
 			func = function()
 				if (not db.measurements) then
 					db.measurements = {}
@@ -337,45 +338,34 @@ function RangeDisplay:OnInitialize(event, name)
 			type = 'execute',
 			name = "ClearMeasurement",
 			desc = "ClearMeasurement",
-			aliases = "mc",
 			func = function()
 				db.measurements = nil
 			end,
 		}
 	end
-
-	if (dewdrop) then
-		dewdrop:Register(self.rangeFrame, 'children', function()
-			dewdrop:AddLine('text', "RangeDisplay", 'isTitle', true)
-			dewdrop:FeedAceOptionsTable(options)
-		end)
-		options.args.configdd = {
-			type = 'execute',
-			name = L["ConfigDD"],
-			desc = L["Configure via DewDrop"],
-			func = function() dewdrop:Open(self.rangeFrame) end,
-			guiHidden = true,
-			order = 800,
-		}
+    self.configOptions = options
+    AceConfig:RegisterOptionsTable(AppName, options, "rangedisplay")
+	if (not self.rangeFrame) then
+		self:createFrame()
 	end
+end
 
-	if (waterfall) then
-		waterfall:Register("RangeDisplay", 
-			'aceOptions', options,
-			'title', "RangeDisplay",
-			'treeLevels', 1,
-			'colorR', DefaultDB.colorR, 'colorG', DefaultDB.colorG, 'colorB', DefaultDB.colorB
-		)
-		options.args.configwf = {
-			type = 'execute',
-			name = L["ConfigWF"],
-			desc = L["Configure via Waterfall"],
-			func = function() waterfall:Open("RangeDisplay") end,
-			guiHidden = true,
-			order = 810,
-		}
+function RangeDisplay:OnEnable(first)
+	self:OnProfileEnable()
+	self:RegisterEvent("PLAYER_TARGET_CHANGED", "targetChanged")
+	self:targetChanged()
+end
+
+function RangeDisplay:OnDisable()
+	if (self.rangeFrame) then
+		self.rangeFrame:Hide()
 	end
-	self:RegisterChatCommand({"/rangedisplay"}, options)
+	self:UnregisterAllEvents()
+end
+
+function RangeDisplay:OnProfileEnable()
+	db = self.db.profile
+	self:applySettings()
 end
 
 function RangeDisplay:OnUpdate(elapsed)
