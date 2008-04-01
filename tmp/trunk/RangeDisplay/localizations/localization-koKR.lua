@@ -25,6 +25,6 @@ L["Frame strata"] = "창 우선순위"
 L["High"] = "높음"
 L["Medium"] = "중간"
 L["Low"] = "낮음"
--- L["Configure"] = true
--- L["Bring up GUI configure dialog"] = true
+L["Configure"] = "설정"
+L["Bring up GUI configure dialog"] = "GUI 설정 창을 불려옵니다."
 
