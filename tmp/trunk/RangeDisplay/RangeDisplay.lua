@@ -15,6 +15,7 @@ local VERSION = AppName .. "-r" .. ("$Revision$"):match("%d+")
 
 local rc = LibStub("LibRangeCheck-2.0")
 local AceConfig = LibStub("AceConfig-3.0")
+local AceDBOptions = LibStub("AceDBOptions-3.0")
 local ACD = LibStub("AceConfigDialog-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale(AppName)
 local SML = LibStub:GetLibrary("LibSharedMedia-3.0", true)
@@ -187,7 +188,7 @@ function RangeDisplay:OpenConfigDialog()
     if not f then
         f = ACD.OpenFrames[AppName]
         f:SetWidth(400)
-        f:SetHeight(500)
+        f:SetHeight(600)
     end
 end
 
@@ -309,42 +310,64 @@ function RangeDisplay:unlock()
 	self.rangeFrameBG:Show()
 end
 
+function RangeDisplay:addConfigTab(key, group, order, isCmdInline)
+	if (not self.configOptions) then
+		self.configOptions = {
+			type = "group",
+			name = AppName,
+			childGroups = "tab",
+			args = {},
+		}
+	end
+	self.configOptions.args[key] = group
+	self.configOptions.args[key].order = order
+	self.configOptions.args[key].cmdInline = isCmdInline
+end
+
 function RangeDisplay:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
     db = self.db.profile
+	self:addConfigTab('main', options, 10, true)
+	self:addConfigTab('profiles', AceDBOptions:GetOptionsTable(self.db), 20, false)
 	if (db.debug) then
-		options.args.startMeasurement = {
-			type = 'execute',
-			name = "StartMeasurement",
-			desc = "StartMeasurement",
-			func = function()
-				if (not db.measurements) then
-					db.measurements = {}
-				end
-				db.measurements[UnitName("player")] = {}
-				rc:startMeasurement("target", db.measurements[UnitName("player")])
-			end,
+		local debugOptions = {
+			type = 'group',
+			name = "Debug",
+			args = {
+				startMeasurement = {
+					type = 'execute',
+					name = "StartMeasurement",
+					desc = "StartMeasurement",
+					func = function()
+						if (not db.measurements) then
+							db.measurements = {}
+						end
+						db.measurements[UnitName("player")] = {}
+						rc:startMeasurement("target", db.measurements[UnitName("player")])
+					end,
+				},
+				stopMeasurement = {
+					type = 'execute',
+					name = "StopMeasurement",
+					desc = "StopMeasurement",
+					func = function()
+						rc:stopMeasurement()
+					end,
+				},
+				clearMeasurement = {
+					type = 'execute',
+					name = "ClearMeasurement",
+					desc = "ClearMeasurement",
+					func = function()
+						db.measurements = nil
+					end,
+				},
+			},
 		}
-		options.args.stopMeasurement = {
-			type = 'execute',
-			name = "StopMeasurement",
-			desc = "StopMeasurement",
-			aliases = "moff",
-			func = function()
-				rc:stopMeasurement()
-			end,
-		}
-		options.args.clearMeasurement = {
-			type = 'execute',
-			name = "ClearMeasurement",
-			desc = "ClearMeasurement",
-			func = function()
-				db.measurements = nil
-			end,
-		}
+		self:addConfigTab('debug', debugOptions, 100, true)
 	end
-    self.configOptions = options
-    AceConfig:RegisterOptionsTable(AppName, options, "rangedisplay")
+    AceConfig:RegisterOptionsTable(AppName, self.configOptions, "rangedisplay")
+	ACD:AddToBlizOptions(AppName)
 	if (not self.rangeFrame) then
 		self:createFrame()
 	end
