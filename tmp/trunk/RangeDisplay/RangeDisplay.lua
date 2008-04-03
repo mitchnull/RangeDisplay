@@ -273,6 +273,29 @@ function RangeDisplay:setColor(info, r, g, b)
 	end
 end
 
+function RangeDisplay:applyFontSettings(isCallback)
+	local dbFontPath
+	if (SML) then
+		dbFontPath = SML:Fetch("font", db.font, true)
+		if (not dbFontPath) then
+			if (isCallback) then
+				return
+			end
+			SML.RegisterCallback(self, "LibSharedMedia_Registered", "applyFontSettings", true)
+			dbFontPath = DefaultFontPath
+		else
+			SML.UnregisterCallback(self, "LibSharedMedia_Registered")
+		end
+	else
+		dbFontPath = DefaultFontPath
+	end
+	local fontPath, fontSize, fontOutline = self.rangeFrameText:GetFont()
+	fontOutline = fontOutline or ""
+	if (dbFontPath ~= fontPath or db.fontSize ~= fontSize or db.fontOutline ~= fontOutline) then
+		self.rangeFrameText:SetFont(dbFontPath, db.fontSize, db.fontOutline)
+	end
+end
+
 function RangeDisplay:applySettings()
 	if (not self:IsEnabled()) then
 		return
@@ -285,13 +308,8 @@ function RangeDisplay:applySettings()
 	self.rangeFrame:ClearAllPoints()
 	self.rangeFrame:SetPoint(db.point, UIParent, db.relPoint, db.x, db.y)
 	self.rangeFrame:SetFrameStrata(db.strata)
-	local dbFontPath = SML and SML:Fetch("font", db.font) or DefaultFontPath
-	local fontPath, fontSize, fontOutline = self.rangeFrameText:GetFont()
-	fontOutline = fontOutline or ""
-	if (dbFontPath ~= fontPath or db.fontSize ~= fontSize or db.fontOutline ~= fontOutline) then
-		self.rangeFrameText:SetFont(dbFontPath, db.fontSize, db.fontOutline)
-	end
 	self.rangeFrameText:SetTextColor(db.colorR, db.colorG, db.colorB)
+	self:applyFontSettings()
 	lastMinRange, lastMaxRange = false, false -- to force update
 	self:targetChanged()
 end
