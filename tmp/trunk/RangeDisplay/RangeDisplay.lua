@@ -68,6 +68,11 @@ local defaults = {
 		colorR = 1.0,
 		colorG = 0.82,
 		colorB = 0,
+		oorColorR = 1.0,
+		oorColorG = 0.82,
+		oorColorB = 0,
+		suffix = "",
+		oorSuffix = " +",
 		strata = "HIGH",
 	},
 }
@@ -161,8 +166,28 @@ local options = {
 			name = L["Color"],
 			desc = L["Color"],
 			set = "setColor",
-			get = function() return db.colorR, db.colorG, db.colorB end,
+			get = "getColor",
 			order = 160,
+		},
+		oorColor = {
+			type = 'color',
+			name = L["Out of range color"],
+			desc = L["Out of range color"],
+			set = "setColor",
+			get = "getColor",
+			order = 161,
+		},
+		suffix = {
+			type = 'input',
+			name = L["Suffix"],
+			desc = L["A free-form suffix to append to the range display when you are in range"],
+			order = 165,
+		},
+		oorSuffix = {
+			type = 'input',
+			name = L["Out of range suffix"],
+			desc = L["A free-form suffix to append to the range display when you are out of range"],
+			order = 166,
 		},
 		strata = {
 			type = 'select',
@@ -266,10 +291,16 @@ function RangeDisplay:setOption(info, value)
 	self:applySettings()
 end
 
+function RangeDisplay:getColor(info)
+	local prefix = info[#info]
+	return db[prefix .. 'R'], db[prefix .. 'G'], db[prefix .. 'B']
+end
+
 function RangeDisplay:setColor(info, r, g, b)
-	db.colorR, db.colorG, db.colorB = r, g, b
+	local prefix = info[#info]
+	db[prefix .. 'R'], db[prefix .. 'G'], db[prefix .. 'B'] = r, g, b
 	if (self:IsEnabled()) then
-		self.rangeFrameText:SetTextColor(db.colorR, db.colorG, db.colorB)
+		self.rangeFrameText:SetTextColor(r, g, b)
 	end
 end
 
@@ -344,6 +375,7 @@ end
 
 function RangeDisplay:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
+	self.db.RegisterCallback(self, "OnProfileChanged")
     db = self.db.profile
 	self:addConfigTab('main', options, 10, true)
 	self:addConfigTab('profiles', AceDBOptions:GetOptionsTable(self.db), 20, false)
@@ -392,7 +424,7 @@ function RangeDisplay:OnInitialize()
 end
 
 function RangeDisplay:OnEnable(first)
-	self:OnProfileEnable()
+	self:OnProfileChanged()
 	self:RegisterEvent("PLAYER_TARGET_CHANGED", "targetChanged")
 	self:targetChanged()
 end
@@ -404,7 +436,7 @@ function RangeDisplay:OnDisable()
 	self:UnregisterAllEvents()
 end
 
-function RangeDisplay:OnProfileEnable()
+function RangeDisplay:OnProfileChanged()
 	db = self.db.profile
 	self:applySettings()
 end
@@ -417,19 +449,17 @@ function RangeDisplay:OnUpdate(elapsed)
 	if (minRange) then
 		if (maxRange) then
 			if (db.maxRangeOnly) then
-				range = maxRange
+				range = maxRange .. db.suffix
 			else
-				range = minRange .. " - " .. maxRange
+				range = minRange .. " - " .. maxRange .. db.suffix
 			end
+			self.rangeFrameText:SetTextColor(db.colorR, db.colorG, db.colorB)
 		elseif (db.outOfRangeDisplay) then
-			range = minRange .. " +"
+			range = minRange .. db.oorSuffix
+			self.rangeFrameText:SetTextColor(db.oorColorR, db.oorColorG, db.oorColorB)
 		end
 	end
 	self.rangeFrameText:SetText(range)
-	-- TODO: optionally re-color for range. GUI config to be designed...
-	-- if (not db.Colors) then return end
-	-- local r, g, b = self:getColorForRange(minRange, maxRange)
-	-- self.rangeFrameText:SetTextColor(r, g, b)
 end
 
 function RangeDisplay:targetChanged()
