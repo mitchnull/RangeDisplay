@@ -4,7 +4,7 @@
 ## Version: 3.0
 ## Notes: Estimated range display. type /rangedisplay for help
 ## LoadManagers: AddonLoader
-## X-LoadOn-Always: delayed
+## X-LoadOn-Always: true
 ## SavedVariables: RangeDisplayDB3
 ## OptionalDeps: LibStub, LibRangeCheck-2.0, Ace3, LibSharedMedia-3.0
 ## X-Embeds: LibRangeCheck-2.0, Ace3
