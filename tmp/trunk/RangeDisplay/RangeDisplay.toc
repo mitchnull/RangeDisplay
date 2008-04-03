@@ -3,7 +3,6 @@
 ## Author: mitch0
 ## Version: 3.0
 ## Notes: Estimated range display. type /rangedisplay for help
-## DefaultState: Enabled
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: delayed
 ## SavedVariables: RangeDisplayDB3
