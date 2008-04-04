@@ -27,6 +27,13 @@ L["Frame strata"] = "框架显示层面"
 L["High"] = "最高层"
 L["Medium"] = "中间层"
 L["Low"] = "最低层"
--- L["Configure"] = true
--- L["Bring up GUI configure dialog"] = true
+L["Configure"] = "设置"
+L["Bring up GUI configure dialog"] = "打开设置窗口"
+L["Out of range color"] = "射程外颜色"
+L["Suffix"] = "后缀"
+L["A free-form suffix to append to the range display when you are in range"] = "当目标在你的射程内时显示一个后缀"
+L["Out of range suffix"] = "射程外后缀"
+L["A free-form suffix to append to the range display when you are out of range"] = "当目标在你的射程外时显示一个后缀"
 
+L["Range Display"] = "目标距离"
+L["Estimated range display"] = "监视目标距离"

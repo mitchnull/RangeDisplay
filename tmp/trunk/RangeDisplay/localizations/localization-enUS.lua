@@ -33,3 +33,5 @@ L["A free-form suffix to append to the range display when you are in range"] = t
 L["Out of range suffix"] = true
 L["A free-form suffix to append to the range display when you are out of range"] = true
 
+L["Range Display"] = true
+L["Estimated range display"] = true

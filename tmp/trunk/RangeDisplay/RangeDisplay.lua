@@ -421,6 +421,18 @@ function RangeDisplay:OnInitialize()
 	if (not self.rangeFrame) then
 		self:createFrame()
 	end
+	if ( EarthFeature_AddButton ) then
+		EarthFeature_AddButton(
+			{
+				id= "RangeDisplay";
+				name= L["Range Display"];
+				subtext= "RangeDisplay";
+				tooltip = L["Estimated range display"];
+				icon= "Interface\\Icons\\Spell_Shadow_Charm";
+				callback= function() RangeDisplay:OpenConfigDialog() end;
+			}
+		);
+	end
 end
 
 function RangeDisplay:OnEnable(first)
