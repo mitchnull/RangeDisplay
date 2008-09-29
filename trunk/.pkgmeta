@@ -1,0 +1,5 @@
+package-as: RangeDisplay
+
+externals:
+    /libs/Ace3: http://svn.wowace.com/wowace/trunk/Ace3
+    /libs/LibRangeCheck-2.0: http://svn.wowace.com/wowace/trunk/LibRangeCheck-2.0/LibRangeCheck-2.0/
