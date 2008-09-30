@@ -1,5 +1,18 @@
 package-as: RangeDisplay
 
 externals:
-    /libs/Ace3: http://svn.wowace.com/wowace/trunk/Ace3
-    /libs/LibRangeCheck-2.0: http://svn.wowace.com/wowace/trunk/LibRangeCheck-2.0/LibRangeCheck-2.0/
+    libs/LibStub-1.0: svn://svn.wowace.com/wow/libstub/mainline/tags/1.0
+    libs/CallbackHandler-1.0: svn://svn.wowace.com/wow/callbackhandler/mainline/tags/1.0.3/CallbackHandler-1.0
+    libs/Ace3/AceAddon-3.0: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceAddon-3.0
+    libs/Ace3/AceGUI-3.0: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceGUI-3.0
+    libs/Ace3/AceEvent-3.0: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceEvent-3.0
+    libs/Ace3/AceConfig-3.0: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceConfig-3.0
+    libs/Ace3/AceConsole-3.0: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceConsole-3.0
+    libs/Ace3/AceDB-3.0: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceDB-3.0
+    libs/Ace3/AceDBOptions-3.0: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceDBOptions-3.0
+    libs/Ace3/AceLocale-3.0: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceLocale-3.0
+    libs/Ace3/AceTab-3.0: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceTab-3.0
+    libs/LibRangeCheck-2.0: svn://svn.wowace.com/wow/lib-range-check-2-0/mainline/trunk/LibRangeCheck-2.0
+
+optional-dependencies:
+    - lib-shared-media-3-0
