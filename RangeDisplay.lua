@@ -2,9 +2,8 @@
 Name: RangeDisplay
 Revision: $Revision$
 Author(s): mitch0
-Website: http://www.wowace.com/wiki/RangeDisplay
-Documentation: http://www.wowace.com/wiki/RangeDisplay
-SVN: http://svn.wowace.com/wowace/trunk/RangeDisplay/
+Website: http://www.wowace.com/projects/range-display/
+SVN: svn://svn.wowace.com/wow/range-display/mainline/trunk
 Description: RangeDisplay displays the estimated range to the current target based on spell ranges and other measurable ranges
 Dependencies: LibStub, LibRangeCheck-2.0, Ace3, LibSharedMedia-3.0(optional)
 License: Public Domain
