@@ -50,6 +50,10 @@ RangeDisplay.version = VERSION
 
 -- Default DB stuff
 
+local function makeColor(r, g, b)
+	return { ["r"] = r, ["g"] = g, ["b"] = b }
+end
+
 local defaults = {
 	profile = {
 		font = DefaultFontName,
@@ -64,17 +68,24 @@ local defaults = {
 		relPoint = "CENTER",
 		x = 0,
 		y = 0,
-		colorR = 1.0,
-		colorG = 0.82,
-		colorB = 0,
-		oorColorR = 1.0,
-		oorColorG = 0.82,
-		oorColorB = 0,
+		color = makeColor(1.0, 0.82, 0),
+		oorColor = makeColor(1.0, 0.82, 0),
+		srColor = makeColor(1.0, 0.82, 0),
+		mrColor = makeColor(1.0, 0.82, 0),
+		dzColor = makeColor(1.0, 0.82, 0),
+
+		oorColorEnabled = true,
+		srColorEnabled = true,
+		mrColorEnabled = true,
+		dzColorEnabled = true,
+
 		suffix = "",
 		oorSuffix = " +",
 		strata = "HIGH",
 	},
 }
+
+-- TODO: make sure we have sensible defaults even if upgrading
 
 -- options table stuff
 
@@ -168,32 +179,66 @@ local options = {
 			get = "getColor",
 			order = 160,
 		},
+--		oorColorEnabled = {
+--			type = 'toggle',
+--			name = L["Out of range color enabled"],
+--			desc = L["Out of range color enabled"],
+--			order = 161,
+--		},
 		oorColor = {
 			type = 'color',
 			name = L["Out of range color"],
 			desc = L["Out of range color"],
+			disabled = "isControlDisabled",
 			set = "setColor",
 			get = "getColor",
-			order = 161,
+			order = 166,
+		},
+		srColor = {
+			type = 'color',
+			name = L["Short range color"],
+			desc = L["Short range color"],
+			disabled = "isControlDisabled",
+			set = "setColor",
+			get = "getColor",
+			order = 171,
+		},
+		mrColor = {
+			type = 'color',
+			name = L["Melee range color"],
+			desc = L["Melee range color"],
+			disabled = "isControlDisabled",
+			set = "setColor",
+			get = "getColor",
+			order = 176,
+		},
+		dzColor = {
+			type = 'color',
+			name = L["Dead zone color"],
+			desc = L["Dead zone color"],
+			disabled = "isControlDisabled",
+			set = "setColor",
+			get = "getColor",
+			order = 181,
 		},
 		suffix = {
 			type = 'input',
 			name = L["Suffix"],
 			desc = L["A free-form suffix to append to the range display when you are in range"],
-			order = 165,
+			order = 190,
 		},
 		oorSuffix = {
 			type = 'input',
 			name = L["Out of range suffix"],
 			desc = L["A free-form suffix to append to the range display when you are out of range"],
-			order = 166,
+			order = 195,
 		},
 		strata = {
 			type = 'select',
 			name = L["Strata"],
 			desc = L["Frame strata"],
 			values = FrameStratas,
-			order = 170,
+			order = 200,
 		},
         config = {
             type = 'execute',
@@ -292,15 +337,20 @@ end
 
 function RangeDisplay:getColor(info)
 	local prefix = info[#info]
-	return db[prefix .. 'R'], db[prefix .. 'G'], db[prefix .. 'B']
+	return db[prefix].r, db[prefix].g, db[prefix].b
 end
 
 function RangeDisplay:setColor(info, r, g, b)
 	local prefix = info[#info]
-	db[prefix .. 'R'], db[prefix .. 'G'], db[prefix .. 'B'] = r, g, b
+	db[prefix].r, db[prefix].g, db[prefix].b = r, g, b
 	if (self:IsEnabled()) then
 		self.rangeFrameText:SetTextColor(r, g, b)
 	end
+end
+
+function RangeDisplay:isControlDisabled(info)
+	local prefix = info[#info]
+	return (not db[prefix .. "Enabled"])
 end
 
 function RangeDisplay:applyFontSettings(isCallback)
@@ -411,6 +461,22 @@ function RangeDisplay:OnInitialize()
 						db.measurements = nil
 					end,
 				},
+				cacheAllItems = {
+					type = 'execute',
+					name = "CacheAllItems",
+					desc = "CacheAllItems",
+					func = function()
+						rc:cacheAllItems()
+					end,
+				},
+				checkAllItems = {
+					type = 'execute',
+					name = "CheckAllItems",
+					desc = "CheckAllItems",
+					func = function()
+						rc:checkAllItems()
+					end,
+				},
 			},
 		}
 		self:addConfigTab('debug', debugOptions, 100, true)
@@ -453,9 +519,10 @@ function RangeDisplay:OnProfileChanged()
 end
 
 function RangeDisplay:OnUpdate(elapsed)
-	local minRange, maxRange = rc:getRange("target", db.checkVisibility)
+	local minRange, maxRange, isInDeadZone = rc:getRange("target", db.checkVisibility)
 	if (minRange == lastMinRange and maxRange == lastMaxRange) then return end
 	lastMinRange, lastMaxRange = minRange, maxRange
+	if (isInDeadZone) then self:Print("### DeadZone: " .. tostring(rc:isInDeadZone("target"))) end
 	local range = nil
 	if (minRange) then
 		if (maxRange) then
@@ -464,10 +531,10 @@ function RangeDisplay:OnUpdate(elapsed)
 			else
 				range = minRange .. " - " .. maxRange .. db.suffix
 			end
-			self.rangeFrameText:SetTextColor(db.colorR, db.colorG, db.colorB)
+			self.rangeFrameText:SetTextColor(db.color.r, db.color.g, db.color.b)
 		elseif (db.outOfRangeDisplay) then
 			range = minRange .. db.oorSuffix
-			self.rangeFrameText:SetTextColor(db.oorColorR, db.oorColorG, db.oorColorB)
+			self.rangeFrameText:SetTextColor(db.oorColor.r, db.oorColor.g, db.oorColor.b)
 		end
 	end
 	self.rangeFrameText:SetText(range)
