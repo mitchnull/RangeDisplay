@@ -50,8 +50,8 @@ RangeDisplay.version = VERSION
 
 -- Default DB stuff
 
-local function makeColor(r, g, b)
-	return { ["r"] = r, ["g"] = g, ["b"] = b }
+local function makeColor(r, g, b, a)
+	return { ["r"] = r, ["g"] = g, ["b"] = b, ["a"] = a }
 end
 
 local defaults = {
@@ -115,7 +115,7 @@ local options = {
 	type = "group",
 	name = AppName,
 	handler = RangeDisplay,
-	get = function(info) return db[info[#info]] end,
+	get = "getOption",
 	set = "setOption",
 	args = {
 		locked = {
@@ -179,47 +179,133 @@ local options = {
 			get = "getColor",
 			order = 160,
 		},
---		oorColorEnabled = {
---			type = 'toggle',
---			name = L["Out of range color enabled"],
---			desc = L["Out of range color enabled"],
---			order = 161,
---		},
-		oorColor = {
-			type = 'color',
-			name = L["Out of range color"],
-			desc = L["Out of range color"],
-			disabled = "isControlDisabled",
-			set = "setColor",
-			get = "getColor",
-			order = 166,
+		oorSection = {
+			type = 'group',
+			name = L["Out of range section"],
+			desc = L["Out of range section"],
+			inline = true,
+			order = 170,
+			args = {
+				enabled = {
+					type = 'toggle',
+					name = "", -- L["Enabled"],
+					set = "setSectionOption",
+					get = "getSectionOption",
+					desc = L["Enable this color section"],
+					order = 10,
+				},
+				color = {
+					type = 'color',
+					name = L["Color"],
+					desc = L["Color"],
+					disabled = "isSectionDisabled",
+					set = "setSectionColor",
+					get = "getSectionColor",
+					order = 20,
+				},
+				range = {
+					type = 'range',
+					name = "",
+					desc = L["Range limit"],
+					disabled = "isSectionDisabled",
+					set = "setSectionOption",
+					get = "getSectionOption",
+					min = MinRangeLimit,
+					max = MaxRangeLimit,
+					step = 1,
+					order = 30,
+				},
+			},
 		},
-		srColor = {
-			type = 'color',
-			name = L["Short range color"],
-			desc = L["Short range color"],
-			disabled = "isControlDisabled",
-			set = "setColor",
-			get = "getColor",
-			order = 171,
+		srSection = {
+			type = 'group',
+			name = L["Short range section"],
+			desc = L["Short range section"],
+			inline = true,
+			order = 175,
+			args = {
+				enabled = {
+					type = 'toggle',
+					name = "", -- L["Enabled"],
+					set = "setSectionOption",
+					get = "getSectionOption",
+					desc = L["Enable this color section"],
+					order = 10,
+				},
+				color = {
+					type = 'color',
+					name = L["Color"],
+					desc = L["Color"],
+					disabled = "isSectionDisabled",
+					set = "setSectionColor",
+					get = "getSectionColor",
+					order = 20,
+				},
+				range = {
+					type = 'range',
+					name = "",
+					desc = L["Range limit"],
+					disabled = "isSectionDisabled",
+					set = "setSectionOption",
+					get = "getSectionOption",
+					min = MinRangeLimit,
+					max = MaxRangeLimit,
+					step = 1,
+					order = 30,
+				},
+			},
 		},
-		mrColor = {
-			type = 'color',
-			name = L["Melee range color"],
-			desc = L["Melee range color"],
-			disabled = "isControlDisabled",
-			set = "setColor",
-			get = "getColor",
-			order = 176,
+		mrSection = {
+			type = 'group',
+			name = L["Melee range section"],
+			desc = L["Melee range section"],
+			inline = true,
+			order = 180,
+			args = {
+				enabled = {
+					type = 'toggle',
+					name = "", -- L["Enabled"],
+					set = "setSectionOption",
+					get = "getSectionOption",
+					desc = L["Enable this color section"],
+					order = 10,
+				},
+				color = {
+					type = 'color',
+					name = L["Color"],
+					desc = L["Color"],
+					disabled = "isSectionDisabled",
+					set = "setSectionColor",
+					get = "getSectionColor",
+					order = 20,
+				},
+			},
 		},
 		dzColor = {
-			type = 'color',
-			name = L["Dead zone color"],
-			desc = L["Dead zone color"],
-			disabled = "isControlDisabled",
-			set = "setColor",
-			get = "getColor",
-			order = 181,
+			type = 'group',
+			name = L["Dead zone section"],
+			desc = L["Dead zone section"],
+			inline = true,
+			order = 185,
+			args = {
+				enabled = {
+					type = 'toggle',
+					name = "", -- L["Enabled"],
+					set = "setSectionOption",
+					get = "getSectionOption",
+					desc = L["Enable this color section"],
+					order = 10,
+				},
+				color = {
+					type = 'color',
+					name = L["Color"],
+					desc = L["Color"],
+					disabled = "isSectionDisabled",
+					set = "setSectionColor",
+					get = "getSectionColor",
+					order = 20,
+				},
+			},
 		},
 		suffix = {
 			type = 'input',
@@ -329,6 +415,10 @@ function RangeDisplay:createFrame()
 end
 
 -- config stuff
+
+function RangeDisplay:getOption(info)
+	return db[info[#info]]
+end
 
 function RangeDisplay:setOption(info, value)
 	db[info[#info]] = value
