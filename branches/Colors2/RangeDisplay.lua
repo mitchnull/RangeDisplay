@@ -426,21 +426,42 @@ function RangeDisplay:setOption(info, value)
 end
 
 function RangeDisplay:getColor(info)
-	local prefix = info[#info]
-	return db[prefix].r, db[prefix].g, db[prefix].b
+	local color = db[info[#info]]
+	return color.r, color.g, color.b, color.a
 end
 
-function RangeDisplay:setColor(info, r, g, b)
-	local prefix = info[#info]
-	db[prefix].r, db[prefix].g, db[prefix].b = r, g, b
+function RangeDisplay:setColor(info, r, g, b, a)
+	local color = db[info[#info]]
+	color.r, color.g, color.b, color.a = r, g, b, a
 	if (self:IsEnabled()) then
-		self.rangeFrameText:SetTextColor(r, g, b)
+		self.rangeFrameText:SetTextColor(r, g, b, a)
 	end
 end
 
-function RangeDisplay:isControlDisabled(info)
-	local prefix = info[#info]
-	return (not db[prefix .. "Enabled"])
+function RangeDisplay:getSectionOption(info)
+	return db[info[#info - 1]][info[#info]]
+end
+
+function RangeDisplay:setSectionOption(info, value)
+	db[info[#info - 1]][info[#info]] = value
+	self:applySettings()
+end
+
+function RangeDisplay:getSectionColor(info)
+	local color = db[info[#info - 1]][info[#info]]
+	return color.r, color.g, color.b, color.a
+end
+
+function RangeDisplay:setSectionColor(info, r, g, b)
+	local color = db[info[#info - 1]][info[#info]]
+	color.r, color.g, color.b, color.a = r, g, b, a
+	if (self:IsEnabled()) then
+		self.rangeFrameText:SetTextColor(r, g, b, a)
+	end
+end
+
+function RangeDisplay:isSectionDisabled(info)
+	return (not db[info[#info - 1]]["enabled"])
 end
 
 function RangeDisplay:applyFontSettings(isCallback)
