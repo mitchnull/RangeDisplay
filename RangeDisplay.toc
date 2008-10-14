@@ -3,7 +3,6 @@
 ## Author: mitch0
 ## Version: 3.0
 ## Notes: Estimated range display. type /rangedisplay for help
-## Notes-ruRU: Дисплей с указанием расстояния до цели. Введите /ragnedisplay для справки
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: true
 ## SavedVariables: RangeDisplayDB3
@@ -13,10 +12,7 @@
 ## X-License: Public Domain
 ## X-AceForum: 6664
 ## X-RelSite-WoWI: 7297
-## X-Credits: sayclub (koKR), lcncg (zhCN, zhTW), Carylon (deDE), Pixel (frFR), Argonavt (ruRU)
-
-## X-Localizations: enUS, enGB, deDE, zhCN, zhTW, koKR, ruRU, frFR, esES
-## X-CompatibleLocales: enUS, enGB, deDE, frFR, esES, zhCN, zhTW, koKR, ruRU
+## X-Credits: sayclub (koKR), lcncg (zhCN, zhTW), Carylon (deDE), Pixel (frFR)
 
 embeds.xml
 localizations\localizations.xml

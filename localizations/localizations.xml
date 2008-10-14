@@ -8,6 +8,5 @@
 <Script file="localization-koKR.lua"/>
 <Script file="localization-zhCN.lua"/>
 <Script file="localization-zhTW.lua"/>
-<Script file="localization-ruRU.lua"/>
 
 </Ui>
