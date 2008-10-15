@@ -1,9 +1,9 @@
-
 local AceConfig = LibStub("AceConfig-3.0")
 local AceDBOptions = LibStub("AceDBOptions-3.0")
 local ACD = LibStub("AceConfigDialog-3.0")
-local L = LibStub("AceLocale-3.0"):GetLocale(AppName)
+local L = LibStub("AceLocale-3.0"):GetLocale(RangeDisplay.AppName)
 local SML = LibStub:GetLibrary("LibSharedMedia-3.0", true)
+local rc = LibStub("LibRangeCheck-2.0")
 
 local function getFonts()
 	local fonts = SML and SML:List("font") or { [1] = DefaultFontName }
@@ -28,7 +28,7 @@ local FrameStratas = {
 
 local options = {
 	type = "group",
-	name = AppName,
+	name = RangeDisplay.AppName,
 	handler = RangeDisplay,
 	get = "getOption",
 	set = "setOption",
@@ -268,7 +268,7 @@ local options = {
 function RangeDisplay:setupOptions()
 	self:addConfigTab('main', options, 10, true)
 	self:addConfigTab('profiles', AceDBOptions:GetOptionsTable(self.db), 20, false)
-	if (db.debug) then
+	if (self.db.profile.debug) then
 		local debugOptions = {
 			type = 'group',
 			name = "Debug",
@@ -278,11 +278,11 @@ function RangeDisplay:setupOptions()
 					name = "StartMeasurement",
 					desc = "StartMeasurement",
 					func = function()
-						if (not db.measurements) then
-							db.measurements = {}
+						if (not self.db.profile.measurements) then
+							self.db.profile.measurements = {}
 						end
-						db.measurements[UnitName("player")] = {}
-						rc:startMeasurement("target", db.measurements[UnitName("player")])
+						self.db.profile.measurements[UnitName("player")] = {}
+						rc:startMeasurement("target", self.db.profile.measurements[UnitName("player")])
 					end,
 				},
 				stopMeasurement = {
@@ -298,7 +298,7 @@ function RangeDisplay:setupOptions()
 					name = "ClearMeasurement",
 					desc = "ClearMeasurement",
 					func = function()
-						db.measurements = nil
+						self.db.profile.measurements = nil
 					end,
 				},
 				cacheAllItems = {
@@ -321,13 +321,10 @@ function RangeDisplay:setupOptions()
 		}
 		self:addConfigTab('debug', debugOptions, 100, true)
 	end
-    AceConfig:RegisterOptionsTable(AppName, self.configOptions, "rangedisplay")
-	ACD:SetDefaultSize(AppName, 400, 600)
-	ACD:AddToBlizOptions(AppName)
-	if (not self.rangeFrame) then
-		self:createFrame()
-	end
-	if ( EarthFeature_AddButton ) then
+    AceConfig:RegisterOptionsTable(self.AppName, self.configOptions, "rangedisplay")
+	ACD:SetDefaultSize(self.AppName, 400, 600)
+	ACD:AddToBlizOptions(self.AppName)
+	if (EarthFeature_AddButton) then
 		EarthFeature_AddButton(
 			{
 				id= "RangeDisplay";
@@ -337,30 +334,30 @@ function RangeDisplay:setupOptions()
 				icon= "Interface\\Icons\\Spell_Shadow_Charm";
 				callback= function() RangeDisplay:openConfigDialog() end;
 			}
-		);
+		)
 	end
 end
 
 function RangeDisplay:openConfigDialog()
-    ACD:Open(AppName)
+    ACD:Open(self.AppName)
 end
 
 function RangeDisplay:getOption(info)
-	return db[info[#info]]
+	return self.db.profile[info[#info]]
 end
 
 function RangeDisplay:setOption(info, value)
-	db[info[#info]] = value
+	self.db.profile[info[#info]] = value
 	self:applySettings()
 end
 
 function RangeDisplay:getColor(info)
-	local color = db[info[#info]]
+	local color = self.db.profile[info[#info]]
 	return color.r, color.g, color.b, color.a
 end
 
 function RangeDisplay:setColor(info, r, g, b, a)
-	local color = db[info[#info]]
+	local color = self.db.profile[info[#info]]
 	color.r, color.g, color.b, color.a = r, g, b, a
 	if (self:IsEnabled()) then
 		self.rangeFrameText:SetTextColor(r, g, b, a)
@@ -368,21 +365,21 @@ function RangeDisplay:setColor(info, r, g, b, a)
 end
 
 function RangeDisplay:getSectionOption(info)
-	return db[info[#info - 1]][info[#info]]
+	return self.db.profile[info[#info - 1]][info[#info]]
 end
 
 function RangeDisplay:setSectionOption(info, value)
-	db[info[#info - 1]][info[#info]] = value
+	self.db.profile[info[#info - 1]][info[#info]] = value
 	self:applySettings()
 end
 
 function RangeDisplay:getSectionColor(info)
-	local color = db[info[#info - 1]][info[#info]]
+	local color = self.db.profile[info[#info - 1]][info[#info]]
 	return color.r, color.g, color.b, color.a
 end
 
 function RangeDisplay:setSectionColor(info, r, g, b, a)
-	local color = db[info[#info - 1]][info[#info]]
+	local color = self.db.profile[info[#info - 1]][info[#info]]
 	color.r, color.g, color.b, color.a = r, g, b, a
 	if (self:IsEnabled()) then
 		self.rangeFrameText:SetTextColor(r, g, b, a)
@@ -390,7 +387,7 @@ function RangeDisplay:setSectionColor(info, r, g, b, a)
 end
 
 function RangeDisplay:isSectionDisabled(info)
-	return (not db[info[#info - 1]]["enabled"])
+	return (not self.db.profile[info[#info - 1]]["enabled"])
 end
 
 function RangeDisplay:addConfigTab(key, group, order, isCmdInline)

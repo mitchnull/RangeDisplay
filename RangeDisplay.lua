@@ -97,8 +97,6 @@ local defaults = {
 
 -- TODO: make sure we have sensible defaults even if upgrading
 
--- options table stuff
-
 
 -- helper functions
 
@@ -246,7 +244,13 @@ end
 
 function RangeDisplay:applySettings()
 	if (not self:IsEnabled()) then
+		if (self.rangeFrame) then
+			self.rangeFrame:Hide()
+		end
 		return
+	end
+	if (not self.rangeFrame) then
+		self:createFrame()
 	end
 	if (db.locked) then
 		self:lock()
