@@ -1,13 +1,9 @@
-NOTE: RangeDisplay's original name was RangeCheck, but due to a naming
-conflict and some user confusion I renamed it.  If you have RangeCheck
-installed, remove that prior to installing RangeDisplay.
-
 Description:
 
-  RangeDisplay is a simple range display addon.  It is using spell range
-and interact-distance based checks to determine the approximate range to
-your current target.  If, for example, a mage's Arcane Missile spell is
-in range, but the character is out of follow-range (an interact distance
+  RangeDisplay is a simple range display addon.  It is using spell range,
+item range and interact-distance based checks to determine the approximate
+range to your current target.  If, for example, a mage's Arcane Missile spell
+is in range, but the character is out of follow-range (an interact distance
 based range), the addon will display 28 - 30. 
 
 RangeDisplay is a front-end to LibRangeCheck-2.0, a library addon to
@@ -63,8 +59,5 @@ so you'll see a semi-transparent rectangle in the center of your UI that
 you can drag to a position you like.  After finding a good place for it
 you should lock the frame with "/rangedisplay locked", so that it won't
 eat your mouse clicks.
-
-The original forum for RangeDisplay (and LibRangeCheck-2.0) is at
-http://www.wowace.com/forums/index.php?topic=6664
 
 The official release can be downloaded from http://www.wowinterface.com/downloads/info7297

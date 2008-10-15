@@ -3,7 +3,7 @@ Name: RangeDisplay
 Revision: $Revision$
 Author(s): mitch0
 Website: http://www.wowace.com/projects/range-display/
-SVN: svn://svn.wowace.com/wow/range-display/mainline/trunk
+SVN: svn://svn.wowace.com/wow/range-display/maguiInline/trunk
 Description: RangeDisplay displays the estimated range to the current target based on spell ranges and other measurable ranges
 Dependencies: LibStub, LibRangeCheck-2.0, Ace3, LibSharedMedia-3.0(optional)
 License: Public Domain
@@ -18,12 +18,14 @@ local AceDBOptions = LibStub("AceDBOptions-3.0")
 local ACD = LibStub("AceConfigDialog-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale(AppName)
 local SML = LibStub:GetLibrary("LibSharedMedia-3.0", true)
+local playerHasDeadZone
+local targetDeadZoneCheck
 
 -- internal vars
 
 local db
 local lastUpdate = 0 -- time since last real update
-local lastMinRange, lastMaxRange
+local lastMinRange, lastMaxRange, lastIsInDeadZone
 local _ -- throwaway
 
 -- cached stuff
@@ -50,6 +52,11 @@ RangeDisplay.version = VERSION
 
 -- Default DB stuff
 
+local function makeColor(r, g, b, a)
+	a = a or 1.0
+	return { ["r"] = r, ["g"] = g, ["b"] = b, ["a"] = a }
+end
+
 local defaults = {
 	profile = {
 		font = DefaultFontName,
@@ -64,17 +71,32 @@ local defaults = {
 		relPoint = "CENTER",
 		x = 0,
 		y = 0,
-		colorR = 1.0,
-		colorG = 0.82,
-		colorB = 0,
-		oorColorR = 1.0,
-		oorColorG = 0.82,
-		oorColorB = 0,
+		color = makeColor(1.0, 0.82, 0),
+		oorSection = {
+			enabled = true,
+			color = makeColor(0.8, 0, 0),
+			range = 35,
+		},
+		srSection = {
+			enabled = true,
+			color = makeColor(0, 0.8, 0),
+			range = 20,
+		},
+		mrSection = {
+			enabled = true,
+			color = makeColor(0.9, 0.9, 0.9),
+		},
+		dzSection = {
+			enabled = true,
+			color = makeColor(0.4, 0.6, 0.9),
+		},
 		suffix = "",
 		oorSuffix = " +",
 		strata = "HIGH",
 	},
 }
+
+-- TODO: make sure we have sensible defaults even if upgrading
 
 -- options table stuff
 
@@ -104,7 +126,7 @@ local options = {
 	type = "group",
 	name = AppName,
 	handler = RangeDisplay,
-	get = function(info) return db[info[#info]] end,
+	get = "getOption",
 	set = "setOption",
 	args = {
 		locked = {
@@ -162,38 +184,171 @@ local options = {
 		},
 		color = {
 			type = 'color',
-			name = L["Color"],
-			desc = L["Color"],
+			hasAlpha = true,
+			name = L["Default color"],
+			desc = L["Default color"],
 			set = "setColor",
 			get = "getColor",
 			order = 160,
 		},
-		oorColor = {
-			type = 'color',
-			name = L["Out of range color"],
-			desc = L["Out of range color"],
-			set = "setColor",
-			get = "getColor",
-			order = 161,
+		oorSection = {
+			type = 'group',
+			name = L["Out of range section"],
+			desc = L["Out of range section"],
+			guiInline = true,
+			order = 170,
+			args = {
+				enabled = {
+					type = 'toggle',
+					name = "", -- L["Enabled"],
+					desc = L["Enable this color section"],
+					set = "setSectionOption",
+					get = "getSectionOption",
+					width = 'half',
+					order = 10,
+				},
+				color = {
+					type = 'color',
+					hasAlpha = true,
+					name = L["Color"],
+					desc = L["Color"],
+					disabled = "isSectionDisabled",
+					set = "setSectionColor",
+					get = "getSectionColor",
+					width = 'half',
+					order = 20,
+				},
+				range = {
+					type = 'range',
+					name = L["Range limit"],
+					desc = L["Range limit"],
+					disabled = "isSectionDisabled",
+					set = "setSectionOption",
+					get = "getSectionOption",
+					min = MinRangeLimit,
+					max = MaxRangeLimit,
+					step = 1,
+					order = 30,
+				},
+			},
+		},
+		srSection = {
+			type = 'group',
+			name = L["Short range section"],
+			desc = L["Short range section"],
+			guiInline = true,
+			order = 175,
+			args = {
+				enabled = {
+					type = 'toggle',
+					name = "", -- L["Enabled"],
+					desc = L["Enable this color section"],
+					set = "setSectionOption",
+					get = "getSectionOption",
+					width = 'half',
+					order = 10,
+				},
+				color = {
+					type = 'color',
+					hasAlpha = true,
+					name = L["Color"],
+					desc = L["Color"],
+					disabled = "isSectionDisabled",
+					set = "setSectionColor",
+					get = "getSectionColor",
+					width = 'half',
+					order = 20,
+				},
+				range = {
+					type = 'range',
+					name = L["Range limit"],
+					desc = L["Range limit"],
+					disabled = "isSectionDisabled",
+					set = "setSectionOption",
+					get = "getSectionOption",
+					min = MinRangeLimit,
+					max = MaxRangeLimit,
+					step = 1,
+					order = 30,
+				},
+			},
+		},
+		mrSection = {
+			type = 'group',
+			name = L["Melee range section"],
+			desc = L["Melee range section"],
+			guiInline = true,
+			order = 180,
+			args = {
+				enabled = {
+					type = 'toggle',
+					name = "", -- L["Enabled"],
+					desc = L["Enable this color section"],
+					set = "setSectionOption",
+					get = "getSectionOption",
+					width = 'half',
+					order = 10,
+				},
+				color = {
+					type = 'color',
+					hasAlpha = true,
+					name = L["Color"],
+					desc = L["Color"],
+					disabled = "isSectionDisabled",
+					set = "setSectionColor",
+					get = "getSectionColor",
+					width = 'half',
+					order = 20,
+				},
+			},
+		},
+		dzSection = {
+			type = 'group',
+			name = L["Dead zone section"],
+			desc = L["Dead zone section"],
+			guiInline = true,
+			order = 185,
+			args = {
+				enabled = {
+					type = 'toggle',
+					name = "", -- L["Enabled"],
+					desc = L["Enable this color section"],
+					set = "setSectionOption",
+					get = "getSectionOption",
+					width = 'half',
+					order = 10,
+				},
+				color = {
+					type = 'color',
+					hasAlpha = true,
+					name = L["Color"],
+					desc = L["Color"],
+					disabled = "isSectionDisabled",
+					set = "setSectionColor",
+					get = "getSectionColor",
+					width = 'half',
+					order = 20,
+				},
+			},
 		},
 		suffix = {
 			type = 'input',
 			name = L["Suffix"],
 			desc = L["A free-form suffix to append to the range display when you are in range"],
-			order = 165,
+			order = 190,
 		},
 		oorSuffix = {
 			type = 'input',
 			name = L["Out of range suffix"],
 			desc = L["A free-form suffix to append to the range display when you are out of range"],
-			order = 166,
+			order = 195,
 		},
 		strata = {
 			type = 'select',
 			name = L["Strata"],
 			desc = L["Frame strata"],
 			values = FrameStratas,
-			order = 170,
+			order = 200,
 		},
         config = {
             type = 'execute',
@@ -285,22 +440,52 @@ end
 
 -- config stuff
 
+function RangeDisplay:getOption(info)
+	return db[info[#info]]
+end
+
 function RangeDisplay:setOption(info, value)
 	db[info[#info]] = value
 	self:applySettings()
 end
 
 function RangeDisplay:getColor(info)
-	local prefix = info[#info]
-	return db[prefix .. 'R'], db[prefix .. 'G'], db[prefix .. 'B']
+	local color = db[info[#info]]
+	return color.r, color.g, color.b, color.a
 end
 
-function RangeDisplay:setColor(info, r, g, b)
-	local prefix = info[#info]
-	db[prefix .. 'R'], db[prefix .. 'G'], db[prefix .. 'B'] = r, g, b
+function RangeDisplay:setColor(info, r, g, b, a)
+	local color = db[info[#info]]
+	color.r, color.g, color.b, color.a = r, g, b, a
 	if (self:IsEnabled()) then
-		self.rangeFrameText:SetTextColor(r, g, b)
+		self.rangeFrameText:SetTextColor(r, g, b, a)
 	end
+end
+
+function RangeDisplay:getSectionOption(info)
+	return db[info[#info - 1]][info[#info]]
+end
+
+function RangeDisplay:setSectionOption(info, value)
+	db[info[#info - 1]][info[#info]] = value
+	self:applySettings()
+end
+
+function RangeDisplay:getSectionColor(info)
+	local color = db[info[#info - 1]][info[#info]]
+	return color.r, color.g, color.b, color.a
+end
+
+function RangeDisplay:setSectionColor(info, r, g, b, a)
+	local color = db[info[#info - 1]][info[#info]]
+	color.r, color.g, color.b, color.a = r, g, b, a
+	if (self:IsEnabled()) then
+		self.rangeFrameText:SetTextColor(r, g, b, a)
+	end
+end
+
+function RangeDisplay:isSectionDisabled(info)
+	return (not db[info[#info - 1]]["enabled"])
 end
 
 function RangeDisplay:applyFontSettings(isCallback)
@@ -373,6 +558,7 @@ function RangeDisplay:addConfigTab(key, group, order, isCmdInline)
 end
 
 function RangeDisplay:OnInitialize()
+	playerHasDeadZone = rc:hasDeadZone()
     self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
 	self.db.RegisterCallback(self, "OnProfileChanged")
     db = self.db.profile
@@ -409,6 +595,22 @@ function RangeDisplay:OnInitialize()
 					desc = "ClearMeasurement",
 					func = function()
 						db.measurements = nil
+					end,
+				},
+				cacheAllItems = {
+					type = 'execute',
+					name = "CacheAllItems",
+					desc = "CacheAllItems",
+					func = function()
+						rc:cacheAllItems()
+					end,
+				},
+				checkAllItems = {
+					type = 'execute',
+					name = "CheckAllItems",
+					desc = "CheckAllItems",
+					func = function()
+						rc:checkAllItems()
 					end,
 				},
 			},
@@ -453,10 +655,14 @@ function RangeDisplay:OnProfileChanged()
 end
 
 function RangeDisplay:OnUpdate(elapsed)
-	local minRange, maxRange = rc:getRange("target", db.checkVisibility)
-	if (minRange == lastMinRange and maxRange == lastMaxRange) then return end
-	lastMinRange, lastMaxRange = minRange, maxRange
+	local minRange, maxRange, isInDeadZone = rc:getRange("target", db.checkVisibility)
+	if (targetDeadZoneCheck) then
+		isInDeadZone = (maxRange and maxRange <= 8 and minRange >= 5)
+	end
+	if (minRange == lastMinRange and maxRange == lastMaxRange and isInDeadZone == lastIsInDeadZone) then return end
+	lastMinRange, lastMaxRange, lastIsInDeadZone = minRange, maxRange, isInDeadZone
 	local range = nil
+	local color = nil
 	if (minRange) then
 		if (maxRange) then
 			if (db.maxRangeOnly) then
@@ -464,16 +670,30 @@ function RangeDisplay:OnUpdate(elapsed)
 			else
 				range = minRange .. " - " .. maxRange .. db.suffix
 			end
-			self.rangeFrameText:SetTextColor(db.colorR, db.colorG, db.colorB)
+			if (isInDeadZone and db.dzSection.enabled) then
+				color = db.dzSection.color
+			elseif (maxRange <= 5 and db.mrSection.enabled) then
+				color = db.mrSection.color
+			elseif (db.srSection.enabled and maxRange <= db.srSection.range) then
+				color = db.srSection.color
+			elseif (db.oorSection.enabled and minRange >= db.oorSection.range) then
+				color = db.oorSection.color
+			else
+				color = db.color
+			end
 		elseif (db.outOfRangeDisplay) then
+			color = (db.oorSection.enabled and minRange >= db.oorSection.range) and db.oorSection.color or db.color
 			range = minRange .. db.oorSuffix
-			self.rangeFrameText:SetTextColor(db.oorColorR, db.oorColorG, db.oorColorB)
 		end
 	end
 	self.rangeFrameText:SetText(range)
+	if (color) then
+		self.rangeFrameText:SetTextColor(color.r, color.g, color.b, color.a)
+	end
 end
 
 function RangeDisplay:targetChanged()
+	targetDeadZoneCheck = (not playerHasDeadZone) and db.dzSection.enabled and rc:hasDeadZone("target")
 	if (isTargetValid("target")) then
 		self.rangeFrame:Show()
 		lastUpdate = UpdateDelay -- to force update in next OnUpdate()
