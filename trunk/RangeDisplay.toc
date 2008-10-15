@@ -1,9 +1,9 @@
-## Interface: 20400
+## Interface: 30000
 ## Title: RangeDisplay
 ## Author: mitch0
-## Version: 3.0
+## Version: 3.1
 ## Notes: Estimated range display. type /rangedisplay for help
-## Notes-ruRU: Дисплей с указанием расстояния до цели. Введите /ragnedisplay для справки
+## Notes-ruRU: Р”РёСЃРїР»РµР№ СЃ СѓРєР°Р·Р°РЅРёРµРј СЂР°СЃСЃС‚РѕСЏРЅРёСЏ РґРѕ С†РµР»Рё. Р’РІРµРґРёС‚Рµ /rangedisplay РґР»СЏ СЃРїСЂР°РІРєРё
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: true
 ## SavedVariables: RangeDisplayDB3
@@ -11,7 +11,6 @@
 ## X-Embeds: LibRangeCheck-2.0, Ace3
 ## X-Category: Combat
 ## X-License: Public Domain
-## X-AceForum: 6664
 ## X-RelSite-WoWI: 7297
 ## X-Credits: sayclub (koKR), lcncg (zhCN, zhTW), Carylon (deDE), Pixel (frFR), Argonavt (ruRU)
 
