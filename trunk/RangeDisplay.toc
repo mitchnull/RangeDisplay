@@ -21,3 +21,4 @@ embeds.xml
 localizations\localizations.xml
 
 RangeDisplay.lua
+Options.lua
