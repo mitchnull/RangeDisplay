@@ -1,4 +1,4 @@
-﻿local L = LibStub("AceLocale-3.0"):NewLocale("RangeDisplay", "ruRU", false)
+local L = LibStub("AceLocale-3.0"):NewLocale("RangeDisplay", "ruRU", false)
 if not L then return end
 
 -- ruRU localizations by Argonavt (fixed by Swix).
