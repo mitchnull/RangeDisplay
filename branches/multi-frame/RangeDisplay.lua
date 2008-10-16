@@ -19,12 +19,11 @@ local SML = LibStub:GetLibrary("LibSharedMedia-3.0", true)
 
 local db
 local playerHasDeadZone
-local targetDeadZoneCheck
+local _ -- throwaway
 -- these will be moved to the per-frame data
+local targetDeadZoneCheck
 local lastUpdate = 0 -- time since last real update
 local lastMinRange, lastMaxRange, lastIsInDeadZone
-
-local _ -- throwaway
 
 -- cached stuff
 
@@ -95,18 +94,34 @@ local defaults = {
 	},
 }
 
--- TODO: make sure we have sensible defaults even if upgrading
+function RangeDisplay:OnInitialize()
+	playerHasDeadZone = rc:hasDeadZone()
+    self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
+	self.db.RegisterCallback(self, "OnProfileChanged", "profileChanged")
+	self.db.RegisterCallback(self, "OnProfileCopied", "profileChanged")
+	self.db.RegisterCallback(self, "OnProfileReset", "profileChanged")
+    db = self.db.profile
+	self:setupOptions()
+end
 
+function RangeDisplay:OnEnable(first)
+	self:profileChanged()
+	self:RegisterEvent("PLAYER_TARGET_CHANGED", "targetChanged")
+	self:targetChanged()
+end
 
--- helper functions
+function RangeDisplay:OnDisable()
+	if (self.rangeFrame) then
+		self.rangeFrame:Hide()
+	end
+	self:UnregisterAllEvents()
+end
 
 local function isTargetValid(unit)
 	return UnitExists(unit) and (not UnitIsDeadOrGhost(unit))
 			and (not db.enemyOnly or UnitCanAttack("player", unit))
 			and (not UnitIsUnit(unit, "player"))
 end
-
--- frame stuff
 
 function RangeDisplay:createFrame()
 	self.isMoving = false
@@ -135,10 +150,6 @@ function RangeDisplay:createFrame()
 	self.rangeFrameText = rangeFrameText
 
 	rangeFrame:SetScript("OnMouseDown", function(frame, button)
-		if (not button) then
-			-- some addon is hooking us but doesn't pass button. argh...
-			button = arg1
-		end
 		if (button == "LeftButton") then
 			self.rangeFrame:StartMoving()
 			self.isMoving = true
@@ -147,10 +158,6 @@ function RangeDisplay:createFrame()
 		end
 	end)
 	rangeFrame:SetScript("OnMouseUp", function(frame, button)
-		if (not button) then
-			-- some addon is hooking us but doesn't pass button. argh...
-			button = arg1
-		end
 		if (self.isMoving and button == "LeftButton") then
 			self.rangeFrame:StopMovingOrSizing()
 			self.isMoving = false
@@ -161,36 +168,11 @@ function RangeDisplay:createFrame()
 		lastUpdate = lastUpdate + elapsed
 		if (lastUpdate < UpdateDelay) then return end
 		lastUpdate = 0
-		self:OnUpdate(elapsed)
+		self:update(elapsed)
 	end)
 end
 
--- config stuff
-
-function RangeDisplay:OnInitialize()
-	playerHasDeadZone = rc:hasDeadZone()
-    self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
-	self.db.RegisterCallback(self, "OnProfileChanged", "profileChanged")
-	self.db.RegisterCallback(self, "OnProfileCopied", "profileChanged")
-	self.db.RegisterCallback(self, "OnProfileReset", "profileChanged")
-    db = self.db.profile
-	self:setupOptions()
-end
-
-function RangeDisplay:OnEnable(first)
-	self:profileChanged()
-	self:RegisterEvent("PLAYER_TARGET_CHANGED", "targetChanged")
-	self:targetChanged()
-end
-
-function RangeDisplay:OnDisable()
-	if (self.rangeFrame) then
-		self.rangeFrame:Hide()
-	end
-	self:UnregisterAllEvents()
-end
-
-function RangeDisplay:OnUpdate(elapsed)
+function RangeDisplay:update(elapsed)
 	local minRange, maxRange, isInDeadZone = rc:getRange("target", db.checkVisibility)
 	if (targetDeadZoneCheck) then
 		isInDeadZone = (maxRange and maxRange <= 8 and minRange >= 5)
@@ -298,7 +280,7 @@ function RangeDisplay:targetChanged()
 	targetDeadZoneCheck = (not playerHasDeadZone) and db.dzSection.enabled and rc:hasDeadZone("target")
 	if (isTargetValid("target")) then
 		self.rangeFrame:Show()
-		lastUpdate = UpdateDelay -- to force update in next OnUpdate()
+		lastUpdate = UpdateDelay -- to force update in next onUpdate()
 	elseif (db.locked) then
 		self.rangeFrame:Hide()
 	end
