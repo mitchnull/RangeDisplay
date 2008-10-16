@@ -17,7 +17,9 @@
 ## X-Localizations: enUS, enGB, deDE, zhCN, zhTW, koKR, ruRU, frFR, esES
 ## X-CompatibleLocales: enUS, enGB, deDE, frFR, esES, zhCN, zhTW, koKR, ruRU
 
+#@no-lib-strip@
 embeds.xml
+#@end-no-lib-strip@
 localizations\localizations.xml
 
 RangeDisplay.lua
