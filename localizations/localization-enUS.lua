@@ -22,7 +22,6 @@ L["Out of range section"] = true
 L["Medium range section"] = true
 L["Short range section"] = true
 L["Melee range section"] = true
-L["Dead zone section"] = true
 L["Enable this color section"] = true
 L["Range limit"] = true
 L["%s loaded. Type /rangedisplay for help"] = true
