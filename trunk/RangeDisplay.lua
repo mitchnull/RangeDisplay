@@ -70,17 +70,17 @@ local defaults = {
 				color = makeColor(1.0, 0.82, 0),
 				oorSection = {
 					enabled = true,
-					color = makeColor(0.8, 0, 0),
+					color = makeColor(0.9, 0.2, 0.1),
 					range = 40,
 				},
 				mrSection = {
 					enabled = true,
-					color = makeColor(0, 0.8, 0),
+					color = makeColor(0.4, 0.75, 0.24),
 					range = 30,
 				},
 				srSection = {
 					enabled = true,
-					color = makeColor(0, 0.8, 0),
+					color = makeColor(0.26, 0.6, 0.73),
 					range = 20,
 				},
 				mlrSection = {
