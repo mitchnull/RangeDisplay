@@ -17,7 +17,6 @@ local SML = LibStub:GetLibrary("LibSharedMedia-3.0", true)
 
 -- internal vars
 
-local playerHasDeadZone
 local _ -- throwaway
 
 -- cached stuff
@@ -72,20 +71,21 @@ local defaults = {
 				oorSection = {
 					enabled = true,
 					color = makeColor(0.8, 0, 0),
-					range = 35,
+					range = 40,
+				},
+				mrSection = {
+					enabled = true,
+					color = makeColor(0, 0.8, 0),
+					range = 30,
 				},
 				srSection = {
 					enabled = true,
 					color = makeColor(0, 0.8, 0),
 					range = 20,
 				},
-				mrSection = {
+				mlrSection = {
 					enabled = true,
 					color = makeColor(0.9, 0.9, 0.9),
-				},
-				dzSection = {
-					enabled = true,
-					color = makeColor(0.4, 0.6, 0.9),
 				},
 				suffix = "",
 				oorSuffix = " +",
@@ -106,7 +106,6 @@ local units = {
 
 function RangeDisplay:OnInitialize()
 	self.units = units
-	playerHasDeadZone = rc:hasDeadZone()
     self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
 	self.db.RegisterCallback(self, "OnProfileChanged", "profileChanged")
 	self.db.RegisterCallback(self, "OnProfileCopied", "profileChanged")
@@ -183,12 +182,9 @@ function RangeDisplay:createFrame(ud)
 end
 
 function RangeDisplay:update(ud)
-	local minRange, maxRange, isInDeadZone = rc:getRange(ud.unit, ud.db.checkVisibility)
-	if (ud.targetDeadZoneCheck) then
-		isInDeadZone = (maxRange and maxRange <= 8 and minRange >= 5)
-	end
-	if (minRange == ud.lastMinRange and maxRange == ud.lastMaxRange and isInDeadZone == ud.lastIsInDeadZone) then return end
-	ud.lastMinRange, ud.lastMaxRange, ud.lastIsInDeadZone = minRange, maxRange, isInDeadZone
+	local minRange, maxRange = rc:getRange(ud.unit, ud.db.checkVisibility)
+	if (minRange == ud.lastMinRange and maxRange == ud.lastMaxRange) then return end
+	ud.lastMinRange, ud.lastMaxRange = minRange, maxRange
 	local range = nil
 	local color = nil
 	if (minRange) then
@@ -198,12 +194,12 @@ function RangeDisplay:update(ud)
 			else
 				range = minRange .. " - " .. maxRange .. ud.db.suffix
 			end
-			if (isInDeadZone and ud.db.dzSection.enabled) then
-				color = ud.db.dzSection.color
-			elseif (maxRange <= 5 and ud.db.mrSection.enabled) then
-				color = ud.db.mrSection.color
+			if (maxRange <= 5 and ud.db.mlrSection.enabled) then
+				color = ud.db.mlrSection.color
 			elseif (ud.db.srSection.enabled and maxRange <= ud.db.srSection.range) then
 				color = ud.db.srSection.color
+			elseif (ud.db.mrSection.enabled and maxRange <= ud.db.mrSection.range) then
+				color = ud.db.mrSection.color
 			elseif (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) then
 				color = ud.db.oorSection.color
 			else
@@ -262,7 +258,6 @@ local function applyFontSettings(ud, isCallback)
 end
 
 local function targetChanged(ud, locked)
-	ud.targetDeadZoneCheck = (not playerHasDeadZone) and ud.db.dzSection.enabled and rc:hasDeadZone(ud.unit)
 	if (ud:isTargetValid()) then
 		ud.rangeFrame:Show()
 		ud.lastUpdate = UpdateDelay -- to force update in next onUpdate()

@@ -19,6 +19,7 @@ L["Thick"] = true
 L["Color"] = true
 L["Default color"] = true
 L["Out of range section"] = true
+L["Medium range section"] = true
 L["Short range section"] = true
 L["Melee range section"] = true
 L["Dead zone section"] = true
