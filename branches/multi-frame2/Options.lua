@@ -28,6 +28,8 @@ local FrameStratas = {
 
 local options = {
 	type = "group",
+--	childGroups = 'select',
+	childGroups = 'tab',
 	name = RangeDisplay.AppName,
 	handler = RangeDisplay,
 	get = "getOption",
@@ -38,221 +40,6 @@ local options = {
 			name = L["Locked"],
 			desc = L["Lock/Unlock display frame"],
 			order = 110,
-		},
-		enemyOnly = {
-			type = 'toggle',
-			name = L["Enemy only"],
-			desc = L["Show range for enemy targets only"],
-			order = 115,
-		},
-		maxRangeOnly = {
-			type = 'toggle',
-			name = L["Max range only"],
-			desc = L["Show the maximum range only"],
-			order = 116,
-		},
-		outOfRangeDisplay = {
-			type = 'toggle',
-			name = L["Out of range display"],
-			desc = L["Show/Hide display if the target is out of range"],
-			order = 120,
-		},
-		checkVisibility = {
-			type = 'toggle',
-			name = L["Check visibility"],
-			desc = L["If set, the max range to check will be 'visibility range'"],
-			order = 130,
-		},
-		font = {
-			type = 'select',
-			name = L["Font"],
-			desc = L["Font"],
-			values = getFonts,
-			order = 135
-		},
-		fontSize = {
-			type = 'range',
-			name = L["Font size"],
-			desc = L["Font size"],
-			min = MinFontSize,
-			max = MaxFontSize,
-			step = 1,
-			order = 140,
-		},
-		fontOutline = {
-			type = 'select',
-			name = L["Font outline"],
-			desc = L["Font outline"],
-			values = FontOutlines,
-			order = 150,
-		},
-		color = {
-			type = 'color',
-			hasAlpha = true,
-			name = L["Default color"],
-			desc = L["Default color"],
-			set = "setColor",
-			get = "getColor",
-			order = 160,
-		},
-		oorSection = {
-			type = 'group',
-			name = L["Out of range section"],
-			desc = L["Out of range section"],
-			guiInline = true,
-			order = 170,
-			args = {
-				enabled = {
-					type = 'toggle',
-					name = "", -- L["Enabled"],
-					desc = L["Enable this color section"],
-					set = "setSectionOption",
-					get = "getSectionOption",
-					width = 'half',
-					order = 10,
-				},
-				color = {
-					type = 'color',
-					hasAlpha = true,
-					name = L["Color"],
-					desc = L["Color"],
-					disabled = "isSectionDisabled",
-					set = "setSectionColor",
-					get = "getSectionColor",
-					width = 'half',
-					order = 20,
-				},
-				range = {
-					type = 'range',
-					name = L["Range limit"],
-					desc = L["Range limit"],
-					disabled = "isSectionDisabled",
-					set = "setSectionOption",
-					get = "getSectionOption",
-					min = MinRangeLimit,
-					max = MaxRangeLimit,
-					step = 1,
-					order = 30,
-				},
-			},
-		},
-		srSection = {
-			type = 'group',
-			name = L["Short range section"],
-			desc = L["Short range section"],
-			guiInline = true,
-			order = 175,
-			args = {
-				enabled = {
-					type = 'toggle',
-					name = "", -- L["Enabled"],
-					desc = L["Enable this color section"],
-					set = "setSectionOption",
-					get = "getSectionOption",
-					width = 'half',
-					order = 10,
-				},
-				color = {
-					type = 'color',
-					hasAlpha = true,
-					name = L["Color"],
-					desc = L["Color"],
-					disabled = "isSectionDisabled",
-					set = "setSectionColor",
-					get = "getSectionColor",
-					width = 'half',
-					order = 20,
-				},
-				range = {
-					type = 'range',
-					name = L["Range limit"],
-					desc = L["Range limit"],
-					disabled = "isSectionDisabled",
-					set = "setSectionOption",
-					get = "getSectionOption",
-					min = MinRangeLimit,
-					max = MaxRangeLimit,
-					step = 1,
-					order = 30,
-				},
-			},
-		},
-		mrSection = {
-			type = 'group',
-			name = L["Melee range section"],
-			desc = L["Melee range section"],
-			guiInline = true,
-			order = 180,
-			args = {
-				enabled = {
-					type = 'toggle',
-					name = "", -- L["Enabled"],
-					desc = L["Enable this color section"],
-					set = "setSectionOption",
-					get = "getSectionOption",
-					width = 'half',
-					order = 10,
-				},
-				color = {
-					type = 'color',
-					hasAlpha = true,
-					name = L["Color"],
-					desc = L["Color"],
-					disabled = "isSectionDisabled",
-					set = "setSectionColor",
-					get = "getSectionColor",
-					width = 'half',
-					order = 20,
-				},
-			},
-		},
-		dzSection = {
-			type = 'group',
-			name = L["Dead zone section"],
-			desc = L["Dead zone section"],
-			guiInline = true,
-			order = 185,
-			args = {
-				enabled = {
-					type = 'toggle',
-					name = "", -- L["Enabled"],
-					desc = L["Enable this color section"],
-					set = "setSectionOption",
-					get = "getSectionOption",
-					width = 'half',
-					order = 10,
-				},
-				color = {
-					type = 'color',
-					hasAlpha = true,
-					name = L["Color"],
-					desc = L["Color"],
-					disabled = "isSectionDisabled",
-					set = "setSectionColor",
-					get = "getSectionColor",
-					width = 'half',
-					order = 20,
-				},
-			},
-		},
-		suffix = {
-			type = 'input',
-			name = L["Suffix"],
-			desc = L["A free-form suffix to append to the range display when you are in range"],
-			order = 190,
-		},
-		oorSuffix = {
-			type = 'input',
-			name = L["Out of range suffix"],
-			desc = L["A free-form suffix to append to the range display when you are out of range"],
-			order = 195,
-		},
-		strata = {
-			type = 'select',
-			name = L["Strata"],
-			desc = L["Frame strata"],
-			values = FrameStratas,
-			order = 200,
 		},
         config = {
             type = 'execute',
@@ -265,7 +52,242 @@ local options = {
 	},
 }
 
+local function addUnitOptions(unit, order)
+	options.args[unit] = {
+		type = 'group',
+		name = "Unit: " .. unit,  -- ### TODO: localization
+		get = "getUnitOption",
+		set = "setUnitOption",
+		order = order or 200,
+		args = {
+			enabled = {
+				type = 'toggle',
+				name = "Enabled", -- ### TODO localization
+				order = 114,
+			},
+			enemyOnly = {
+				type = 'toggle',
+				name = L["Enemy only"],
+				desc = L["Show range for enemy targets only"],
+				order = 115,
+			},
+			maxRangeOnly = {
+				type = 'toggle',
+				name = L["Max range only"],
+				desc = L["Show the maximum range only"],
+				order = 116,
+			},
+			outOfRangeDisplay = {
+				type = 'toggle',
+				name = L["Out of range display"],
+				desc = L["Show/Hide display if the target is out of range"],
+				order = 120,
+			},
+			checkVisibility = {
+				type = 'toggle',
+				name = L["Check visibility"],
+				desc = L["If set, the max range to check will be 'visibility range'"],
+				order = 130,
+			},
+			font = {
+				type = 'select',
+				name = L["Font"],
+				desc = L["Font"],
+				values = getFonts,
+				order = 135
+			},
+			fontSize = {
+				type = 'range',
+				name = L["Font size"],
+				desc = L["Font size"],
+				min = MinFontSize,
+				max = MaxFontSize,
+				step = 1,
+				order = 140,
+			},
+			fontOutline = {
+				type = 'select',
+				name = L["Font outline"],
+				desc = L["Font outline"],
+				values = FontOutlines,
+				order = 150,
+			},
+			color = {
+				type = 'color',
+				hasAlpha = true,
+				name = L["Default color"],
+				desc = L["Default color"],
+				set = "setUnitColor",
+				get = "getUnitColor",
+				order = 160,
+			},
+			oorSection = {
+				type = 'group',
+				name = L["Out of range section"],
+				desc = L["Out of range section"],
+				guiInline = true,
+				order = 170,
+				args = {
+					enabled = {
+						type = 'toggle',
+						name = "", -- L["Enabled"],
+						desc = L["Enable this color section"],
+						set = "setSectionOption",
+						get = "getSectionOption",
+						width = 'half',
+						order = 10,
+					},
+					color = {
+						type = 'color',
+						hasAlpha = true,
+						name = L["Color"],
+						desc = L["Color"],
+						disabled = "isSectionDisabled",
+						set = "setSectionColor",
+						get = "getSectionColor",
+						width = 'half',
+						order = 20,
+					},
+					range = {
+						type = 'range',
+						name = L["Range limit"],
+						desc = L["Range limit"],
+						disabled = "isSectionDisabled",
+						set = "setSectionOption",
+						get = "getSectionOption",
+						min = MinRangeLimit,
+						max = MaxRangeLimit,
+						step = 1,
+						order = 30,
+					},
+				},
+			},
+			srSection = {
+				type = 'group',
+				name = L["Short range section"],
+				desc = L["Short range section"],
+				guiInline = true,
+				order = 175,
+				args = {
+					enabled = {
+						type = 'toggle',
+						name = "", -- L["Enabled"],
+						desc = L["Enable this color section"],
+						set = "setSectionOption",
+						get = "getSectionOption",
+						width = 'half',
+						order = 10,
+					},
+					color = {
+						type = 'color',
+						hasAlpha = true,
+						name = L["Color"],
+						desc = L["Color"],
+						disabled = "isSectionDisabled",
+						set = "setSectionColor",
+						get = "getSectionColor",
+						width = 'half',
+						order = 20,
+					},
+					range = {
+						type = 'range',
+						name = L["Range limit"],
+						desc = L["Range limit"],
+						disabled = "isSectionDisabled",
+						set = "setSectionOption",
+						get = "getSectionOption",
+						min = MinRangeLimit,
+						max = MaxRangeLimit,
+						step = 1,
+						order = 30,
+					},
+				},
+			},
+			mrSection = {
+				type = 'group',
+				name = L["Melee range section"],
+				desc = L["Melee range section"],
+				guiInline = true,
+				order = 180,
+				args = {
+					enabled = {
+						type = 'toggle',
+						name = "", -- L["Enabled"],
+						desc = L["Enable this color section"],
+						set = "setSectionOption",
+						get = "getSectionOption",
+						width = 'half',
+						order = 10,
+					},
+					color = {
+						type = 'color',
+						hasAlpha = true,
+						name = L["Color"],
+						desc = L["Color"],
+						disabled = "isSectionDisabled",
+						set = "setSectionColor",
+						get = "getSectionColor",
+						width = 'half',
+						order = 20,
+					},
+				},
+			},
+			dzSection = {
+				type = 'group',
+				name = L["Dead zone section"],
+				desc = L["Dead zone section"],
+				guiInline = true,
+				order = 185,
+				args = {
+					enabled = {
+						type = 'toggle',
+						name = "", -- L["Enabled"],
+						desc = L["Enable this color section"],
+						set = "setSectionOption",
+						get = "getSectionOption",
+						width = 'half',
+						order = 10,
+					},
+					color = {
+						type = 'color',
+						hasAlpha = true,
+						name = L["Color"],
+						desc = L["Color"],
+						disabled = "isSectionDisabled",
+						set = "setSectionColor",
+						get = "getSectionColor",
+						width = 'half',
+						order = 20,
+					},
+				},
+			},
+			suffix = {
+				type = 'input',
+				name = L["Suffix"],
+				desc = L["A free-form suffix to append to the range display when you are in range"],
+				order = 190,
+			},
+			oorSuffix = {
+				type = 'input',
+				name = L["Out of range suffix"],
+				desc = L["A free-form suffix to append to the range display when you are out of range"],
+				order = 195,
+			},
+			strata = {
+				type = 'select',
+				name = L["Strata"],
+				desc = L["Frame strata"],
+				values = FrameStratas,
+				order = 200,
+			},
+		},
+	}
+end
+
 function RangeDisplay:setupOptions()
+	for unit, ud in pairs(self.units) do
+		addUnitOptions(unit, ud.order)
+	end
 	self:addConfigTab('main', options, 10, true)
 	self:addConfigTab('profiles', AceDBOptions:GetOptionsTable(self.db), 20, false)
 	if (self.db.profile.debug) then
@@ -351,43 +373,69 @@ function RangeDisplay:setOption(info, value)
 	self:applySettings()
 end
 
-function RangeDisplay:getColor(info)
-	local color = self.db.profile[info[#info]]
+function RangeDisplay:getUnitOption(info)
+	local udb = self.db.profile.units[info[#info - 1]]
+	return udb[info[#info]]
+end
+
+function RangeDisplay:setUnitOption(info, value)
+	local udb = self.db.profile.units[info[#info - 1]]
+	udb[info[#info]] = value
+	self:applySettings()
+end
+
+function RangeDisplay:getUnitColor(info)
+	local udb = self.db.profile.units[info[#info - 1]]
+	local color = udb[info[#info]]
 	return color.r, color.g, color.b, color.a
 end
 
-function RangeDisplay:setColor(info, r, g, b, a)
-	local color = self.db.profile[info[#info]]
+function RangeDisplay:setUnitColor(info, r, g, b, a)
+	local unit = info[#info - 1]
+	local udb = self.db.profile.units[unit]
+	local color = udb[info[#info]]
 	color.r, color.g, color.b, color.a = r, g, b, a
 	if (self:IsEnabled()) then
-		self.rangeFrameText:SetTextColor(r, g, b, a)
+		local ud = self.units[unit]
+		if (ud.db.enabled) then
+			ud.rangeFrameText:SetTextColor(r, g, b, a)
+		end
 	end
 end
 
 function RangeDisplay:getSectionOption(info)
-	return self.db.profile[info[#info - 1]][info[#info]]
+	local udb = self.db.profile.units[info[#info - 2]]
+	return udb[info[#info - 1]][info[#info]]
 end
 
 function RangeDisplay:setSectionOption(info, value)
-	self.db.profile[info[#info - 1]][info[#info]] = value
+	local udb = self.db.profile.units[info[#info - 2]]
+	udb[info[#info - 1]][info[#info]] = value
 	self:applySettings()
 end
 
 function RangeDisplay:getSectionColor(info)
-	local color = self.db.profile[info[#info - 1]][info[#info]]
+	local udb = self.db.profile.units[info[#info - 2]]
+	local color = udb[info[#info - 1]][info[#info]]
 	return color.r, color.g, color.b, color.a
 end
 
 function RangeDisplay:setSectionColor(info, r, g, b, a)
-	local color = self.db.profile[info[#info - 1]][info[#info]]
+	local unit = info[#info - 2]
+	local udb = self.db.profile.units[unit]
+	local color = udb[info[#info - 1]][info[#info]]
 	color.r, color.g, color.b, color.a = r, g, b, a
 	if (self:IsEnabled()) then
-		self.rangeFrameText:SetTextColor(r, g, b, a)
+		local ud = self.units[unit]
+		if (ud.db.enabled) then
+			ud.rangeFrameText:SetTextColor(r, g, b, a)
+		end
 	end
 end
 
 function RangeDisplay:isSectionDisabled(info)
-	return (not self.db.profile[info[#info - 1]]["enabled"])
+	local udb = self.db.profile.units[info[#info - 2]]
+	return (not udb[info[#info - 1]]["enabled"])
 end
 
 function RangeDisplay:addConfigTab(key, group, order, isCmdInline)
