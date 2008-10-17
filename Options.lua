@@ -28,41 +28,52 @@ local FrameStratas = {
 
 local options = {
 	type = "group",
---	childGroups = 'select',
-	childGroups = 'tab',
 	name = RangeDisplay.AppName,
 	handler = RangeDisplay,
 	get = "getOption",
 	set = "setOption",
 	args = {
-		locked = {
-			type = 'toggle',
-			name = L["Locked"],
-			desc = L["Lock/Unlock display frame"],
-			order = 110,
+		main = {
+			type = 'group',
+			childGroups = 'tab',
+			inline = true,
+			name = RangeDisplay.AppName,
+			handler = RangeDisplay,
+			get = "getOption",
+			set = "setOption",
+			order = 10,
+			args = {
+				locked = {
+					type = 'toggle',
+					name = L["Locked"],
+					desc = L["Lock/Unlock display frame"],
+					order = 110,
+				},
+				config = {
+					type = 'execute',
+					name = L["Configure"],
+					desc = L["Bring up GUI configure dialog"],
+					guiHidden = true,
+					order = 300,
+					func = function() RangeDisplay:openConfigDialog() end,
+				},
+			},
 		},
-        config = {
-            type = 'execute',
-            name = L["Configure"],
-            desc = L["Bring up GUI configure dialog"],
-            guiHidden = true,
-            order = 300,
-            func = function() RangeDisplay:openConfigDialog() end,
-        },
 	},
 }
 
 local function addUnitOptions(unit, order)
-	options.args[unit] = {
+	local opts = {
 		type = 'group',
 		name = L[unit],
+		handler = RangeDisplay,
 		get = "getUnitOption",
 		set = "setUnitOption",
 		order = order or 200,
 		args = {
 			enabled = {
 				type = 'toggle',
-				name = "Enabled", -- ### TODO localization
+				name = L["Enabled"],
 				order = 114,
 			},
 			enemyOnly = {
@@ -119,12 +130,47 @@ local function addUnitOptions(unit, order)
 				values = FontOutlines,
 				order = 150,
 			},
+			-- we monkey around a bit with default color for nicer gui/cmd line
+			defaultSection = {
+				type = 'group',
+				name = L["Default section"],
+				name = L["Default section"],
+				inline = true,
+				cmdHidden = true,
+				disabled = "isUnitDisabled",
+				order = 160,
+				args = {
+					enabled = {
+						type = 'toggle',
+						width = 'half',
+						disabled = true,
+						cmdHidden = true,
+						name = "",
+						set = function() end,
+						get = function() return true end,
+						order = 10,
+					},
+					color = {
+						type = 'color',
+						disabled = "isUnitDisabled",
+						width = 'half',
+						hasAlpha = true,
+						name = L["Color"],
+						desc = L["Color"],
+						set = "setUnitColor",
+						get = "getUnitColor",
+						order = 20,
+					},
+				},
+			},
 			color = {
 				type = 'color',
 				disabled = "isUnitDisabled",
+				guiHidden = true,
+				width = 'half',
 				hasAlpha = true,
-				name = L["Default color"],
-				desc = L["Default color"],
+				name = L["Color"],
+				desc = L["Color"],
 				set = "setUnitColor",
 				get = "getUnitColor",
 				order = 160,
@@ -309,18 +355,32 @@ local function addUnitOptions(unit, order)
 			},
 		},
 	}
+	options.args[unit] = opts
+	return opts
+end
+
+function RangeDisplay:registerSubOptions(name, opts)
+	local appName = self.AppName .. "." .. name
+	AceConfig:RegisterOptionsTable(appName, opts)
+	return ACD:AddToBlizOptions(appName, opts.name or name, self.AppName)
 end
 
 function RangeDisplay:setupOptions()
+	AceConfig:RegisterOptionsTable(self.AppName, options.args.main)
+	self.opts = ACD:AddToBlizOptions(self.AppName, self.AppName)
 	for unit, ud in pairs(self.units) do
-		addUnitOptions(unit, ud.order)
+		local unitOpts = addUnitOptions(unit, ud.order)
+		ud.opts = self:registerSubOptions(unit, unitOpts)
 	end
-	self:addConfigTab('main', options, 10, true)
-	self:addConfigTab('profiles', AceDBOptions:GetOptionsTable(self.db), 20, false)
+	local profiles =  AceDBOptions:GetOptionsTable(self.db)
+	profiles.order = 900
+	options.args.profiles = profiles
+	self.profiles = self:registerSubOptions('profiles', profiles)
 	if (self.db.profile.debug) then
 		local debugOptions = {
 			type = 'group',
 			name = "Debug",
+			inline = true,
 			args = {
 				startMeasurement = {
 					type = 'execute',
@@ -368,11 +428,10 @@ function RangeDisplay:setupOptions()
 				},
 			},
 		}
-		self:addConfigTab('debug', debugOptions, 100, true)
+		options.args.debug = debugOptions
+		self:registerSubOptions('debug', debugOptions)
 	end
-    AceConfig:RegisterOptionsTable(self.AppName, self.configOptions, "rangedisplay")
-	ACD:SetDefaultSize(self.AppName, 400, 600)
-	ACD:AddToBlizOptions(self.AppName)
+    AceConfig:RegisterOptionsTable(self.AppName .. 'Cmd', options, "rangedisplay")
 	if (EarthFeature_AddButton) then
 		EarthFeature_AddButton(
 			{
@@ -387,8 +446,12 @@ function RangeDisplay:setupOptions()
 	end
 end
 
-function RangeDisplay:openConfigDialog()
-    ACD:Open(self.AppName)
+function RangeDisplay:openConfigDialog(ud)
+	if (ud) then
+		InterfaceOptionsFrame_OpenToCategory(ud.opts)
+	else
+		InterfaceOptionsFrame_OpenToCategory(self.opts)
+	end
 end
 
 function RangeDisplay:getOption(info)
@@ -461,13 +524,13 @@ function RangeDisplay:setSectionColor(info, r, g, b, a)
 end
 
 function RangeDisplay:isUnitDisabled(info)
-	local udb = self.db.profile.units[info[#info - 1]]
-	return (not (udb["enabled"]))
+	--local udb = self.db.profile.units[info[#info - 1]]
+	--return (not (udb["enabled"]))
 end
 
 function RangeDisplay:isSectionDisabled(info)
-	local udb = self.db.profile.units[info[#info - 2]]
-	return (not (udb["enabled"] and udb[info[#info - 1]]["enabled"]))
+	--local udb = self.db.profile.units[info[#info - 2]]
+	--return (not (udb["enabled"] and udb[info[#info - 1]]["enabled"]))
 end
 
 function RangeDisplay:addConfigTab(key, group, order, isCmdInline)
