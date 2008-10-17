@@ -17,13 +17,8 @@ local SML = LibStub:GetLibrary("LibSharedMedia-3.0", true)
 
 -- internal vars
 
-local db
 local playerHasDeadZone
 local _ -- throwaway
--- these will be moved to the per-frame data
-local targetDeadZoneCheck
-local lastUpdate = 0 -- time since last real update
-local lastMinRange, lastMaxRange, lastIsInDeadZone
 
 -- cached stuff
 
@@ -47,6 +42,7 @@ RangeDisplay:SetDefaultModuleState(false)
 
 RangeDisplay.version = VERSION
 RangeDisplay.AppName = AppName
+RangeDisplay.tcEventListeners = {}
 
 -- Default DB stuff
 
@@ -57,232 +53,287 @@ end
 
 local defaults = {
 	profile = {
-		font = DefaultFontName,
-		fontSize = 24,
-		fontOutline = "",
-		outOfRangeDisplay = false,
-		checkVisibility = false,
-		enemyOnly = false,
-		maxRangeOnly = false,
 		locked = false,
-		point = "CENTER",
-		relPoint = "CENTER",
-		x = 0,
-		y = 0,
-		color = makeColor(1.0, 0.82, 0),
-		oorSection = {
-			enabled = true,
-			color = makeColor(0.8, 0, 0),
-			range = 35,
+		units = {
+			["*"] = {
+				enabled = true,
+				point = "CENTER",
+				relPoint = "CENTER",
+				x = 0,
+				y = 0,
+				font = DefaultFontName,
+				fontSize = 24,
+				fontOutline = "",
+				outOfRangeDisplay = false,
+				checkVisibility = false,
+				enemyOnly = false,
+				maxRangeOnly = false,
+				color = makeColor(1.0, 0.82, 0),
+				oorSection = {
+					enabled = true,
+					color = makeColor(0.8, 0, 0),
+					range = 35,
+				},
+				srSection = {
+					enabled = true,
+					color = makeColor(0, 0.8, 0),
+					range = 20,
+				},
+				mrSection = {
+					enabled = true,
+					color = makeColor(0.9, 0.9, 0.9),
+				},
+				dzSection = {
+					enabled = true,
+					color = makeColor(0.4, 0.6, 0.9),
+				},
+				suffix = "",
+				oorSuffix = " +",
+				strata = "HIGH",
+			},
 		},
-		srSection = {
-			enabled = true,
-			color = makeColor(0, 0.8, 0),
-			range = 20,
-		},
-		mrSection = {
-			enabled = true,
-			color = makeColor(0.9, 0.9, 0.9),
-		},
-		dzSection = {
-			enabled = true,
-			color = makeColor(0.4, 0.6, 0.9),
-		},
-		suffix = "",
-		oorSuffix = " +",
-		strata = "HIGH",
+	},
+}
+
+local units = {
+	target = {
+		event = "PLAYER_TARGET_CHANGED",
+	},
+	focus = {
+		event = "PLAYER_FOCUS_CHANGED",
 	},
 }
 
 function RangeDisplay:OnInitialize()
+	self.units = units
 	playerHasDeadZone = rc:hasDeadZone()
     self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
 	self.db.RegisterCallback(self, "OnProfileChanged", "profileChanged")
 	self.db.RegisterCallback(self, "OnProfileCopied", "profileChanged")
 	self.db.RegisterCallback(self, "OnProfileReset", "profileChanged")
-    db = self.db.profile
 	self:setupOptions()
 end
 
 function RangeDisplay:OnEnable(first)
 	self:profileChanged()
-	self:RegisterEvent("PLAYER_TARGET_CHANGED", "targetChanged")
-	self:targetChanged()
 end
 
 function RangeDisplay:OnDisable()
-	if (self.rangeFrame) then
-		self.rangeFrame:Hide()
+	for _, ud in pairs(units) do
+		if (ud.rangeFrame) then
+			ud.rangeFrame:Hide()
+		end
 	end
 	self:UnregisterAllEvents()
 end
 
-local function isTargetValid(unit)
+local function isTargetValid(ud)
+	local unit = ud.unit
 	return UnitExists(unit) and (not UnitIsDeadOrGhost(unit))
-			and (not db.enemyOnly or UnitCanAttack("player", unit))
+			and (not ud.db.enemyOnly or UnitCanAttack("player", unit))
 			and (not UnitIsUnit(unit, "player"))
 end
 
-function RangeDisplay:createFrame()
-	self.isMoving = false
-	local rangeFrame = CreateFrame("Frame", "RangeDisplayFrame", UIParent)
-	rangeFrame:Hide()
-	rangeFrame:SetFrameStrata(defaults.profile.strata)
-	rangeFrame:EnableMouse(false)
-	rangeFrame:SetClampedToScreen()
-	rangeFrame:SetMovable(true)
-	rangeFrame:SetWidth(120)
-	rangeFrame:SetHeight(30)
-	rangeFrame:SetPoint(defaults.profile.point, UIParent, defaults.profile.relPoint, defaults.profile.x, defaults.profile.y)
-	self.rangeFrame = rangeFrame
+function RangeDisplay:createFrame(ud)
+	local unit = ud.unit
+	ud.isMoving = false
+	ud.rangeFrame = CreateFrame("Frame", "RangeDisplayFrame_" .. unit, UIParent)
+	ud.rangeFrame:Hide()
+	ud.rangeFrame:SetFrameStrata(ud.db.strata)
+	ud.rangeFrame:EnableMouse(false)
+	ud.rangeFrame:SetClampedToScreen()
+	ud.rangeFrame:SetMovable(true)
+	ud.rangeFrame:SetWidth(120)
+	ud.rangeFrame:SetHeight(30)
+	ud.rangeFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
 
-	local rangeFrameBG = rangeFrame:CreateTexture("RangeDisplayFrameBG", "BACKGROUND")
-	rangeFrameBG:SetTexture(0, 0, 0, 0.42)
-	rangeFrameBG:SetWidth(rangeFrame:GetWidth())
-	rangeFrameBG:SetHeight(rangeFrame:GetHeight())
-	rangeFrameBG:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
-	self.rangeFrameBG = rangeFrameBG
+	ud.rangeFrameBG = ud.rangeFrame:CreateTexture("RangeDisplayFrameBG_" .. unit, "BACKGROUND")
+	ud.rangeFrameBG:SetTexture(0, 0, 0, 0.42)
+	ud.rangeFrameBG:SetWidth(ud.rangeFrame:GetWidth())
+	ud.rangeFrameBG:SetHeight(ud.rangeFrame:GetHeight())
+	ud.rangeFrameBG:SetPoint("CENTER", ud.rangeFrame, "CENTER", 0, 0)
 
-	local rangeFrameText = rangeFrame:CreateFontString("RangeDisplayFrameText", "OVERLAY", "GameFontNormal")
-	rangeFrameText:SetFont(DefaultFontPath, defaults.profile.fontSize, defaults.profile.fontOutline)
-	rangeFrameText:SetJustifyH("CENTER")
-	rangeFrameText:SetPoint("CENTER", rangeFrame, "CENTER", 0, 0)
-	self.rangeFrameText = rangeFrameText
+	ud.rangeFrameText = ud.rangeFrame:CreateFontString("RangeDisplayFrameText_" .. unit, "OVERLAY", "GameFontNormal")
+	ud.rangeFrameText:SetFont(DefaultFontPath, ud.db.fontSize, ud.db.fontOutline)
+	ud.rangeFrameText:SetJustifyH("CENTER")
+	ud.rangeFrameText:SetPoint("CENTER", ud.rangeFrame, "CENTER", 0, 0)
 
-	rangeFrame:SetScript("OnMouseDown", function(frame, button)
+	ud.lastUpdate = 0
+	ud.rangeFrame:SetScript("OnMouseDown", function(frame, button)
 		if (button == "LeftButton") then
-			self.rangeFrame:StartMoving()
-			self.isMoving = true
+			ud.rangeFrame:StartMoving()
+			ud.isMoving = true
         elseif (button == "RightButton") then
             self:openConfigDialog()
 		end
 	end)
-	rangeFrame:SetScript("OnMouseUp", function(frame, button)
-		if (self.isMoving and button == "LeftButton") then
-			self.rangeFrame:StopMovingOrSizing()
-			self.isMoving = false
-			db.point, _, db.relPoint, db.x, db.y = rangeFrame:GetPoint()
+	ud.rangeFrame:SetScript("OnMouseUp", function(frame, button)
+		if (ud.isMoving and button == "LeftButton") then
+			ud.rangeFrame:StopMovingOrSizing()
+			ud.isMoving = false
+			ud.db.point, _, ud.db.relPoint, ud.db.x, ud.db.y = ud.rangeFrame:GetPoint()
 		end
 	end)
-	rangeFrame:SetScript("OnUpdate", function(frame, elapsed)
-		lastUpdate = lastUpdate + elapsed
-		if (lastUpdate < UpdateDelay) then return end
-		lastUpdate = 0
-		self:update(elapsed)
+	ud.rangeFrame:SetScript("OnUpdate", function(frame, elapsed)
+		ud.lastUpdate = ud.lastUpdate + elapsed
+		if (ud.lastUpdate < UpdateDelay) then return end
+		ud.lastUpdate = 0
+		self:update(ud)
 	end)
 end
 
-function RangeDisplay:update(elapsed)
-	local minRange, maxRange, isInDeadZone = rc:getRange("target", db.checkVisibility)
-	if (targetDeadZoneCheck) then
+function RangeDisplay:update(ud)
+	local minRange, maxRange, isInDeadZone = rc:getRange(ud.unit, ud.db.checkVisibility)
+	if (ud.targetDeadZoneCheck) then
 		isInDeadZone = (maxRange and maxRange <= 8 and minRange >= 5)
 	end
-	if (minRange == lastMinRange and maxRange == lastMaxRange and isInDeadZone == lastIsInDeadZone) then return end
-	lastMinRange, lastMaxRange, lastIsInDeadZone = minRange, maxRange, isInDeadZone
+	if (minRange == ud.lastMinRange and maxRange == ud.lastMaxRange and isInDeadZone == ud.lastIsInDeadZone) then return end
+	ud.lastMinRange, ud.lastMaxRange, ud.lastIsInDeadZone = minRange, maxRange, isInDeadZone
 	local range = nil
 	local color = nil
 	if (minRange) then
 		if (maxRange) then
-			if (db.maxRangeOnly) then
-				range = maxRange .. db.suffix
+			if (ud.db.maxRangeOnly) then
+				range = maxRange .. ud.db.suffix
 			else
-				range = minRange .. " - " .. maxRange .. db.suffix
+				range = minRange .. " - " .. maxRange .. ud.db.suffix
 			end
-			if (isInDeadZone and db.dzSection.enabled) then
-				color = db.dzSection.color
-			elseif (maxRange <= 5 and db.mrSection.enabled) then
-				color = db.mrSection.color
-			elseif (db.srSection.enabled and maxRange <= db.srSection.range) then
-				color = db.srSection.color
-			elseif (db.oorSection.enabled and minRange >= db.oorSection.range) then
-				color = db.oorSection.color
+			if (isInDeadZone and ud.db.dzSection.enabled) then
+				color = ud.db.dzSection.color
+			elseif (maxRange <= 5 and ud.db.mrSection.enabled) then
+				color = ud.db.mrSection.color
+			elseif (ud.db.srSection.enabled and maxRange <= ud.db.srSection.range) then
+				color = ud.db.srSection.color
+			elseif (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) then
+				color = ud.db.oorSection.color
 			else
-				color = db.color
+				color = ud.db.color
 			end
-		elseif (db.outOfRangeDisplay) then
-			color = (db.oorSection.enabled and minRange >= db.oorSection.range) and db.oorSection.color or db.color
-			range = minRange .. db.oorSuffix
+		elseif (ud.db.outOfRangeDisplay) then
+			color = (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) and ud.db.oorSection.color or ud.db.color
+			range = minRange .. ud.db.oorSuffix
 		end
 	end
-	self.rangeFrameText:SetText(range)
+	ud.rangeFrameText:SetText(range)
 	if (color) then
-		self.rangeFrameText:SetTextColor(color.r, color.g, color.b, color.a)
+		ud.rangeFrameText:SetTextColor(color.r, color.g, color.b, color.a)
 	end
 end
 
-function RangeDisplay:lock()
-	self.rangeFrame:EnableMouse(false)
-	self.rangeFrameBG:Hide()
-	if (not isTargetValid("target")) then
-		self.rangeFrame:Hide()
-	end
-end
-
-function RangeDisplay:unlock()
-	self.rangeFrame:EnableMouse(true)
-	self.rangeFrame:Show()
-	self.rangeFrameBG:Show()
-end
-
-function RangeDisplay:applySettings()
-	if (not self:IsEnabled()) then
-		if (self.rangeFrame) then
-			self.rangeFrame:Hide()
+function RangeDisplay:lock(ud)
+	if (ud.db.enabled) then
+		ud.rangeFrame:EnableMouse(false)
+		ud.rangeFrameBG:Hide()
+		if (not ud:isTargetValid()) then
+			ud.rangeFrame:Hide()
 		end
-		return
 	end
-	if (not self.rangeFrame) then
-		self:createFrame()
-	end
-	if (db.locked) then
-		self:lock()
-	else
-		self:unlock()
-	end
-	self.rangeFrame:ClearAllPoints()
-	self.rangeFrame:SetPoint(db.point, UIParent, db.relPoint, db.x, db.y)
-	self.rangeFrame:SetFrameStrata(db.strata)
-	self.rangeFrameText:SetTextColor(db.colorR, db.colorG, db.colorB)
-	self:applyFontSettings()
-	lastMinRange, lastMaxRange = false, false -- to force update
-	self:targetChanged()
 end
 
-function RangeDisplay:applyFontSettings(isCallback)
+function RangeDisplay:unlock(ud)
+	if (ud.db.enabled) then
+		ud.rangeFrame:EnableMouse(true)
+		ud.rangeFrame:Show()
+		ud.rangeFrameBG:Show()
+	end
+end
+
+local function applyFontSettings(ud, isCallback)
 	local dbFontPath
 	if (SML) then
-		dbFontPath = SML:Fetch("font", db.font, true)
+		dbFontPath = SML:Fetch("font", ud.db.font, true)
 		if (not dbFontPath) then
 			if (isCallback) then
 				return
 			end
-			SML.RegisterCallback(self, "LibSharedMedia_Registered", "applyFontSettings", true)
+			SML.RegisterCallback(ud, "LibSharedMedia_Registered", "sharedMediaCallback")
 			dbFontPath = DefaultFontPath
 		else
-			SML.UnregisterCallback(self, "LibSharedMedia_Registered")
+			SML.UnregisterCallback(ud, "LibSharedMedia_Registered")
 		end
 	else
 		dbFontPath = DefaultFontPath
 	end
-	local fontPath, fontSize, fontOutline = self.rangeFrameText:GetFont()
+	local fontPath, fontSize, fontOutline = ud.rangeFrameText:GetFont()
 	fontOutline = fontOutline or ""
-	if (dbFontPath ~= fontPath or db.fontSize ~= fontSize or db.fontOutline ~= fontOutline) then
-		self.rangeFrameText:SetFont(dbFontPath, db.fontSize, db.fontOutline)
+	if (dbFontPath ~= fontPath or ud.db.fontSize ~= fontSize or ud.db.fontOutline ~= fontOutline) then
+		ud.rangeFrameText:SetFont(dbFontPath, ud.db.fontSize, ud.db.fontOutline)
 	end
 end
 
+local function targetChanged(ud, locked)
+	ud.targetDeadZoneCheck = (not playerHasDeadZone) and ud.db.dzSection.enabled and rc:hasDeadZone(ud.unit)
+	if (ud:isTargetValid()) then
+		ud.rangeFrame:Show()
+		ud.lastUpdate = UpdateDelay -- to force update in next onUpdate()
+	elseif (locked) then
+		ud.rangeFrame:Hide()
+	end
+end
+
+function RangeDisplay:applySettings()
+	self:UnregisterAllEvents()
+	if (next(self.tcEventListeners)) then
+		self.tcEventListeners = {}
+	end
+	if (not self:IsEnabled()) then
+		for unit, ud in pairs(units) do
+			if (ud.rangeFrame) then
+				ud.rangeFrame:Hide()
+			end
+		end
+		return
+	end
+	local locked = self.db.profile.locked
+	for unit, ud in pairs(units) do
+		ud.db = self.db.profile.units[unit]
+		if (ud.db.enabled) then
+			if (not ud.rangeFrame) then
+				ud.unit = unit
+				ud.applyFontSettings = applyFontSettings
+				ud.targetChanged = targetChanged
+				ud.isTargetValid = isTargetValid
+				self:createFrame(ud)
+			end
+			if (ud.event) then
+				self:RegisterEvent(ud.event, "targetChanged")
+				local tcelList = self.tcEventListeners[ud.event]
+				if (not tcelList) then
+					self.tcEventListeners[ud.event] = { ud }
+				else
+					tinsert(tcelList, ud)
+				end
+			end
+			if (locked) then
+				self:lock(ud)
+			else
+				self:unlock(ud)
+			end
+			ud.rangeFrame:ClearAllPoints()
+			ud.rangeFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
+			ud.rangeFrame:SetFrameStrata(ud.db.strata)
+			ud.rangeFrameText:SetTextColor(ud.db.colorR, ud.db.colorG, ud.db.colorB)
+			ud:applyFontSettings()
+			ud.lastMinRange, ud.lastMaxRange = false, false -- to force update
+			ud:targetChanged(locked)
+		else
+			if (ud.rangeFrame) then
+				ud.rangeFrame:Hide()
+			end
+		end
+	end
+end
+
+
 function RangeDisplay:profileChanged()
-	db = self.db.profile
 	self:applySettings()
 end
 
-function RangeDisplay:targetChanged()
-	targetDeadZoneCheck = (not playerHasDeadZone) and db.dzSection.enabled and rc:hasDeadZone("target")
-	if (isTargetValid("target")) then
-		self.rangeFrame:Show()
-		lastUpdate = UpdateDelay -- to force update in next onUpdate()
-	elseif (db.locked) then
-		self.rangeFrame:Hide()
+function RangeDisplay:targetChanged(event)
+	local tcelList = self.tcEventListeners[event]
+	local locked = self.db.profile.locked
+	for _, ud in ipairs(tcelList) do
+		ud:targetChanged(locked)
 	end
 end
 
