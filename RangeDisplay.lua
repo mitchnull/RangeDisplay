@@ -98,9 +98,11 @@ local defaults = {
 local units = {
 	target = {
 		event = "PLAYER_TARGET_CHANGED",
+		order = 10,
 	},
 	focus = {
 		event = "PLAYER_FOCUS_CHANGED",
+		order = 20,
 	},
 }
 

@@ -55,7 +55,7 @@ local options = {
 local function addUnitOptions(unit, order)
 	options.args[unit] = {
 		type = 'group',
-		name = "Unit: " .. unit,  -- ### TODO: localization
+		name = L[unit],
 		get = "getUnitOption",
 		set = "setUnitOption",
 		order = order or 200,
@@ -67,30 +67,35 @@ local function addUnitOptions(unit, order)
 			},
 			enemyOnly = {
 				type = 'toggle',
+				disabled = "isUnitDisabled",
 				name = L["Enemy only"],
 				desc = L["Show range for enemy targets only"],
 				order = 115,
 			},
 			maxRangeOnly = {
 				type = 'toggle',
+				disabled = "isUnitDisabled",
 				name = L["Max range only"],
 				desc = L["Show the maximum range only"],
 				order = 116,
 			},
 			outOfRangeDisplay = {
 				type = 'toggle',
+				disabled = "isUnitDisabled",
 				name = L["Out of range display"],
 				desc = L["Show/Hide display if the target is out of range"],
 				order = 120,
 			},
 			checkVisibility = {
 				type = 'toggle',
+				disabled = "isUnitDisabled",
 				name = L["Check visibility"],
 				desc = L["If set, the max range to check will be 'visibility range'"],
 				order = 130,
 			},
 			font = {
 				type = 'select',
+				disabled = "isUnitDisabled",
 				name = L["Font"],
 				desc = L["Font"],
 				values = getFonts,
@@ -98,6 +103,7 @@ local function addUnitOptions(unit, order)
 			},
 			fontSize = {
 				type = 'range',
+				disabled = "isUnitDisabled",
 				name = L["Font size"],
 				desc = L["Font size"],
 				min = MinFontSize,
@@ -107,6 +113,7 @@ local function addUnitOptions(unit, order)
 			},
 			fontOutline = {
 				type = 'select',
+				disabled = "isUnitDisabled",
 				name = L["Font outline"],
 				desc = L["Font outline"],
 				values = FontOutlines,
@@ -114,6 +121,7 @@ local function addUnitOptions(unit, order)
 			},
 			color = {
 				type = 'color',
+				disabled = "isUnitDisabled",
 				hasAlpha = true,
 				name = L["Default color"],
 				desc = L["Default color"],
@@ -123,6 +131,7 @@ local function addUnitOptions(unit, order)
 			},
 			oorSection = {
 				type = 'group',
+				disabled = "isUnitDisabled",
 				name = L["Out of range section"],
 				desc = L["Out of range section"],
 				guiInline = true,
@@ -164,6 +173,7 @@ local function addUnitOptions(unit, order)
 			},
 			mrSection = {
 				type = 'group',
+				disabled = "isUnitDisabled",
 				name = L["Medium range section"],
 				desc = L["Medium range section"],
 				guiInline = true,
@@ -205,6 +215,7 @@ local function addUnitOptions(unit, order)
 			},
 			srSection = {
 				type = 'group',
+				disabled = "isUnitDisabled",
 				name = L["Short range section"],
 				desc = L["Short range section"],
 				guiInline = true,
@@ -246,6 +257,7 @@ local function addUnitOptions(unit, order)
 			},
 			mlrSection = {
 				type = 'group',
+				disabled = "isUnitDisabled",
 				name = L["Melee range section"],
 				desc = L["Melee range section"],
 				guiInline = true,
@@ -275,18 +287,21 @@ local function addUnitOptions(unit, order)
 			},
 			suffix = {
 				type = 'input',
+				disabled = "isUnitDisabled",
 				name = L["Suffix"],
 				desc = L["A free-form suffix to append to the range display when you are in range"],
 				order = 190,
 			},
 			oorSuffix = {
 				type = 'input',
+				disabled = "isUnitDisabled",
 				name = L["Out of range suffix"],
 				desc = L["A free-form suffix to append to the range display when you are out of range"],
 				order = 195,
 			},
 			strata = {
 				type = 'select',
+				disabled = "isUnitDisabled",
 				name = L["Strata"],
 				desc = L["Frame strata"],
 				values = FrameStratas,
@@ -445,9 +460,14 @@ function RangeDisplay:setSectionColor(info, r, g, b, a)
 	end
 end
 
+function RangeDisplay:isUnitDisabled(info)
+	local udb = self.db.profile.units[info[#info - 1]]
+	return (not (udb["enabled"]))
+end
+
 function RangeDisplay:isSectionDisabled(info)
 	local udb = self.db.profile.units[info[#info - 2]]
-	return (not udb[info[#info - 1]]["enabled"])
+	return (not (udb["enabled"] and udb[info[#info - 1]]["enabled"]))
 end
 
 function RangeDisplay:addConfigTab(key, group, order, isCmdInline)
