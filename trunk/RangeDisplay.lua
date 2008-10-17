@@ -165,7 +165,7 @@ function RangeDisplay:createFrame(ud)
 			ud.rangeFrame:StartMoving()
 			ud.isMoving = true
         elseif (button == "RightButton") then
-            self:openConfigDialog()
+            self:openConfigDialog(ud)
 		end
 	end)
 	ud.rangeFrame:SetScript("OnMouseUp", function(frame, button)
