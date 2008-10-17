@@ -45,3 +45,5 @@ L["A free-form suffix to append to the range display when you are out of range"]
 
 L["Range Display"] = true
 L["Estimated range display"] = true
+L["target"] = "Target"
+L["focus"] = "Focus"
