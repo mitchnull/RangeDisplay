@@ -36,22 +36,6 @@ local DefaultFontPath = GameFontNormal:GetFont()
 local FrameWidth = 120
 local FrameHeight = 30
 
-local MaxRangeSpells = {
-    ["HUNTER"] = {
-        53351, -- ["Kill Shot"] -- 5-45 (Hawk Eye: 47, 49, 51)
-        75, -- ["Auto Shot"], -- 5-35 (Hawk Eye: 37, 39, 41)
-    },
-    ["MAGE"] = {
-        133, -- ["Fireball"], -- 35 (Flame Throwing: 38, 41)
-        116, -- ["Frostbolt"], -- 30 (Arctic Reach: 33, 36)
-        5143, -- ["Arcane Missiles"], -- 30 (Magic Attunement: 33, 36)
-    },
-    ["WARLOCK"] = {
-        348, -- ["Immolate"], -- 30 (Destructive Reach: 33, 36)
-        172, -- ["Corruption"], -- 30 (Grim Reach: 33, 36)
-    },
-}
-
 ---------------------------------
 
 RangeDisplay = LibStub("AceAddon-3.0"):NewAddon(AppName, "AceConsole-3.0", "AceEvent-3.0")
@@ -346,28 +330,10 @@ for unit, ud in pairs(units) do
     ud.update = ud.update or update
 end
 
-local function adjustDefaults()
-    local _, playerClass = UnitClass("player")
-    local maxRangeSpells = MaxRangeSpells[playerClass]
-    if (maxRangeSpells) then
-        local oor
-        for _, sid in ipairs(maxRangeSpells) do
-            local _, _, _, _, _, _, _, _, range = GetSpellInfo(sid)
-            if (range and (not oor or oor < range)) then
-                oor = range
-            end
-        end
-        if (oor) then
-            defaults.profile.units["*"].oorSection.range = oor
-        end
-    end
-end
-
 -- AceAddon stuff
 
 function RangeDisplay:OnInitialize()
     self.units = units
-    adjustDefaults()
     self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
     self.db.RegisterCallback(self, "OnProfileChanged", "profileChanged")
     self.db.RegisterCallback(self, "OnProfileCopied", "profileChanged")
