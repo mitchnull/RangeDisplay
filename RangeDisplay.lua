@@ -33,6 +33,8 @@ local MinFontSize = 5
 local MaxFontSize = 40
 local DefaultFontName = "Friz Quadrata TT"
 local DefaultFontPath = GameFontNormal:GetFont()
+local FrameWidth = 120
+local FrameHeight = 30
 
 ---------------------------------
 
@@ -41,7 +43,6 @@ RangeDisplay:SetDefaultModuleState(false)
 
 RangeDisplay.version = VERSION
 RangeDisplay.AppName = AppName
-RangeDisplay.tcEventListeners = {}
 
 -- Default DB stuff
 
@@ -91,42 +92,18 @@ local defaults = {
                 oorSuffix = " +",
                 strata = "HIGH",
             },
+            ["focus"] = {
+                x = -(FrameWidth / 2 + 10),
+            },
+            ["pet"] = {
+                enabled = false,
+                x = (FrameWidth / 2 + 10),
+            },
         },
     },
 }
 
-local units = {
-    target = {
-        event = "PLAYER_TARGET_CHANGED",
-        order = 10,
-    },
-    focus = {
-        event = "PLAYER_FOCUS_CHANGED",
-        order = 20,
-    },
-}
-
-function RangeDisplay:OnInitialize()
-    self.units = units
-    self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
-    self.db.RegisterCallback(self, "OnProfileChanged", "profileChanged")
-    self.db.RegisterCallback(self, "OnProfileCopied", "profileChanged")
-    self.db.RegisterCallback(self, "OnProfileReset", "profileChanged")
-    self:setupOptions()
-end
-
-function RangeDisplay:OnEnable(first)
-    self:profileChanged()
-end
-
-function RangeDisplay:OnDisable()
-    for _, ud in pairs(units) do
-        if (ud.rangeFrame) then
-            ud.rangeFrame:Hide()
-        end
-    end
-    self:UnregisterAllEvents()
-end
+-- Per unit data
 
 local function isTargetValid(ud)
     local unit = ud.unit
@@ -135,7 +112,76 @@ local function isTargetValid(ud)
             and (not UnitIsUnit(unit, "player"))
 end
 
-function RangeDisplay:createFrame(ud)
+local function targetChanged(ud)
+    if (ud:isTargetValid()) then
+        ud.rangeFrame:Show()
+        ud.lastUpdate = UpdateDelay -- to force update in next onUpdate()
+    elseif (ud.locked) then
+        ud.rangeFrame:Hide()
+    end
+end
+
+local function applyFontSettings(ud, isCallback)
+    local dbFontPath
+    if (SML) then
+        dbFontPath = SML:Fetch("font", ud.db.font, true)
+        if (not dbFontPath) then
+            if (isCallback) then
+                return
+            end
+            SML.RegisterCallback(ud, "LibSharedMedia_Registered", "sharedMediaCallback")
+            dbFontPath = DefaultFontPath
+        else
+            SML.UnregisterCallback(ud, "LibSharedMedia_Registered")
+        end
+    else
+        dbFontPath = DefaultFontPath
+    end
+    local fontPath, fontSize, fontOutline = ud.rangeFrameText:GetFont()
+    fontOutline = fontOutline or ""
+    if (dbFontPath ~= fontPath or ud.db.fontSize ~= fontSize or ud.db.fontOutline ~= fontOutline) then
+        ud.rangeFrameText:SetFont(dbFontPath, ud.db.fontSize, ud.db.fontOutline)
+    end
+end
+
+local function applySettings(ud)
+    if (ud.db.enabled) then
+        if (not ud.rangeFrame) then
+            self:createFrame(ud)
+        end
+        ud.rangeFrame:ClearAllPoints()
+        ud.rangeFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
+        ud.rangeFrame:SetFrameStrata(ud.db.strata)
+        ud.rangeFrameText:SetTextColor(ud.db.color.r, ud.db.color.g, ud.db.color.b, ud.db.color.a)
+        ud:applyFontSettings()
+        ud.lastMinRange, ud.lastMaxRange = false, false -- to force update
+        ud:targetChanged()
+    else
+        ud:disable()
+    end
+end
+
+local function lock(ud)
+    ud.locked = true
+    if (ud.db.enabled) then
+        ud.rangeFrame:EnableMouse(false)
+        ud.rangeFrameBG:Hide()
+        if (not ud:isTargetValid()) then
+            ud.rangeFrame:Hide()
+        end
+    end
+end
+
+local function unlock(ud)
+    ud.locked = false
+    if (ud.db.enabled) then
+        ud.rangeFrame:EnableMouse(true)
+        ud.rangeFrame:Show()
+        ud.rangeFrameBG:Show()
+    end
+end
+
+local function createFrame(ud)
     local unit = ud.unit
     ud.isMoving = false
     ud.rangeFrame = CreateFrame("Frame", "RangeDisplayFrame_" .. unit, UIParent)
@@ -144,8 +190,8 @@ function RangeDisplay:createFrame(ud)
     ud.rangeFrame:EnableMouse(false)
     ud.rangeFrame:SetClampedToScreen()
     ud.rangeFrame:SetMovable(true)
-    ud.rangeFrame:SetWidth(120)
-    ud.rangeFrame:SetHeight(30)
+    ud.rangeFrame:SetWidth(FrameWidth)
+    ud.rangeFrame:SetHeight(FrameHeight)
     ud.rangeFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
 
     ud.rangeFrameBG = ud.rangeFrame:CreateTexture("RangeDisplayFrameBG_" .. unit, "BACKGROUND")
@@ -165,7 +211,7 @@ function RangeDisplay:createFrame(ud)
             ud.rangeFrame:StartMoving()
             ud.isMoving = true
         elseif (button == "RightButton") then
-            self:openConfigDialog(ud)
+            RangeDisplay:openConfigDialog(ud)
         end
     end)
     ud.rangeFrame:SetScript("OnMouseUp", function(frame, button)
@@ -179,11 +225,23 @@ function RangeDisplay:createFrame(ud)
         ud.lastUpdate = ud.lastUpdate + elapsed
         if (ud.lastUpdate < UpdateDelay) then return end
         ud.lastUpdate = 0
-        self:update(ud)
+        ud:update()
     end)
 end
 
-function RangeDisplay:update(ud)
+local function enable(ud)
+    if (not ud.rangeFrame) then
+        ud:createFrame()
+    end
+end
+
+local function disable(ud)
+    if (ud.rangeFrame) then
+        ud.rangeFrame:Hide()
+    end
+end
+
+local function update(ud)
     local minRange, maxRange = rc:getRange(ud.unit, ud.db.checkVisibility)
     if (minRange == ud.lastMinRange and maxRange == ud.lastMaxRange) then return end
     ud.lastMinRange, ud.lastMaxRange = minRange, maxRange
@@ -218,119 +276,102 @@ function RangeDisplay:update(ud)
     end
 end
 
-function RangeDisplay:lock(ud)
-    if (ud.db.enabled) then
-        ud.rangeFrame:EnableMouse(false)
-        ud.rangeFrameBG:Hide()
-        if (not ud:isTargetValid()) then
-            ud.rangeFrame:Hide()
-        end
-    end
-end
-
-function RangeDisplay:unlock(ud)
-    if (ud.db.enabled) then
-        ud.rangeFrame:EnableMouse(true)
-        ud.rangeFrame:Show()
-        ud.rangeFrameBG:Show()
-    end
-end
-
-local function applyFontSettings(ud, isCallback)
-    local dbFontPath
-    if (SML) then
-        dbFontPath = SML:Fetch("font", ud.db.font, true)
-        if (not dbFontPath) then
-            if (isCallback) then
-                return
+local units = {
+    playertarget = {
+        event = "PLAYER_TARGET_CHANGED",
+        order = 10,
+    },
+    focus = {
+        event = "PLAYER_FOCUS_CHANGED",
+        order = 20,
+    },
+    pet = {
+        event = "UNIT_PET",
+        order = 30,
+        targetChanged = function(ud, event, unitId, ...)
+                if (unitId ~= "player") then return end
+                targetChanged(ud, event, unitId, ...)
             end
-            SML.RegisterCallback(ud, "LibSharedMedia_Registered", "sharedMediaCallback")
-            dbFontPath = DefaultFontPath
-        else
-            SML.UnregisterCallback(ud, "LibSharedMedia_Registered")
-        end
-    else
-        dbFontPath = DefaultFontPath
-    end
-    local fontPath, fontSize, fontOutline = ud.rangeFrameText:GetFont()
-    fontOutline = fontOutline or ""
-    if (dbFontPath ~= fontPath or ud.db.fontSize ~= fontSize or ud.db.fontOutline ~= fontOutline) then
-        ud.rangeFrameText:SetFont(dbFontPath, ud.db.fontSize, ud.db.fontOutline)
-    end
+    },
+}
+
+for unit, ud in pairs(units) do
+    ud.unit = unit
+    ud.applySettings = ud.applySettings or applySettings
+    ud.applyFontSettings = ud.applyFontSettings or applyFontSettings
+    ud.targetChanged = ud.targetChanged or targetChanged
+    ud.isTargetValid = ud.isTargetValid or isTargetValid
+    ud.lock = ud.lock or lock
+    ud.unlock = ud.unlock or unlock
+    ud.createFrame = ud.createFrame or createFrame
+    ud.update = ud.update or update
 end
 
-local function targetChanged(ud, locked)
-    if (ud:isTargetValid()) then
-        ud.rangeFrame:Show()
-        ud.lastUpdate = UpdateDelay -- to force update in next onUpdate()
-    elseif (locked) then
-        ud.rangeFrame:Hide()
+-- AceAddon stuff
+
+function RangeDisplay:OnInitialize()
+    self.units = units
+    self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
+    self.db.RegisterCallback(self, "OnProfileChanged", "profileChanged")
+    self.db.RegisterCallback(self, "OnProfileCopied", "profileChanged")
+    self.db.RegisterCallback(self, "OnProfileReset", "profileChanged")
+    self:setupOptions()
+end
+
+function RangeDisplay:OnEnable(first)
+    self:profileChanged()
+end
+
+function RangeDisplay:OnDisable()
+    for _, ud in pairs(units) do
+        ud:disable()
     end
+    self:UnregisterAllEvents()
 end
 
 function RangeDisplay:applySettings()
-    self:UnregisterAllEvents()
-    if (next(self.tcEventListeners)) then
-        self.tcEventListeners = {}
-    end
     if (not self:IsEnabled()) then
-        for unit, ud in pairs(units) do
-            if (ud.rangeFrame) then
-                ud.rangeFrame:Hide()
-            end
-        end
+        self:OnDisable()
         return
     end
     local locked = self.db.profile.locked
     for unit, ud in pairs(units) do
-        ud.db = self.db.profile.units[unit]
         if (ud.db.enabled) then
-            if (not ud.rangeFrame) then
-                ud.unit = unit
-                ud.applyFontSettings = applyFontSettings
-                ud.targetChanged = targetChanged
-                ud.isTargetValid = isTargetValid
-                self:createFrame(ud)
-            end
-            if (ud.event) then
-                self:RegisterEvent(ud.event, "targetChanged")
-                local tcelList = self.tcEventListeners[ud.event]
-                if (not tcelList) then
-                    self.tcEventListeners[ud.event] = { ud }
-                else
-                    tinsert(tcelList, ud)
-                end
-            end
+            ud:enable()
             if (locked) then
-                self:lock(ud)
+                ud:lock()
             else
-                self:unlock(ud)
+                ud:unlock()
             end
-            ud.rangeFrame:ClearAllPoints()
-            ud.rangeFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
-            ud.rangeFrame:SetFrameStrata(ud.db.strata)
-            ud.rangeFrameText:SetTextColor(ud.db.colorR, ud.db.colorG, ud.db.colorB)
-            ud:applyFontSettings()
-            ud.lastMinRange, ud.lastMaxRange = false, false -- to force update
-            ud:targetChanged(locked)
+            ud:applySettings()
+            self:registerTargetChangedEvent(ud)
         else
-            if (ud.rangeFrame) then
-                ud.rangeFrame:Hide()
-            end
+            ud:disable()
+            self:unregisterTargetChangedEvent(ud)
         end
     end
 end
 
-
-function RangeDisplay:profileChanged()
-    self:applySettings()
+-- for now we assume that each unitdata is using only 1 event, and there are no overlapping events, as it's faster like this
+function RangeDisplay:registerTargetChangedEvent(ud)
+    if (ud.event) then
+        ud.eventHandler = ud.eventHandler or function(...)
+                ud:targetChanged(...)
+            end
+        self:RegisterEvent(ud.event, ud.eventHandler)
+    end
 end
 
-function RangeDisplay:targetChanged(event)
-    local tcelList = self.tcEventListeners[event]
-    local locked = self.db.profile.locked
-    for _, ud in ipairs(tcelList) do
-        ud:targetChanged(locked)
+function RangeDisplay:unregisterTargetChangedEvent(ud)
+    if (ud.event) then
+        self:UnregisterEvent(ud.event)
     end
+end
+
+function RangeDisplay:profileChanged()
+    for unit, ud in pairs(units) do
+        ud.db = self.db.profile.units[unit]
+    end
+    self:applySettings()
 end
 
