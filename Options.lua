@@ -62,14 +62,15 @@ local options = {
     },
 }
 
-local function addUnitOptions(unit, order)
+local function addUnitOptions(ud)
+    local unit = ud.unit
     local opts = {
         type = 'group',
         name = L[unit],
-        handler = RangeDisplay,
+        handler = ud,
         get = "getUnitOption",
         set = "setUnitOption",
-        order = order or 200,
+        order = ud.order or 200,
         args = {
             enabled = {
                 type = 'toggle',
@@ -359,6 +360,78 @@ local function addUnitOptions(unit, order)
     return opts
 end
 
+local function getUnitOption(ud, info)
+    return ud.db[info[#info]]
+end
+
+local function setUnitOption(ud, info, value)
+    ud.db[info[#info]] = value
+    ud:applySettings()
+end
+
+local function getSectionOption(ud, info)
+    return ud.db[info[#info - 1]][info[#info]]
+end
+
+local function setSectionOption(ud, info, value)
+    ud.db[info[#info - 1]][info[#info]] = value
+    ud:applySettings()
+end
+
+local function setColor(ud, dbcolor, r, g, b, a)
+    dbcolor.r, dbcolor.g, dbcolor.b, dbcolor.a = r, g, b, a
+    if (ud.rangeFrameText) then
+        ud.rangeFrameText:SetTextColor(r, g, b, a)
+    end
+end
+
+local function getColor(ud, dbcolor)
+    return dbcolor.r, dbcolor.g, dbcolor.b, dbcolor.a
+end
+
+local function getUnitColor(ud, info)
+    local dbcolor = ud.db[info[#info]]
+    return getColor(ud, dbcolor)
+end
+
+local function setUnitColor(ud, info, r, g, b, a)
+    local dbcolor = ud.db[info[#info]]
+    setColor(ud, dbcolor, r, g, b, a)
+end
+
+local function getSectionColor(ud, info)
+    local dbcolor =  ud.db[info[#info - 1]][info[#info]]
+    return getColor(ud, dbcolor)
+end
+
+local function setSectionColor(ud, info, r, g, b, a)
+    local dbcolor =  ud.db[info[#info - 1]][info[#info]]
+    setColor(ud, dbcolor, r, g, b, a)
+end
+
+local function isUnitDisabled(ud)
+    return not ud.db.enabled
+end
+
+local function isSectionDisabled(ud)
+    return (not ud.db.enabled) or (not ud.db[info[#info - 1]].enabled)
+end
+
+local function addConfigFunctions(units)
+    for unit, ud in pairs(units) do
+        ud.getUnitOption = getUnitOption
+        ud.setUnitOption = setUnitOption
+        ud.getUnitColor = getUnitColor
+        ud.setUnitColor = setUnitColor
+        ud.getSectionColor = getSectionColor
+        ud.setSectionColor = setSectionColor
+        ud.getSectionOption = getSectionOption
+        ud.setSectionOption = setSectionOption
+        ud.isUnitDisabled = isUnitDisabled
+        ud.isSectionDisabled = isSectionDisabled
+    end
+end
+
 function RangeDisplay:registerSubOptions(name, opts)
     local appName = self.AppName .. "." .. name
     AceConfig:RegisterOptionsTable(appName, opts)
@@ -366,16 +439,39 @@ function RangeDisplay:registerSubOptions(name, opts)
 end
 
 function RangeDisplay:setupOptions()
+    addConfigFunctions(self.units)
     AceConfig:RegisterOptionsTable(self.AppName, options.args.main)
     self.opts = ACD:AddToBlizOptions(self.AppName, self.AppName)
     for unit, ud in pairs(self.units) do
-        local unitOpts = addUnitOptions(unit, ud.order)
+        local unitOpts = addUnitOptions(ud)
         ud.opts = self:registerSubOptions(unit, unitOpts)
     end
     local profiles =  AceDBOptions:GetOptionsTable(self.db)
     profiles.order = 900
     options.args.profiles = profiles
     self.profiles = self:registerSubOptions('profiles', profiles)
+    self:setupDebugOptions()
+    AceConfig:RegisterOptionsTable(self.AppName .. '.Cmd', options, "rangedisplay")
+end
+
+function RangeDisplay:openConfigDialog(ud)
+    if (ud) then
+        InterfaceOptionsFrame_OpenToCategory(ud.opts)
+    else
+        InterfaceOptionsFrame_OpenToCategory(self.opts)
+    end
+end
+
+function RangeDisplay:getOption(info)
+    return self.db.profile[info[#info]]
+end
+
+function RangeDisplay:setOption(info, value)
+    self.db.profile[info[#info]] = value
+    self:applySettings()
+end
+
+function RangeDisplay:setupDebugOptions()
     if (self.db.profile.debug) then
         local debugOptions = {
             type = 'group',
@@ -431,119 +527,5 @@ function RangeDisplay:setupOptions()
         options.args.debug = debugOptions
         self:registerSubOptions('debug', debugOptions)
     end
-    AceConfig:RegisterOptionsTable(self.AppName .. 'Cmd', options, "rangedisplay")
-    if (EarthFeature_AddButton) then
-        EarthFeature_AddButton(
-            {
-                id= "RangeDisplay";
-                name= L["Range Display"];
-                subtext= "RangeDisplay";
-                tooltip = L["Estimated range display"];
-                icon= "Interface\\Icons\\Spell_Shadow_Charm";
-                callback= function() RangeDisplay:openConfigDialog() end;
-            }
-        )
-    end
-end
-
-function RangeDisplay:openConfigDialog(ud)
-    if (ud) then
-        InterfaceOptionsFrame_OpenToCategory(ud.opts)
-    else
-        InterfaceOptionsFrame_OpenToCategory(self.opts)
-    end
-end
-
-function RangeDisplay:getOption(info)
-    return self.db.profile[info[#info]]
-end
-
-function RangeDisplay:setOption(info, value)
-    self.db.profile[info[#info]] = value
-    self:applySettings()
-end
-
-function RangeDisplay:getUnitOption(info)
-    local udb = self.db.profile.units[info[#info - 1]]
-    return udb[info[#info]]
-end
-
-function RangeDisplay:setUnitOption(info, value)
-    local udb = self.db.profile.units[info[#info - 1]]
-    udb[info[#info]] = value
-    self:applySettings()
-end
-
-function RangeDisplay:getUnitColor(info)
-    local udb = self.db.profile.units[info[#info - 1]]
-    local color = udb[info[#info]]
-    return color.r, color.g, color.b, color.a
-end
-
-function RangeDisplay:setUnitColor(info, r, g, b, a)
-    local unit = info[#info - 1]
-    local udb = self.db.profile.units[unit]
-    local color = udb[info[#info]]
-    color.r, color.g, color.b, color.a = r, g, b, a
-    if (self:IsEnabled()) then
-        local ud = self.units[unit]
-        if (ud.db.enabled) then
-            ud.rangeFrameText:SetTextColor(r, g, b, a)
-        end
-    end
-end
-
-function RangeDisplay:getSectionOption(info)
-    local udb = self.db.profile.units[info[#info - 2]]
-    return udb[info[#info - 1]][info[#info]]
-end
-
-function RangeDisplay:setSectionOption(info, value)
-    local udb = self.db.profile.units[info[#info - 2]]
-    udb[info[#info - 1]][info[#info]] = value
-    self:applySettings()
-end
-
-function RangeDisplay:getSectionColor(info)
-    local udb = self.db.profile.units[info[#info - 2]]
-    local color = udb[info[#info - 1]][info[#info]]
-    return color.r, color.g, color.b, color.a
-end
-
-function RangeDisplay:setSectionColor(info, r, g, b, a)
-    local unit = info[#info - 2]
-    local udb = self.db.profile.units[unit]
-    local color = udb[info[#info - 1]][info[#info]]
-    color.r, color.g, color.b, color.a = r, g, b, a
-    if (self:IsEnabled()) then
-        local ud = self.units[unit]
-        if (ud.db.enabled) then
-            ud.rangeFrameText:SetTextColor(r, g, b, a)
-        end
-    end
-end
-
-function RangeDisplay:isUnitDisabled(info)
-    --local udb = self.db.profile.units[info[#info - 1]]
-    --return (not (udb["enabled"]))
-end
-
-function RangeDisplay:isSectionDisabled(info)
-    --local udb = self.db.profile.units[info[#info - 2]]
-    --return (not (udb["enabled"] and udb[info[#info - 1]]["enabled"]))
-end
-
-function RangeDisplay:addConfigTab(key, group, order, isCmdInline)
-    if (not self.configOptions) then
-        self.configOptions = {
-            type = "group",
-            name = self.AppName,
-            childGroups = "tab",
-            args = {},
-        }
-    end
-    self.configOptions.args[key] = group
-    self.configOptions.args[key].order = order
-    self.configOptions.args[key].cmdInline = isCmdInline
 end
 

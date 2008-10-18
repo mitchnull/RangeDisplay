@@ -121,6 +121,10 @@ local function targetChanged(ud)
     end
 end
 
+local function profileChanged(ud, db) 
+    ud.db = db
+end
+
 local function applyFontSettings(ud, isCallback)
     local dbFontPath
     if (SML) then
@@ -297,6 +301,7 @@ local units = {
 
 for unit, ud in pairs(units) do
     ud.unit = unit
+    ud.profileChanged = ud.profileChanged or profileChanged
     ud.applySettings = ud.applySettings or applySettings
     ud.applyFontSettings = ud.applyFontSettings or applyFontSettings
     ud.targetChanged = ud.targetChanged or targetChanged
@@ -370,7 +375,8 @@ end
 
 function RangeDisplay:profileChanged()
     for unit, ud in pairs(units) do
-        ud.db = self.db.profile.units[unit]
+        local db = self.db.profile.units[unit]
+        ud:profileChanged(db)
     end
     self:applySettings()
 end
