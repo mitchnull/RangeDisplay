@@ -151,7 +151,7 @@ end
 local function applySettings(ud)
     if (ud.db.enabled) then
         if (not ud.rangeFrame) then
-            self:createFrame(ud)
+            ud:createFrame()
         end
         ud.rangeFrame:ClearAllPoints()
         ud.rangeFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
@@ -169,19 +169,43 @@ local function lock(ud)
     ud.locked = true
     if (ud.db.enabled) then
         ud.rangeFrame:EnableMouse(false)
-        ud.rangeFrameBG:Hide()
+        if (ud.rangeFrameBG) then
+            ud.rangeFrameBG:Hide()
+            ud.rangeFrameBGText:Hide()
+        end
         if (not ud:isTargetValid()) then
             ud.rangeFrame:Hide()
         end
     end
 end
 
+local function createFrameBG(ud)
+    local unit = ud.unit
+
+    ud.rangeFrameBG = ud.rangeFrame:CreateTexture("RangeDisplayFrameBG_" .. unit, "BACKGROUND")
+    ud.rangeFrameBG:SetTexture(0, 0, 0, 0.42)
+    ud.rangeFrameBG:SetWidth(ud.rangeFrame:GetWidth())
+    ud.rangeFrameBG:SetHeight(ud.rangeFrame:GetHeight())
+    ud.rangeFrameBG:SetPoint("CENTER", ud.rangeFrame, "CENTER", 0, 0)
+
+
+    ud.rangeFrameBGText = ud.rangeFrame:CreateFontString("RangeDisplayFrameBGText_" .. unit, "OVERLAY", "GameFontNormal")
+    ud.rangeFrameBGText:SetFont(DefaultFontPath, 10, "")
+    ud.rangeFrameBGText:SetJustifyH("CENTER")
+    ud.rangeFrameBGText:SetPoint("TOP", ud.rangeFrame, "TOP", 0, 0)
+    ud.rangeFrameBGText:SetText(L[unit])
+end
+
 local function unlock(ud)
     ud.locked = false
     if (ud.db.enabled) then
+        if (not ud.rangeFrameBG) then
+            createFrameBG(ud)
+        end
         ud.rangeFrame:EnableMouse(true)
         ud.rangeFrame:Show()
         ud.rangeFrameBG:Show()
+        ud.rangeFrameBGText:Show()
     end
 end
 
@@ -197,12 +221,6 @@ local function createFrame(ud)
     ud.rangeFrame:SetWidth(FrameWidth)
     ud.rangeFrame:SetHeight(FrameHeight)
     ud.rangeFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
-
-    ud.rangeFrameBG = ud.rangeFrame:CreateTexture("RangeDisplayFrameBG_" .. unit, "BACKGROUND")
-    ud.rangeFrameBG:SetTexture(0, 0, 0, 0.42)
-    ud.rangeFrameBG:SetWidth(ud.rangeFrame:GetWidth())
-    ud.rangeFrameBG:SetHeight(ud.rangeFrame:GetHeight())
-    ud.rangeFrameBG:SetPoint("CENTER", ud.rangeFrame, "CENTER", 0, 0)
 
     ud.rangeFrameText = ud.rangeFrame:CreateFontString("RangeDisplayFrameText_" .. unit, "OVERLAY", "GameFontNormal")
     ud.rangeFrameText:SetFont(DefaultFontPath, ud.db.fontSize, ud.db.fontOutline)
