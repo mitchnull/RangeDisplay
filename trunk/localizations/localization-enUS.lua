@@ -24,6 +24,7 @@ L["Short range section"] = true
 L["Melee range section"] = true
 L["Enable this color section"] = true
 L["Range limit"] = true
+L["Auto adjust"] = true
 L["%s loaded. Type /rangedisplay for help"] = true
 L["Enemy only"] = true
 L["Show range for enemy targets only"] = true
@@ -46,6 +47,10 @@ L["A free-form suffix to append to the range display when you are out of range"]
 L["Range Display"] = true
 L["Estimated range display"] = true
 L["Enabled"] = true
+
+L["|cffeda55fLeft Click|r to lock/unlock frames"] = true
+L["|cffeda55fRight Click|r to open the configuration window"] = true
+L["Hide minimap icon"] = true
 
 L["playertarget"] = "Target"
 L["focus"] = "Focus"
