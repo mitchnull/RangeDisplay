@@ -14,6 +14,7 @@ local VERSION = AppName .. "-r" .. ("$Revision$"):match("%d+")
 
 local rc = LibStub("LibRangeCheck-2.0")
 local SML = LibStub:GetLibrary("LibSharedMedia-3.0", true)
+local L = LibStub("AceLocale-3.0"):GetLocale(AppName)
 
 -- internal vars
 
@@ -36,6 +37,22 @@ local DefaultFontPath = GameFontNormal:GetFont()
 local FrameWidth = 120
 local FrameHeight = 30
 
+local MaxRangeSpells = {
+    ["HUNTER"] = {
+        53351, -- ["Kill Shot"] -- 5-45 (Hawk Eye: 47, 49, 51)
+        75, -- ["Auto Shot"], -- 5-35 (Hawk Eye: 37, 39, 41)
+    },
+    ["MAGE"] = {
+        133, -- ["Fireball"], -- 35 (Flame Throwing: 38, 41)
+        116, -- ["Frostbolt"], -- 30 (Arctic Reach: 33, 36)
+        5143, -- ["Arcane Missiles"], -- 30 (Magic Attunement: 33, 36)
+    },
+    ["WARLOCK"] = {
+        348, -- ["Immolate"], -- 30 (Destructive Reach: 33, 36)
+        172, -- ["Corruption"], -- 30 (Grim Reach: 33, 36)
+    },
+}
+
 ---------------------------------
 
 RangeDisplay = LibStub("AceAddon-3.0"):NewAddon(AppName, "AceConsole-3.0", "AceEvent-3.0")
@@ -54,8 +71,9 @@ end
 local defaults = {
     profile = {
         locked = false,
+        minimap = {},
         units = {
-            ["*"] = {
+            ["**"] = {
                 enabled = true,
                 point = "CENTER",
                 relPoint = "CENTER",
@@ -71,17 +89,17 @@ local defaults = {
                 color = makeColor(1.0, 0.82, 0),
                 oorSection = {
                     enabled = true,
-                    color = makeColor(0.9, 0.2, 0.1),
+                    color = makeColor(0.9, 0.055, 0.075),
                     range = 40,
                 },
                 mrSection = {
                     enabled = true,
-                    color = makeColor(0.4, 0.75, 0.24),
+                    color = makeColor(0.035, 0.865, 0.0),
                     range = 30,
                 },
                 srSection = {
                     enabled = true,
-                    color = makeColor(0.26, 0.6, 0.73),
+                    color = makeColor(0.055, 0.875, 0.825),
                     range = 20,
                 },
                 mlrSection = {
@@ -93,11 +111,11 @@ local defaults = {
                 strata = "HIGH",
             },
             ["focus"] = {
-                x = -(FrameWidth / 2 + 10),
+                x = -(FrameWidth + 10),
             },
             ["pet"] = {
                 enabled = false,
-                x = (FrameWidth / 2 + 10),
+                x = (FrameWidth + 10),
             },
         },
     },
@@ -159,7 +177,11 @@ local function applySettings(ud)
         ud.rangeFrameText:SetTextColor(ud.db.color.r, ud.db.color.g, ud.db.color.b, ud.db.color.a)
         ud:applyFontSettings()
         ud.lastMinRange, ud.lastMaxRange = false, false -- to force update
-        ud:targetChanged()
+        if (ud.locked) then
+            ud:lock()
+        else
+            ud:unlock()
+        end
     else
         ud:disable()
     end
@@ -192,7 +214,7 @@ local function createFrameBG(ud)
     ud.rangeFrameBGText = ud.rangeFrame:CreateFontString("RangeDisplayFrameBGText_" .. unit, "OVERLAY", "GameFontNormal")
     ud.rangeFrameBGText:SetFont(DefaultFontPath, 10, "")
     ud.rangeFrameBGText:SetJustifyH("CENTER")
-    ud.rangeFrameBGText:SetPoint("TOP", ud.rangeFrame, "TOP", 0, 0)
+    ud.rangeFrameBGText:SetPoint("BOTTOM", ud.rangeFrame, "BOTTOM", 0, 0)
     ud.rangeFrameBGText:SetText(L[unit])
 end
 
@@ -299,17 +321,17 @@ local function update(ud)
 end
 
 local units = {
-    playertarget = {
+    {
+        unit = "playertarget",
         event = "PLAYER_TARGET_CHANGED",
-        order = 10,
     },
-    focus = {
+    {
+        unit = "focus",
         event = "PLAYER_FOCUS_CHANGED",
-        order = 20,
     },
-    pet = {
+    {
+        unit = "pet",
         event = "UNIT_PET",
-        order = 30,
         targetChanged = function(ud, event, unitId, ...)
                 if (unitId ~= "player") then return end
                 targetChanged(ud, event, unitId, ...)
@@ -317,8 +339,24 @@ local units = {
     },
 }
 
-for unit, ud in pairs(units) do
-    ud.unit = unit
+local function autoAdjust(ud)
+    local _, playerClass = UnitClass("player")
+    local maxRangeSpells = MaxRangeSpells[playerClass]
+    if (maxRangeSpells) then
+        local oor
+        for _, sid in ipairs(maxRangeSpells) do
+            local name, _, _, _, _, _, _, _, range = GetSpellInfo(sid)
+            if (range and (not oor or oor < range) and rc:findSpellIndex(name)) then
+                oor = range
+            end
+        end
+        if (oor) then
+            ud.db.oorSection.range = oor
+        end
+    end
+end
+
+for _, ud in ipairs(units) do
     ud.profileChanged = ud.profileChanged or profileChanged
     ud.applySettings = ud.applySettings or applySettings
     ud.applyFontSettings = ud.applyFontSettings or applyFontSettings
@@ -328,6 +366,9 @@ for unit, ud in pairs(units) do
     ud.unlock = ud.unlock or unlock
     ud.createFrame = ud.createFrame or createFrame
     ud.update = ud.update or update
+    ud.autoAdjust = autoAdjust
+    ud.enable = enable
+    ud.disable = disable
 end
 
 -- AceAddon stuff
@@ -339,14 +380,14 @@ function RangeDisplay:OnInitialize()
     self.db.RegisterCallback(self, "OnProfileCopied", "profileChanged")
     self.db.RegisterCallback(self, "OnProfileReset", "profileChanged")
     self:setupOptions()
-end
-
-function RangeDisplay:OnEnable(first)
     self:profileChanged()
 end
 
+function RangeDisplay:OnEnable(first)
+end
+
 function RangeDisplay:OnDisable()
-    for _, ud in pairs(units) do
+    for _, ud in ipairs(units) do
         ud:disable()
     end
     self:UnregisterAllEvents()
@@ -358,7 +399,7 @@ function RangeDisplay:applySettings()
         return
     end
     local locked = self.db.profile.locked
-    for unit, ud in pairs(units) do
+    for _, ud in ipairs(units) do
         if (ud.db.enabled) then
             ud:enable()
             if (locked) then
@@ -392,8 +433,8 @@ function RangeDisplay:unregisterTargetChangedEvent(ud)
 end
 
 function RangeDisplay:profileChanged()
-    for unit, ud in pairs(units) do
-        local db = self.db.profile.units[unit]
+    for _, ud in ipairs(units) do
+        local db = self.db.profile.units[ud.unit]
         ud:profileChanged(db)
     end
     self:applySettings()

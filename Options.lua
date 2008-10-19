@@ -4,6 +4,12 @@ local ACD = LibStub("AceConfigDialog-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale(RangeDisplay.AppName)
 local SML = LibStub:GetLibrary("LibSharedMedia-3.0", true)
 local rc = LibStub("LibRangeCheck-2.0")
+local LDB = LibStub:GetLibrary("LibDataBroker-1.1", true)
+local LDBIcon = LibStub("LibDBIcon-1.0", true)
+
+local Icon = "Interface\\Icons\\Spell_Frost_Stun"
+
+local _
 
 local function getFonts()
     local fonts = SML and SML:List("font") or { [1] = DefaultFontName }
@@ -45,6 +51,7 @@ local options = {
             args = {
                 locked = {
                     type = 'toggle',
+                    width = 'full',
                     name = L["Locked"],
                     desc = L["Lock/Unlock display frame"],
                     order = 110,
@@ -62,7 +69,7 @@ local options = {
     },
 }
 
-local function addUnitOptions(ud)
+local function addUnitOptions(ud, order)
     local unit = ud.unit
     local opts = {
         type = 'group',
@@ -70,7 +77,7 @@ local function addUnitOptions(ud)
         handler = ud,
         get = "getUnitOption",
         set = "setUnitOption",
-        order = ud.order or 200,
+        order = order or 1,
         args = {
             enabled = {
                 type = 'toggle',
@@ -109,7 +116,7 @@ local function addUnitOptions(ud)
                 type = 'select',
                 disabled = "isUnitDisabled",
                 name = L["Font"],
-                desc = L["Font"],
+                --desc = L["Font"],
                 values = getFonts,
                 order = 135
             },
@@ -117,7 +124,7 @@ local function addUnitOptions(ud)
                 type = 'range',
                 disabled = "isUnitDisabled",
                 name = L["Font size"],
-                desc = L["Font size"],
+                --desc = L["Font size"],
                 min = MinFontSize,
                 max = MaxFontSize,
                 step = 1,
@@ -127,7 +134,7 @@ local function addUnitOptions(ud)
                 type = 'select',
                 disabled = "isUnitDisabled",
                 name = L["Font outline"],
-                desc = L["Font outline"],
+                --desc = L["Font outline"],
                 values = FontOutlines,
                 order = 150,
             },
@@ -144,7 +151,7 @@ local function addUnitOptions(ud)
                     enabled = {
                         type = 'toggle',
                         width = 'half',
-                        disabled = true,
+                        disabled = "isUnitDisabled",
                         cmdHidden = true,
                         name = "",
                         set = function() end,
@@ -157,7 +164,7 @@ local function addUnitOptions(ud)
                         width = 'half',
                         hasAlpha = true,
                         name = L["Color"],
-                        desc = L["Color"],
+                        --desc = L["Color"],
                         set = "setUnitColor",
                         get = "getUnitColor",
                         order = 20,
@@ -171,16 +178,46 @@ local function addUnitOptions(ud)
                 width = 'half',
                 hasAlpha = true,
                 name = L["Color"],
-                desc = L["Color"],
+                --desc = L["Color"],
                 set = "setUnitColor",
                 get = "getUnitColor",
                 order = 160,
             },
-            oorSection = {
+            mlrSection = {
                 type = 'group',
                 disabled = "isUnitDisabled",
-                name = L["Out of range section"],
-                desc = L["Out of range section"],
+                name = L["Melee range section"],
+                --desc = L["Melee range section"],
+                guiInline = true,
+                order = 165,
+                args = {
+                    enabled = {
+                        type = 'toggle',
+                        name = "",
+                        desc = L["Enable this color section"],
+                        set = "setSectionOption",
+                        get = "getSectionOption",
+                        width = 'half',
+                        order = 10,
+                    },
+                    color = {
+                        type = 'color',
+                        hasAlpha = true,
+                        name = L["Color"],
+                        --desc = L["Color"],
+                        disabled = "isSectionDisabled",
+                        set = "setSectionColor",
+                        get = "getSectionColor",
+                        width = 'half',
+                        order = 20,
+                    },
+                },
+            },
+            srSection = {
+                type = 'group',
+                disabled = "isUnitDisabled",
+                name = L["Short range section"],
+                --desc = L["Short range section"],
                 guiInline = true,
                 order = 170,
                 args = {
@@ -197,7 +234,7 @@ local function addUnitOptions(ud)
                         type = 'color',
                         hasAlpha = true,
                         name = L["Color"],
-                        desc = L["Color"],
+                        --desc = L["Color"],
                         disabled = "isSectionDisabled",
                         set = "setSectionColor",
                         get = "getSectionColor",
@@ -207,7 +244,7 @@ local function addUnitOptions(ud)
                     range = {
                         type = 'range',
                         name = L["Range limit"],
-                        desc = L["Range limit"],
+                        --desc = L["Range limit"],
                         disabled = "isSectionDisabled",
                         set = "setSectionOption",
                         get = "getSectionOption",
@@ -222,7 +259,7 @@ local function addUnitOptions(ud)
                 type = 'group',
                 disabled = "isUnitDisabled",
                 name = L["Medium range section"],
-                desc = L["Medium range section"],
+                --desc = L["Medium range section"],
                 guiInline = true,
                 order = 173,
                 args = {
@@ -239,7 +276,7 @@ local function addUnitOptions(ud)
                         type = 'color',
                         hasAlpha = true,
                         name = L["Color"],
-                        desc = L["Color"],
+                        --desc = L["Color"],
                         disabled = "isSectionDisabled",
                         set = "setSectionColor",
                         get = "getSectionColor",
@@ -249,7 +286,7 @@ local function addUnitOptions(ud)
                     range = {
                         type = 'range',
                         name = L["Range limit"],
-                        desc = L["Range limit"],
+                        --desc = L["Range limit"],
                         disabled = "isSectionDisabled",
                         set = "setSectionOption",
                         get = "getSectionOption",
@@ -260,11 +297,11 @@ local function addUnitOptions(ud)
                     },
                 },
             },
-            srSection = {
+            oorSection = {
                 type = 'group',
                 disabled = "isUnitDisabled",
-                name = L["Short range section"],
-                desc = L["Short range section"],
+                name = L["Out of range section"],
+                --desc = L["Out of range section"],
                 guiInline = true,
                 order = 175,
                 args = {
@@ -281,7 +318,7 @@ local function addUnitOptions(ud)
                         type = 'color',
                         hasAlpha = true,
                         name = L["Color"],
-                        desc = L["Color"],
+                        --desc = L["Color"],
                         disabled = "isSectionDisabled",
                         set = "setSectionColor",
                         get = "getSectionColor",
@@ -291,7 +328,7 @@ local function addUnitOptions(ud)
                     range = {
                         type = 'range',
                         name = L["Range limit"],
-                        desc = L["Range limit"],
+                        --desc = L["Range limit"],
                         disabled = "isSectionDisabled",
                         set = "setSectionOption",
                         get = "getSectionOption",
@@ -302,35 +339,15 @@ local function addUnitOptions(ud)
                     },
                 },
             },
-            mlrSection = {
-                type = 'group',
+            autoAdjust = {
+                type = 'execute',
                 disabled = "isUnitDisabled",
-                name = L["Melee range section"],
-                desc = L["Melee range section"],
-                guiInline = true,
-                order = 180,
-                args = {
-                    enabled = {
-                        type = 'toggle',
-                        name = "", -- L["Enabled"],
-                        desc = L["Enable this color section"],
-                        set = "setSectionOption",
-                        get = "getSectionOption",
-                        width = 'half',
-                        order = 10,
-                    },
-                    color = {
-                        type = 'color',
-                        hasAlpha = true,
-                        name = L["Color"],
-                        desc = L["Color"],
-                        disabled = "isSectionDisabled",
-                        set = "setSectionColor",
-                        get = "getSectionColor",
-                        width = 'half',
-                        order = 20,
-                    },
-                },
+                name = L["Auto adjust"],
+                width = 'full',
+                func = function()
+                    ud:autoAdjust()
+                end,
+                order = 185,
             },
             suffix = {
                 type = 'input',
@@ -409,16 +426,16 @@ local function setSectionColor(ud, info, r, g, b, a)
     setColor(ud, dbcolor, r, g, b, a)
 end
 
-local function isUnitDisabled(ud)
+local function isUnitDisabled(ud, info)
     return not ud.db.enabled
 end
 
-local function isSectionDisabled(ud)
+local function isSectionDisabled(ud, info)
     return (not ud.db.enabled) or (not ud.db[info[#info - 1]].enabled)
 end
 
 local function addConfigFunctions(units)
-    for unit, ud in pairs(units) do
+    for _, ud in ipairs(units) do
         ud.getUnitOption = getUnitOption
         ud.setUnitOption = setUnitOption
         ud.getUnitColor = getUnitColor
@@ -440,11 +457,12 @@ end
 
 function RangeDisplay:setupOptions()
     addConfigFunctions(self.units)
+    self:setupLDB()
     AceConfig:RegisterOptionsTable(self.AppName, options.args.main)
     self.opts = ACD:AddToBlizOptions(self.AppName, self.AppName)
-    for unit, ud in pairs(self.units) do
-        local unitOpts = addUnitOptions(ud)
-        ud.opts = self:registerSubOptions(unit, unitOpts)
+    for i, ud in ipairs(self.units) do
+        local unitOpts = addUnitOptions(ud, 100 + i)
+        ud.opts = self:registerSubOptions(ud.unit, unitOpts)
     end
     local profiles =  AceDBOptions:GetOptionsTable(self.db)
     profiles.order = 900
@@ -454,10 +472,57 @@ function RangeDisplay:setupOptions()
     AceConfig:RegisterOptionsTable(self.AppName .. '.Cmd', options, "rangedisplay")
 end
 
+function RangeDisplay:setupLDB()
+    if (not LDB) then return end
+    local ldb = {
+        type = "launcher",
+        icon = Icon,
+        OnClick = function(frame, button)
+            if (button == "LeftButton") then
+                self:toggleLocked()
+            elseif (button == "RightButton") then
+                self:openConfigDialog()
+            end
+        end,
+        OnTooltipShow = function(tt)
+            tt:AddLine(self.AppName)
+            tt:AddLine(L["|cffeda55fLeft Click|r to lock/unlock frames"])
+            tt:AddLine(L["|cffeda55fRight Click|r to open the configuration window"])
+        end,
+    }
+    LDB:NewDataObject(self.AppName, ldb)
+    if (not LDBIcon) then return end
+    LDBIcon:Register(self.AppName, ldb, self.db.profile.minimap)
+    options.args.main.args.minimap = {
+        type = 'toggle',
+        name = L["Hide minimap icon"],
+        width = 'full',
+        order = 111,
+        get = function() return self.db.profile.minimap.hide end,
+        set = function(info, value)
+            if (value) then
+                LDBIcon:Hide(self.AppName)
+            else
+                LDBIcon:Show(self.AppName)
+            end
+            self.db.profile.minimap.hide = value
+        end,
+    }
+end
+
+function RangeDisplay:toggleLocked(flag)
+    if (flag == nil) then flag = not self.db.profile.locked end
+    if (flag == not self.db.profile.locked) then
+        self.db.profile.locked = flag
+        self:applySettings()
+    end
+end
+
 function RangeDisplay:openConfigDialog(ud)
     if (ud) then
         InterfaceOptionsFrame_OpenToCategory(ud.opts)
     else
+        InterfaceOptionsFrame_OpenToCategory(self.profiles) -- to expand our tree
         InterfaceOptionsFrame_OpenToCategory(self.opts)
     end
 end
@@ -481,7 +546,7 @@ function RangeDisplay:setupDebugOptions()
                 startMeasurement = {
                     type = 'execute',
                     name = "StartMeasurement",
-                    desc = "StartMeasurement",
+                    --desc = "StartMeasurement",
                     func = function()
                         if (not self.db.profile.measurements) then
                             self.db.profile.measurements = {}
@@ -493,7 +558,7 @@ function RangeDisplay:setupDebugOptions()
                 stopMeasurement = {
                     type = 'execute',
                     name = "StopMeasurement",
-                    desc = "StopMeasurement",
+                    --desc = "StopMeasurement",
                     func = function()
                         rc:stopMeasurement()
                     end,
@@ -501,7 +566,7 @@ function RangeDisplay:setupDebugOptions()
                 clearMeasurement = {
                     type = 'execute',
                     name = "ClearMeasurement",
-                    desc = "ClearMeasurement",
+                    --desc = "ClearMeasurement",
                     func = function()
                         self.db.profile.measurements = nil
                     end,
@@ -509,7 +574,7 @@ function RangeDisplay:setupDebugOptions()
                 cacheAllItems = {
                     type = 'execute',
                     name = "CacheAllItems",
-                    desc = "CacheAllItems",
+                    --desc = "CacheAllItems",
                     func = function()
                         rc:cacheAllItems()
                     end,
@@ -517,7 +582,7 @@ function RangeDisplay:setupDebugOptions()
                 checkAllItems = {
                     type = 'execute',
                     name = "CheckAllItems",
-                    desc = "CheckAllItems",
+                    --desc = "CheckAllItems",
                     func = function()
                         rc:checkAllItems()
                     end,
