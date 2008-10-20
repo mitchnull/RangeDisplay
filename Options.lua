@@ -587,6 +587,14 @@ function RangeDisplay:setupDebugOptions()
                         rc:checkAllItems()
                     end,
                 },
+                checkAllCheckers = {
+                    type = 'execute',
+                    name = "CheckAllCheckers",
+                    --desc = "CheckAllCheckers",
+                    func = function()
+                        rc:checkAllCheckers()
+                    end,
+                },
             },
         }
         options.args.debug = debugOptions
