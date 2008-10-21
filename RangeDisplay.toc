@@ -20,6 +20,8 @@
 #@no-lib-strip@
 embeds.xml
 #@end-no-lib-strip@
+libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+
 localizations\localizations.xml
 
 RangeDisplay.lua
