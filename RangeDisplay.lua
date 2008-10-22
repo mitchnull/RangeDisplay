@@ -30,10 +30,8 @@ local UnitIsUnit = UnitIsUnit
 -- hard-coded config stuff
 
 local UpdateDelay = .1 -- update frequency == 1/UpdateDelay
-local MinFontSize = 5
-local MaxFontSize = 40
-local DefaultFontName = "Friz Quadrata TT"
 local DefaultFontPath = GameFontNormal:GetFont()
+local DefaultFontName = "Friz Quadrata TT"
 local FrameWidth = 120
 local FrameHeight = 30
 
@@ -151,7 +149,7 @@ local function applyFontSettings(ud, isCallback)
             if (isCallback) then
                 return
             end
-            SML.RegisterCallback(ud, "LibSharedMedia_Registered", "sharedMediaCallback")
+            SML.RegisterCallback(ud, "LibSharedMedia_Registered", "applyFontSettings", true)
             dbFontPath = DefaultFontPath
         else
             SML.UnregisterCallback(ud, "LibSharedMedia_Registered")
