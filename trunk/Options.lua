@@ -7,7 +7,7 @@ local rc = LibStub("LibRangeCheck-2.0")
 local LDB = LibStub:GetLibrary("LibDataBroker-1.1", true)
 local LDBIcon = LibStub("LibDBIcon-1.0", true)
 
-local Icon = "Interface\\Icons\\Spell_Frost_Stun"
+local Icon = "Interface\\Icons\\INV_Misc_Spyglass_02"
 local MinFontSize = 5
 local MaxFontSize = 30
 local DefaultFontName = "Friz Quadrata TT"
