@@ -1,0 +1,28 @@
+## Interface: 30000
+## Title: RangeDisplay
+## Author: mitch0
+## Version: 3.1-beta4
+## Notes: Estimated range display. type /rangedisplay for help
+## Notes-ruRU: Дисплей с указанием расстояния до цели. Введите /rangedisplay для справки
+## LoadManagers: AddonLoader
+## X-LoadOn-Always: true
+## SavedVariables: RangeDisplayDB3
+## OptionalDeps: LibStub, CallbackHandler-1.0, LibRangeCheck-2.0, Ace3, LibSharedMedia-3.0, LibDBIcon-1.0
+## X-Embeds: LibRangeCheck-2.0, Ace3
+## X-Category: Combat
+## X-License: Public Domain
+## X-RelSite-WoWI: 7297
+## X-Credits: sayclub (koKR), lcncg (zhCN, zhTW), Carylon (deDE), Pixel (frFR), Argonavt (ruRU)
+
+## X-Localizations: enUS, enGB, deDE, zhCN, zhTW, koKR, ruRU, frFR, esES
+## X-CompatibleLocales: enUS, enGB, deDE, frFR, esES, zhCN, zhTW, koKR, ruRU
+
+#@no-lib-strip@
+embeds.xml
+#@end-no-lib-strip@
+libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+
+localizations\localizations.xml
+
+RangeDisplay.lua
+Options.lua
