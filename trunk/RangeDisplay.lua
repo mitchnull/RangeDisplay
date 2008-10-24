@@ -45,6 +45,10 @@ local MaxRangeSpells = {
         116, -- ["Frostbolt"], -- 30 (Arctic Reach: 33, 36)
         5143, -- ["Arcane Missiles"], -- 30 (Magic Attunement: 33, 36)
     },
+    ["SHAMAN"] = {
+		403, -- ["Lightning Bolt"], -- 30 (Storm Reach: 33, 36)
+		8050, -- ["Flame Shock"], -- 30 (Lava Flows: 25, 30, 35; Gladiator Gloves: +5)
+    },
     ["WARLOCK"] = {
         348, -- ["Immolate"], -- 30 (Destructive Reach: 33, 36)
         172, -- ["Corruption"], -- 30 (Grim Reach: 33, 36)
