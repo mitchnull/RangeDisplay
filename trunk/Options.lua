@@ -101,13 +101,40 @@ local function addUnitOptions(ud, order)
                 desc = L["Show the maximum range only"],
                 order = 116,
             },
-            outOfRangeDisplay = {
+            suffix = {
+                type = 'input',
+                disabled = "isUnitDisabled",
+                name = L["Suffix"],
+                desc = L["A free-form suffix to append to the range display when you are in range"],
+                order = 117,
+            },
+
+            rangeLimit = {
+                type = 'range',
+                disabled = "isUnitDisabled",
+                name = L["Range limit"],
+                desc = L["Ranges above this are not reported"],
+                min = MinRangeLimit,
+                max = MaxRangeLimit,
+                step = 1,
+                order = 119,
+
+            },
+            overLimitDisplay = {
                 type = 'toggle',
                 disabled = "isUnitDisabled",
-                name = L["Out of range display"],
-                desc = L["Show/Hide display if the target is out of range"],
+                name = L["Over limit display"],
+                desc = L["Show/Hide display if the target is further than range limit"],
                 order = 120,
             },
+            overLimitSuffix = {
+                type = 'input',
+                disabled = "isUnitDisabled",
+                name = L["Over limit suffix"],
+                desc = L["A free-form suffix to append to the range display when you are further than range limit"],
+                order = 125,
+            },
+
             checkVisibility = {
                 type = 'toggle',
                 disabled = "isUnitDisabled",
@@ -115,6 +142,7 @@ local function addUnitOptions(ud, order)
                 desc = L["If set, the max range to check will be 'visibility range'"],
                 order = 130,
             },
+
             font = {
                 type = 'select',
                 disabled = "isUnitDisabled",
@@ -141,6 +169,14 @@ local function addUnitOptions(ud, order)
                 values = FontOutlines,
                 order = 150,
             },
+            strata = {
+                type = 'select',
+                disabled = "isUnitDisabled",
+                name = L["Strata"],
+                desc = L["Frame strata"],
+                values = FrameStratas,
+                order = 155,
+            },
             -- we monkey around a bit with default color for nicer gui/cmd line
             defaultSection = {
                 type = 'group',
@@ -149,7 +185,7 @@ local function addUnitOptions(ud, order)
                 inline = true,
                 cmdHidden = true,
                 disabled = "isUnitDisabled",
-                order = 160,
+                order = 174,
                 args = {
                     enabled = {
                         type = 'toggle',
@@ -186,11 +222,10 @@ local function addUnitOptions(ud, order)
                 get = "getUnitColor",
                 order = 160,
             },
-            mlrSection = {
+            crSection = {
                 type = 'group',
                 disabled = "isUnitDisabled",
-                name = L["Melee range section"],
-                --desc = L["Melee range section"],
+                name = L["Close range section"],
                 guiInline = true,
                 order = 165,
                 args = {
@@ -213,6 +248,18 @@ local function addUnitOptions(ud, order)
                         get = "getSectionColor",
                         width = 'half',
                         order = 20,
+                    },
+                    range = {
+                        type = 'range',
+                        name = L["Range limit"],
+                        --desc = L["Range limit"],
+                        disabled = "isSectionDisabled",
+                        set = "setSectionOption",
+                        get = "getSectionOption",
+                        min = MinRangeLimit,
+                        max = MaxRangeLimit,
+                        step = 1,
+                        order = 30,
                     },
                 },
             },
@@ -351,28 +398,6 @@ local function addUnitOptions(ud, order)
                     ud:autoAdjust()
                 end,
                 order = 185,
-            },
-            suffix = {
-                type = 'input',
-                disabled = "isUnitDisabled",
-                name = L["Suffix"],
-                desc = L["A free-form suffix to append to the range display when you are in range"],
-                order = 190,
-            },
-            oorSuffix = {
-                type = 'input',
-                disabled = "isUnitDisabled",
-                name = L["Out of range suffix"],
-                desc = L["A free-form suffix to append to the range display when you are out of range"],
-                order = 195,
-            },
-            strata = {
-                type = 'select',
-                disabled = "isUnitDisabled",
-                name = L["Strata"],
-                desc = L["Frame strata"],
-                values = FrameStratas,
-                order = 200,
             },
         },
     }

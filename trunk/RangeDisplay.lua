@@ -84,16 +84,22 @@ local defaults = {
                 font = DefaultFontName,
                 fontSize = 24,
                 fontOutline = "",
-                outOfRangeDisplay = false,
+                strata = "HIGH",
                 checkVisibility = false,
                 enemyOnly = false,
                 maxRangeOnly = false,
-                color = makeColor(1.0, 0.82, 0),
+                suffix = "",
+
+				rangeLimit = 100,
+                overLimitDisplay = false,
+                overLimitSuffix = " +",
+
                 oorSection = {
                     enabled = true,
                     color = makeColor(0.9, 0.055, 0.075),
                     range = 40,
                 },
+                color = makeColor(1.0, 0.82, 0),
                 mrSection = {
                     enabled = true,
                     color = makeColor(0.035, 0.865, 0.0),
@@ -104,13 +110,11 @@ local defaults = {
                     color = makeColor(0.055, 0.875, 0.825),
                     range = 20,
                 },
-                mlrSection = {
+                crSection = {
                     enabled = true,
                     color = makeColor(0.9, 0.9, 0.9),
+                    range = 5,
                 },
-                suffix = "",
-                oorSuffix = " +",
-                strata = "HIGH",
             },
             ["focus"] = {
                 x = -(FrameWidth + 10),
@@ -294,14 +298,15 @@ local function update(ud)
     local range = nil
     local color = nil
     if (minRange) then
+		if (minRange >= ud.db.rangeLimit) then maxRange = nil end
         if (maxRange) then
             if (ud.db.maxRangeOnly) then
                 range = maxRange .. ud.db.suffix
             else
                 range = minRange .. " - " .. maxRange .. ud.db.suffix
             end
-            if (maxRange <= 5 and ud.db.mlrSection.enabled) then
-                color = ud.db.mlrSection.color
+            if (ud.db.crSection.enabled and maxRange <= ud.db.crSection.range) then
+                color = ud.db.crSection.color
             elseif (ud.db.srSection.enabled and maxRange <= ud.db.srSection.range) then
                 color = ud.db.srSection.color
             elseif (ud.db.mrSection.enabled and maxRange <= ud.db.mrSection.range) then
@@ -311,9 +316,9 @@ local function update(ud)
             else
                 color = ud.db.color
             end
-        elseif (ud.db.outOfRangeDisplay) then
+        elseif (ud.db.overLimitDisplay) then
             color = (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) and ud.db.oorSection.color or ud.db.color
-            range = minRange .. ud.db.oorSuffix
+            range = minRange .. ud.db.overLimitSuffix
         end
     end
     ud.rangeFrameText:SetText(range)
