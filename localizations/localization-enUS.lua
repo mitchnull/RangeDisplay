@@ -1,6 +1,6 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("RangeDisplay", "enUS", true)
 if not L then return end
-		
+        
 L["Locked"] = true
 L["Lock/Unlock display frame"] = true
 L["Range limit"] = true
@@ -49,6 +49,10 @@ L["Enabled"] = true
 L["|cffeda55fLeft Click|r to lock/unlock frames"] = true
 L["|cffeda55fRight Click|r to open the configuration window"] = true
 L["Hide minimap icon"] = true
+
+L["RangeDisplay: %s"] = true -- %s will be Target, Focus, etc
+L["|cffeda55fShift + Left Click|r to lock frames"] = true
+L["|cffeda55fDrag|r to move the frame"] = true
 
 L["playertarget"] = "Target"
 L["focus"] = "Focus"
