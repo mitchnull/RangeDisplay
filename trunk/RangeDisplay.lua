@@ -46,8 +46,8 @@ local MaxRangeSpells = {
         5143, -- ["Arcane Missiles"], -- 30 (Magic Attunement: 33, 36)
     },
     ["SHAMAN"] = {
-		403, -- ["Lightning Bolt"], -- 30 (Storm Reach: 33, 36)
-		8050, -- ["Flame Shock"], -- 30 (Lava Flows: 25, 30, 35; Gladiator Gloves: +5)
+        403, -- ["Lightning Bolt"], -- 30 (Storm Reach: 33, 36)
+        8050, -- ["Flame Shock"], -- 30 (Lava Flows: 25, 30, 35; Gladiator Gloves: +5)
     },
     ["WARLOCK"] = {
         348, -- ["Immolate"], -- 30 (Destructive Reach: 33, 36)
@@ -90,7 +90,7 @@ local defaults = {
                 maxRangeOnly = false,
                 suffix = "",
 
-				rangeLimit = 100,
+                rangeLimit = 100,
                 overLimitDisplay = false,
                 overLimitSuffix = " +",
 
@@ -211,7 +211,7 @@ local function createFrameBG(ud)
     local unit = ud.unit
 
     ud.rangeFrameBG = ud.rangeFrame:CreateTexture("RangeDisplayFrameBG_" .. unit, "BACKGROUND")
-    ud.rangeFrameBG:SetTexture(0, 0, 0, 0.42)
+    ud.rangeFrameBG:SetTexture(0, 0.42, 0, 0.42)
     ud.rangeFrameBG:SetWidth(ud.rangeFrame:GetWidth())
     ud.rangeFrameBG:SetHeight(ud.rangeFrame:GetHeight())
     ud.rangeFrameBG:SetPoint("CENTER", ud.rangeFrame, "CENTER", 0, 0)
@@ -258,10 +258,19 @@ local function createFrame(ud)
     ud.lastUpdate = 0
     ud.rangeFrame:SetScript("OnMouseDown", function(frame, button)
         if (button == "LeftButton") then
+            if (IsShiftKeyDown()) then
+                RangeDisplay.db.profile.locked = true
+                RangeDisplay:applySettings()
+                return
+            end
             ud.rangeFrame:StartMoving()
             ud.isMoving = true
         elseif (button == "RightButton") then
-            RangeDisplay:openConfigDialog(ud)
+            if (IsShiftKeyDown()) then
+                RangeDisplay:openConfigDialog()
+            else
+                RangeDisplay:openConfigDialog(ud)
+            end
         end
     end)
     ud.rangeFrame:SetScript("OnMouseUp", function(frame, button)
@@ -270,6 +279,17 @@ local function createFrame(ud)
             ud.isMoving = false
             ud.db.point, _, ud.db.relPoint, ud.db.x, ud.db.y = ud.rangeFrame:GetPoint()
         end
+    end)
+    ud.rangeFrame:SetScript("OnEnter", function(frame)
+        GameTooltip:SetOwner(frame)
+        GameTooltip:AddLine(L["RangeDisplay: %s"]:format(L[unit]))
+        GameTooltip:AddLine(L["|cffeda55fDrag|r to move the frame"])
+        GameTooltip:AddLine(L["|cffeda55fShift + Left Click|r to lock frames"])
+        GameTooltip:AddLine(L["|cffeda55fRight Click|r to open the configuration window"])
+        GameTooltip:Show()
+    end)
+    ud.rangeFrame:SetScript("OnLeave", function(frame)
+        GameTooltip:Hide()
     end)
     ud.rangeFrame:SetScript("OnUpdate", function(frame, elapsed)
         ud.lastUpdate = ud.lastUpdate + elapsed
@@ -298,7 +318,7 @@ local function update(ud)
     local range = nil
     local color = nil
     if (minRange) then
-		if (minRange >= ud.db.rangeLimit) then maxRange = nil end
+        if (minRange >= ud.db.rangeLimit) then maxRange = nil end
         if (maxRange) then
             if (ud.db.maxRangeOnly) then
                 range = maxRange .. ud.db.suffix
