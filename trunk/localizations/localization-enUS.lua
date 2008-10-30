@@ -51,7 +51,7 @@ L["|cffeda55fRight Click|r to open the configuration window"] = true
 L["Hide minimap icon"] = true
 
 L["RangeDisplay: %s"] = true -- %s will be Target, Focus, etc
-L["|cffeda55fShift + Left Click|r to lock frames"] = true
+L["|cffeda55fControl + Left Click|r to lock frames"] = true
 L["|cffeda55fDrag|r to move the frame"] = true
 
 L["playertarget"] = "Target"

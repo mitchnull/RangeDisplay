@@ -258,7 +258,7 @@ local function createFrame(ud)
     ud.lastUpdate = 0
     ud.rangeFrame:SetScript("OnMouseDown", function(frame, button)
         if (button == "LeftButton") then
-            if (IsShiftKeyDown()) then
+            if (IsControlKeyDown()) then
                 RangeDisplay.db.profile.locked = true
                 RangeDisplay:applySettings()
                 return
@@ -266,7 +266,7 @@ local function createFrame(ud)
             ud.rangeFrame:StartMoving()
             ud.isMoving = true
         elseif (button == "RightButton") then
-            if (IsShiftKeyDown()) then
+            if (IsShiftKeyDown() or IsControlKeyDown() or IsAltKeyDown()) then
                 RangeDisplay:openConfigDialog()
             else
                 RangeDisplay:openConfigDialog(ud)
@@ -284,7 +284,7 @@ local function createFrame(ud)
         GameTooltip:SetOwner(frame)
         GameTooltip:AddLine(L["RangeDisplay: %s"]:format(L[unit]))
         GameTooltip:AddLine(L["|cffeda55fDrag|r to move the frame"])
-        GameTooltip:AddLine(L["|cffeda55fShift + Left Click|r to lock frames"])
+        GameTooltip:AddLine(L["|cffeda55fControl + Left Click|r to lock frames"])
         GameTooltip:AddLine(L["|cffeda55fRight Click|r to open the configuration window"])
         GameTooltip:Show()
     end)
