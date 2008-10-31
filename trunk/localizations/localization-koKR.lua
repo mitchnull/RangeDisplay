@@ -50,6 +50,10 @@ L["|cffeda55fLeft Click|r to lock/unlock frames"] = "|cffeda55f좌 클릭|r 창 
 L["|cffeda55fRight Click|r to open the configuration window"] = "|cffeda55f우 클릭|r 설정 창 열기"
 L["Hide minimap icon"] = "미니맵 아이콘 숨김"
 
+L["RangeDisplay: %s"] = "RangeDisplay: %s" -- %s will be Target, Focus, etc
+L["|cffeda55fControl + Left Click|r to lock frames"] = "|cffeda55fCtrl + 좌 클릭|r 창 잠금"
+L["|cffeda55fDrag|r to move the frame"] = "|cffeda55f드래그|r 창 이동"
+
 L["playertarget"] = "대상"
 L["focus"] = "주시"
 L["pet"] = "소환수"
