@@ -2,7 +2,6 @@ local AceConfig = LibStub("AceConfig-3.0")
 local AceDBOptions = LibStub("AceDBOptions-3.0")
 local ACD = LibStub("AceConfigDialog-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale(RangeDisplay.AppName)
-local SML = LibStub:GetLibrary("LibSharedMedia-3.0", true)
 local rc = LibStub("LibRangeCheck-2.0")
 local LDB = LibStub:GetLibrary("LibDataBroker-1.1", true)
 local LDBIcon = LibStub("LibDBIcon-1.0", true)
@@ -10,18 +9,8 @@ local LDBIcon = LibStub("LibDBIcon-1.0", true)
 local Icon = "Interface\\Icons\\INV_Misc_Spyglass_02"
 local MinFontSize = 5
 local MaxFontSize = 30
-local DefaultFontName = "Friz Quadrata TT"
 
 local _
-
-local function getFonts()
-    local fonts = SML and SML:List("font") or { [1] = DefaultFontName }
-    local res = {}
-    for i, v in ipairs(fonts) do
-        res[v] = v
-    end
-    return res
-end
 
 local FontOutlines = {
     [""] = L["None"],
@@ -144,12 +133,12 @@ local function addUnitOptions(ud, order)
             },
 
             font = {
-                type = 'select',
+                type = "select", dialogControl = 'LSM30_Font',
                 disabled = "isUnitDisabled",
                 name = L["Font"],
                 --desc = L["Font"],
-                values = getFonts,
-                order = 135
+                values = AceGUIWidgetLSMlists.font,
+                order = 135,
             },
             fontSize = {
                 type = 'range',

@@ -13,7 +13,7 @@ local AppName = "RangeDisplay"
 local VERSION = AppName .. "-r" .. ("$Revision$"):match("%d+")
 
 local rc = LibStub("LibRangeCheck-2.0")
-local SML = LibStub:GetLibrary("LibSharedMedia-3.0", true)
+local LSM = LibStub:GetLibrary("LibSharedMedia-3.0", true)
 local L = LibStub("AceLocale-3.0"):GetLocale(AppName)
 
 -- internal vars
@@ -151,16 +151,16 @@ end
 
 local function applyFontSettings(ud, isCallback)
     local dbFontPath
-    if (SML) then
-        dbFontPath = SML:Fetch("font", ud.db.font, true)
+    if (LSM) then
+        dbFontPath = LSM:Fetch("font", ud.db.font, true)
         if (not dbFontPath) then
             if (isCallback) then
                 return
             end
-            SML.RegisterCallback(ud, "LibSharedMedia_Registered", "applyFontSettings", true)
+            LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "applyFontSettings", true)
             dbFontPath = DefaultFontPath
         else
-            SML.UnregisterCallback(ud, "LibSharedMedia_Registered")
+            LSM.UnregisterCallback(ud, "LibSharedMedia_Registered")
         end
     else
         dbFontPath = DefaultFontPath
