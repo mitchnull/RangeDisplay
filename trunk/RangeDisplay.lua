@@ -30,8 +30,14 @@ local UnitIsUnit = UnitIsUnit
 -- hard-coded config stuff
 
 local UpdateDelay = .1 -- update frequency == 1/UpdateDelay
-local DefaultFontPath = GameFontNormal:GetFont()
+
+local DefaultBGTexture = "Blizzard Dialog Background"
+local DefaultBGFile = [[Interface\DialogFrame\UI-DialogBox-Background]]
+local DefaultEdgeTexture = "Blizzard Tooltip"
+local DefaultEdgeFile = [[Interface\Tooltips\UI-Tooltip-Border]]
 local DefaultFontName = "Friz Quadrata TT"
+local DefaultFontPath = GameFontNormal:GetFont()
+
 local FrameWidth = 120
 local FrameHeight = 30
 
@@ -94,6 +100,16 @@ local defaults = {
                 overLimitDisplay = false,
                 overLimitSuffix = " +",
 
+                bg = {
+                    enabled = false,
+                    texture = DefaultBGTexture,
+                    borderTexture = DefaultEdgeTexture,
+                    tile = false,
+                    tileSize = 32,
+                    edgeSize = 16,
+                    bgColor = makeColor(1, 1, 1),
+                    borderColor = makeColor(0.8, 0.6, 0.0),
+                },
                 oorSection = {
                     enabled = true,
                     color = makeColor(0.9, 0.055, 0.075),
@@ -149,18 +165,64 @@ local function profileChanged(ud, db)
     ud.db = db
 end
 
-local function applyFontSettings(ud, isCallback)
+local function mediaUpdate(ud, event, mediaType, key)
+    if (mediaType == 'font') then
+        if (key == ud.db.font) then
+            ud:applyFontSettings()
+        end
+    elseif (mediaType == 'background') then
+        if (key == ud.db.bg.texture) then
+            ud:applyBGSettings()
+        end
+    elseif (mediaType == 'border') then
+        if (key == ud.db.bg.borderTexture) then
+            ud:applyBGSettings()
+        end
+    end
+end
+
+local function applyBGSettings(ud)
+    if (not ud.db.bg.enabled) then
+        ud.rangeFrame:SetBackdrop(nil)
+        return
+    end
+    ud.bg = ud.bg or { insets = {} }
+    local bg = ud.bg
+    if (LSM) then
+        bg.bgFile = LSM:Fetch("background", ud.db.bg.texture, true)
+        if (not bg.bgFile) then
+            bg.bgFile = DefaultBGFile
+            LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "mediaUpdate")
+        end
+        bg.edgeFile = LSM:Fetch("border", ud.db.bg.borderTexture, true)
+        if (not bg.edgeFile) then
+            bg.edgeFile = DefaultEdgeFile
+            LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "mediaUpdate")
+        end
+    else
+        bg.bgFile = DefaultBGFile
+        bg.edgeFile = DefaultEdgeFile
+    end
+    bg.tile = ud.db.bg.tile
+    bg.tileSize = ud.db.bg.tileSize
+    bg.edgeSize = ud.db.bg.edgeSize
+    local inset = math.floor(ud.db.bg.edgeSize / 4)
+    bg.insets.left = inset
+    bg.insets.right = inset
+    bg.insets.top = inset
+    bg.insets.bottom = inset
+    ud.rangeFrame:SetBackdrop(bg)
+    ud.rangeFrame:SetBackdropColor(ud.db.bg.bgColor.r, ud.db.bg.bgColor.g, ud.db.bg.bgColor.b, ud.db.bg.bgColor.a)
+    ud.rangeFrame:SetBackdropBorderColor(ud.db.bg.borderColor.r, ud.db.bg.borderColor.g, ud.db.bg.borderColor.b, ud.db.bg.borderColor.a)
+end
+
+local function applyFontSettings(ud)
     local dbFontPath
     if (LSM) then
         dbFontPath = LSM:Fetch("font", ud.db.font, true)
         if (not dbFontPath) then
-            if (isCallback) then
-                return
-            end
-            LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "applyFontSettings", true)
             dbFontPath = DefaultFontPath
-        else
-            LSM.UnregisterCallback(ud, "LibSharedMedia_Registered")
+            LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "mediaUpdate")
         end
     else
         dbFontPath = DefaultFontPath
@@ -182,6 +244,7 @@ local function applySettings(ud)
         ud.rangeFrame:SetFrameStrata(ud.db.strata)
         ud.rangeFrameText:SetTextColor(ud.db.color.r, ud.db.color.g, ud.db.color.b, ud.db.color.a)
         ud:applyFontSettings()
+        ud:applyBGSettings()
         ud.lastMinRange, ud.lastMaxRange = false, false -- to force update
         if (ud.locked) then
             ud:lock()
@@ -387,6 +450,8 @@ for _, ud in ipairs(units) do
     ud.profileChanged = ud.profileChanged or profileChanged
     ud.applySettings = ud.applySettings or applySettings
     ud.applyFontSettings = ud.applyFontSettings or applyFontSettings
+    ud.applyBGSettings = ud.applyBGSettings or applyBGSettings
+    ud.mediaUpdate = ud.mediaUpdate or mediaUpdate
     ud.targetChanged = ud.targetChanged or targetChanged
     ud.isTargetValid = ud.isTargetValid or isTargetValid
     ud.lock = ud.lock or lock
