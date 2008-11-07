@@ -156,7 +156,7 @@ local function targetChanged(ud)
     if (ud:isTargetValid()) then
         ud.rangeFrame:Show()
         ud.lastUpdate = UpdateDelay -- to force update in next onUpdate()
-    elseif (ud.locked) then
+    else
         ud.rangeFrame:Hide()
     end
 end
@@ -183,7 +183,7 @@ end
 
 local function applyBGSettings(ud)
     if (not ud.db.bg.enabled) then
-        ud.rangeFrame:SetBackdrop(nil)
+        ud.mainFrame:SetBackdrop(nil)
         return
     end
     ud.bg = ud.bg or { insets = {} }
@@ -211,9 +211,9 @@ local function applyBGSettings(ud)
     bg.insets.right = inset
     bg.insets.top = inset
     bg.insets.bottom = inset
-    ud.rangeFrame:SetBackdrop(bg)
-    ud.rangeFrame:SetBackdropColor(ud.db.bg.bgColor.r, ud.db.bg.bgColor.g, ud.db.bg.bgColor.b, ud.db.bg.bgColor.a)
-    ud.rangeFrame:SetBackdropBorderColor(ud.db.bg.borderColor.r, ud.db.bg.borderColor.g, ud.db.bg.borderColor.b, ud.db.bg.borderColor.a)
+    ud.mainFrame:SetBackdrop(bg)
+    ud.mainFrame:SetBackdropColor(ud.db.bg.bgColor.r, ud.db.bg.bgColor.g, ud.db.bg.bgColor.b, ud.db.bg.bgColor.a)
+    ud.mainFrame:SetBackdropBorderColor(ud.db.bg.borderColor.r, ud.db.bg.borderColor.g, ud.db.bg.borderColor.b, ud.db.bg.borderColor.a)
 end
 
 local function applyFontSettings(ud)
@@ -236,12 +236,12 @@ end
 
 local function applySettings(ud)
     if (ud.db.enabled) then
-        if (not ud.rangeFrame) then
+        if (not ud.mainFrame) then
             ud:createFrame()
         end
-        ud.rangeFrame:ClearAllPoints()
-        ud.rangeFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
-        ud.rangeFrame:SetFrameStrata(ud.db.strata)
+        ud.mainFrame:ClearAllPoints()
+        ud.mainFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
+        ud.mainFrame:SetFrameStrata(ud.db.strata)
         ud.rangeFrameText:SetTextColor(ud.db.color.r, ud.db.color.g, ud.db.color.b, ud.db.color.a)
         ud:applyFontSettings()
         ud:applyBGSettings()
@@ -259,74 +259,72 @@ end
 local function lock(ud)
     ud.locked = true
     if (ud.db.enabled) then
-        ud.rangeFrame:EnableMouse(false)
-        if (ud.rangeFrameBG) then
-            ud.rangeFrameBG:Hide()
-            ud.rangeFrameBGText:Hide()
-        end
-        if (not ud:isTargetValid()) then
-            ud.rangeFrame:Hide()
+        ud.mainFrame:EnableMouse(false)
+        if (ud.overlay) then
+            ud.overlay:Hide()
+            ud.overlayText:Hide()
         end
     end
 end
 
-local function createFrameBG(ud)
+local function createOverlay(ud)
     local unit = ud.unit
 
-    ud.rangeFrameBG = ud.rangeFrame:CreateTexture("RangeDisplayFrameBG_" .. unit, "BACKGROUND")
-    ud.rangeFrameBG:SetTexture(0, 0.42, 0, 0.42)
-    ud.rangeFrameBG:SetWidth(ud.rangeFrame:GetWidth())
-    ud.rangeFrameBG:SetHeight(ud.rangeFrame:GetHeight())
-    ud.rangeFrameBG:SetPoint("CENTER", ud.rangeFrame, "CENTER", 0, 0)
+    ud.overlay = ud.mainFrame:CreateTexture("RangeDisplayOverlay_" .. unit, "OVERLAY")
+    ud.overlay:SetTexture(0, 0.42, 0, 0.42)
+    ud.overlay:SetAllPoints()
 
-
-    ud.rangeFrameBGText = ud.rangeFrame:CreateFontString("RangeDisplayFrameBGText_" .. unit, "OVERLAY", "GameFontNormal")
-    ud.rangeFrameBGText:SetFont(DefaultFontPath, 10, "")
-    ud.rangeFrameBGText:SetJustifyH("CENTER")
-    ud.rangeFrameBGText:SetPoint("BOTTOM", ud.rangeFrame, "BOTTOM", 0, 0)
-    ud.rangeFrameBGText:SetText(L[unit])
+    ud.overlayText = ud.mainFrame:CreateFontString("RangeDisplayOverlayText_" .. unit, "OVERLAY", "GameFontNormal")
+    ud.overlayText:SetFont(DefaultFontPath, 10, "")
+    ud.overlayText:SetJustifyH("CENTER")
+    ud.overlayText:SetPoint("BOTTOM", ud.mainFrame, "BOTTOM", 0, 0)
+    ud.overlayText:SetText(L[unit])
 end
 
 local function unlock(ud)
     ud.locked = false
     if (ud.db.enabled) then
-        if (not ud.rangeFrameBG) then
-            createFrameBG(ud)
+        if (not ud.overlay) then
+            createOverlay(ud)
         end
-        ud.rangeFrame:EnableMouse(true)
-        ud.rangeFrame:Show()
-        ud.rangeFrameBG:Show()
-        ud.rangeFrameBGText:Show()
+        ud.mainFrame:EnableMouse(true)
+        ud.overlay:Show()
+        ud.overlayText:Show()
     end
 end
 
 local function createFrame(ud)
     local unit = ud.unit
     ud.isMoving = false
-    ud.rangeFrame = CreateFrame("Frame", "RangeDisplayFrame_" .. unit, UIParent)
-    ud.rangeFrame:Hide()
-    ud.rangeFrame:SetFrameStrata(ud.db.strata)
-    ud.rangeFrame:EnableMouse(false)
-    ud.rangeFrame:SetClampedToScreen()
-    ud.rangeFrame:SetMovable(true)
-    ud.rangeFrame:SetWidth(FrameWidth)
-    ud.rangeFrame:SetHeight(FrameHeight)
-    ud.rangeFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
+    ud.mainFrame = CreateFrame("Frame", "RangeDisplayMainFrame_" .. unit, UIParent)
+    ud.mainFrame:SetFrameStrata(ud.db.strata)
+    ud.mainFrame:EnableMouse(false)
+    ud.mainFrame:SetClampedToScreen()
+    ud.mainFrame:SetMovable(true)
+    ud.mainFrame:SetWidth(FrameWidth)
+    ud.mainFrame:SetHeight(FrameHeight)
+    ud.mainFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
 
-    ud.rangeFrameText = ud.rangeFrame:CreateFontString("RangeDisplayFrameText_" .. unit, "OVERLAY", "GameFontNormal")
+    ud.rangeFrame = CreateFrame("Frame", "RangeDisplayFrame_" .. unit, ud.mainFrame)
+    ud.rangeFrame:SetPoint("CENTER", ud.mainFrame, "CENTER", 0, 0)
+    ud.rangeFrame:SetAllPoints()
+    ud.rangeFrame:Hide()
+
+    ud.rangeFrameText = ud.rangeFrame:CreateFontString("RangeDisplayFrameText_" .. unit, "ARTWORK", "GameFontNormal")
     ud.rangeFrameText:SetFont(DefaultFontPath, ud.db.fontSize, ud.db.fontOutline)
     ud.rangeFrameText:SetJustifyH("CENTER")
     ud.rangeFrameText:SetPoint("CENTER", ud.rangeFrame, "CENTER", 0, 0)
 
     ud.lastUpdate = 0
-    ud.rangeFrame:SetScript("OnMouseDown", function(frame, button)
+
+    ud.mainFrame:SetScript("OnMouseDown", function(frame, button)
         if (button == "LeftButton") then
             if (IsControlKeyDown()) then
                 RangeDisplay.db.profile.locked = true
                 RangeDisplay:applySettings()
                 return
             end
-            ud.rangeFrame:StartMoving()
+            ud.mainFrame:StartMoving()
             ud.isMoving = true
         elseif (button == "RightButton") then
             if (IsShiftKeyDown() or IsControlKeyDown() or IsAltKeyDown()) then
@@ -336,14 +334,14 @@ local function createFrame(ud)
             end
         end
     end)
-    ud.rangeFrame:SetScript("OnMouseUp", function(frame, button)
+    ud.mainFrame:SetScript("OnMouseUp", function(frame, button)
         if (ud.isMoving and button == "LeftButton") then
-            ud.rangeFrame:StopMovingOrSizing()
+            ud.mainFrame:StopMovingOrSizing()
             ud.isMoving = false
-            ud.db.point, _, ud.db.relPoint, ud.db.x, ud.db.y = ud.rangeFrame:GetPoint()
+            ud.db.point, _, ud.db.relPoint, ud.db.x, ud.db.y = ud.mainFrame:GetPoint()
         end
     end)
-    ud.rangeFrame:SetScript("OnEnter", function(frame)
+    ud.mainFrame:SetScript("OnEnter", function(frame)
         GameTooltip:SetOwner(frame)
         GameTooltip:AddLine(L["RangeDisplay: %s"]:format(L[unit]))
         GameTooltip:AddLine(L["|cffeda55fDrag|r to move the frame"])
@@ -351,9 +349,11 @@ local function createFrame(ud)
         GameTooltip:AddLine(L["|cffeda55fRight Click|r to open the configuration window"])
         GameTooltip:Show()
     end)
-    ud.rangeFrame:SetScript("OnLeave", function(frame)
+    ud.mainFrame:SetScript("OnLeave", function(frame)
         GameTooltip:Hide()
     end)
+
+    -- OnUpdate is set only on the rangeFrame
     ud.rangeFrame:SetScript("OnUpdate", function(frame, elapsed)
         ud.lastUpdate = ud.lastUpdate + elapsed
         if (ud.lastUpdate < UpdateDelay) then return end
@@ -363,14 +363,15 @@ local function createFrame(ud)
 end
 
 local function enable(ud)
-    if (not ud.rangeFrame) then
+    if (not ud.mainFrame) then
         ud:createFrame()
     end
+    ud.mainFrame:Show()
 end
 
 local function disable(ud)
-    if (ud.rangeFrame) then
-        ud.rangeFrame:Hide()
+    if (ud.mainFrame) then
+        ud.mainFrame:Hide()
     end
 end
 
@@ -512,8 +513,8 @@ end
 function RangeDisplay:registerTargetChangedEvent(ud)
     if (ud.event) then
         ud.eventHandler = ud.eventHandler or function(...)
-                ud:targetChanged(...)
-            end
+            ud:targetChanged(...)
+        end
         self:RegisterEvent(ud.event, ud.eventHandler)
     end
 end
