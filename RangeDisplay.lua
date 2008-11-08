@@ -292,8 +292,7 @@ local function createFrame(ud)
     ud.mainFrame:SetScript("OnMouseDown", function(frame, button)
         if (button == "LeftButton") then
             if (IsControlKeyDown()) then
-                RangeDisplay.db.profile.locked = true
-                RangeDisplay:applySettings()
+                RangeDisplay:lock()
                 return
             end
             ud.mainFrame:StartMoving()
@@ -501,6 +500,7 @@ function RangeDisplay:applySettings()
             self:unregisterTargetChangedEvent(ud)
         end
     end
+    self:toggleLocked(self.db.profile.locked == true)
 end
 
 -- for now we assume that each unitdata is using only 1 event, and there are no overlapping events, as it's faster like this
