@@ -69,72 +69,67 @@ local function addUnitOptions(ud, order)
         handler = ud,
         get = "getUnitOption",
         set = "setUnitOption",
+        disabled = "isUnitDisabled",
         order = order or 1,
         args = {
             enabled = {
                 type = 'toggle',
                 name = L["Enabled"],
                 order = 114,
+                disabled = false,
             },
             enemyOnly = {
                 type = 'toggle',
-                disabled = "isUnitDisabled",
                 name = L["Enemy only"],
                 desc = L["Show range for enemy targets only"],
                 order = 115,
             },
             maxRangeOnly = {
                 type = 'toggle',
-                disabled = "isUnitDisabled",
                 name = L["Max range only"],
                 desc = L["Show the maximum range only"],
                 order = 116,
             },
-            suffix = {
-                type = 'input',
-                disabled = "isUnitDisabled",
-                name = L["Suffix"],
-                desc = L["A free-form suffix to append to the range display when you are in range"],
+            checkVisibility = {
+                type = 'toggle',
+                name = L["Check visibility"],
+                desc = L["If set, the max range to check will be 'visibility range'"],
                 order = 117,
             },
-
             rangeLimit = {
                 type = 'range',
-                disabled = "isUnitDisabled",
                 name = L["Range limit"],
                 desc = L["Ranges above this are not reported"],
                 min = MinRangeLimit,
                 max = MaxRangeLimit,
                 step = 1,
-                order = 119,
+                order = 118,
 
             },
+
+            suffix = {
+                type = 'input',
+                name = L["Suffix"],
+                desc = L["A free-form suffix to append to the range display when you are in range"],
+                order = 119,
+            },
+
             overLimitDisplay = {
                 type = 'toggle',
-                disabled = "isUnitDisabled",
                 name = L["Over limit display"],
                 desc = L["Show/Hide display if the target is further than range limit"],
-                order = 120,
+                order = 124,
             },
             overLimitSuffix = {
                 type = 'input',
-                disabled = "isUnitDisabled",
                 name = L["Over limit suffix"],
                 desc = L["A free-form suffix to append to the range display when you are further than range limit"],
                 order = 125,
-            },
-
-            checkVisibility = {
-                type = 'toggle',
-                disabled = "isUnitDisabled",
-                name = L["Check visibility"],
-                desc = L["If set, the max range to check will be 'visibility range'"],
-                order = 130,
+                disabled = function() return not ud.db.enabled or not ud.db.overLimitDisplay end,
             },
 
             font = {
                 type = "select", dialogControl = 'LSM30_Font',
-                disabled = "isUnitDisabled",
                 name = L["Font"],
                 --desc = L["Font"],
                 values = AceGUIWidgetLSMlists.font,
@@ -142,7 +137,6 @@ local function addUnitOptions(ud, order)
             },
             fontSize = {
                 type = 'range',
-                disabled = "isUnitDisabled",
                 name = L["Font size"],
                 --desc = L["Font size"],
                 min = MinFontSize,
@@ -152,7 +146,6 @@ local function addUnitOptions(ud, order)
             },
             fontOutline = {
                 type = 'select',
-                disabled = "isUnitDisabled",
                 name = L["Font outline"],
                 --desc = L["Font outline"],
                 values = FontOutlines,
@@ -160,12 +153,98 @@ local function addUnitOptions(ud, order)
             },
             strata = {
                 type = 'select',
-                disabled = "isUnitDisabled",
                 name = L["Strata"],
                 desc = L["Frame strata"],
                 values = FrameStratas,
                 order = 155,
             },
+            bg = {
+                type = "group",
+                name = L["Background Options"],
+                disabled = function() return not ud.db.enabled or not ud.db.bgEnabled end,
+                guiInline = true,
+                order = 158,
+                args = {
+                    bgEnabled = {
+                        type = 'toggle',
+                        order = 1,
+                        name = L["Enabled"],
+                        disabled = "isUnitDisabled",
+                    },
+                    frameWidth = {
+                        type = 'range',
+                        disabled = "isUnitDisabled",
+                        name = L["Width"],
+                        min = 32,
+                        max = 256,
+                        step = 1,
+                        order = 5,
+                    },
+                    frameHeight = {
+                        type = 'range',
+                        disabled = "isUnitDisabled",
+                        name = L["Height"],
+                        min = 16,
+                        max = 64,
+                        step = 1,
+                        order = 6,
+                    },
+                    bgTexture = {
+                        type = "select", dialogControl = 'LSM30_Background',
+                        order = 11,
+                        name = L["Background Texture"],
+                        desc = L["Texture to use for the frame's background"],
+                        values = AceGUIWidgetLSMlists.background,
+                    },
+                    bgBorderTexture = {
+                        type = "select", dialogControl = 'LSM30_Border',
+                        order = 12,
+                        name = L["Border Texture"],
+                        desc = L["Texture to use for the frame's border"],
+                        values = AceGUIWidgetLSMlists.border,
+                    },
+                    bgColor = {
+                        type = "color",
+                        order = 13,
+                        name = L["Background Color"],
+                        desc = L["Frame's background color"],
+                        hasAlpha = true,
+                        set = "setBGColor",
+                        get = "getBGColor",
+                    },
+                    bgBorderColor = {
+                        type = "color",
+                        order = 14,
+                        name = L["Border Color"],
+                        desc = L["Frame's border color"],
+                        hasAlpha = true,
+                        set = "setBGColor",
+                        get = "getBGColor",
+                    },
+                    bgTile = {
+                        type = "toggle",
+                        order = 2,
+                        name = L["Tile Background"],
+                        desc = L["Tile the background texture"],
+                    },
+                    bgTileSize = {
+                        type = "range",
+                        order = 16,
+                        name = L["Background Tile Size"],
+                        desc = L["The size used to tile the background texture"],
+                        min = 16, max = 256, step = 1,
+                        disabled = function() return not ud.db.enabled or not ud.db.bgEnabled or not ud.db.bgTile end,
+                    },
+                    bgEdgeSize = {
+                        type = "range",
+                        order = 17,
+                        name = L["Border Thickness"],
+                        desc = L["The thickness of the border"],
+                        min = 1, max = 16, step = 1,
+                    },
+                },
+            },
+
             -- we monkey around a bit with default color for nicer gui/cmd line
             defaultSection = {
                 type = 'group',
@@ -173,22 +252,20 @@ local function addUnitOptions(ud, order)
                 name = L["Default section"],
                 inline = true,
                 cmdHidden = true,
-                disabled = "isUnitDisabled",
                 order = 174,
                 args = {
                     enabled = {
                         type = 'toggle',
                         width = 'half',
-                        disabled = "isUnitDisabled",
                         cmdHidden = true,
                         name = "",
                         set = function() end,
                         get = function() return true end,
+                        disabled = true,
                         order = 10,
                     },
                     color = {
                         type = 'color',
-                        disabled = "isUnitDisabled",
                         width = 'half',
                         hasAlpha = true,
                         name = L["Color"],
@@ -201,7 +278,6 @@ local function addUnitOptions(ud, order)
             },
             color = {
                 type = 'color',
-                disabled = "isUnitDisabled",
                 guiHidden = true,
                 width = 'half',
                 hasAlpha = true,
@@ -213,7 +289,7 @@ local function addUnitOptions(ud, order)
             },
             crSection = {
                 type = 'group',
-                disabled = "isUnitDisabled",
+                disabled = "isSectionDisabled",
                 name = L["Close range section"],
                 guiInline = true,
                 order = 165,
@@ -226,13 +302,13 @@ local function addUnitOptions(ud, order)
                         get = "getSectionOption",
                         width = 'half',
                         order = 10,
+                        disabled = "isUnitDisabled",
                     },
                     color = {
                         type = 'color',
                         hasAlpha = true,
                         name = L["Color"],
                         --desc = L["Color"],
-                        disabled = "isSectionDisabled",
                         set = "setSectionColor",
                         get = "getSectionColor",
                         width = 'half',
@@ -242,7 +318,6 @@ local function addUnitOptions(ud, order)
                         type = 'range',
                         name = L["Range limit"],
                         --desc = L["Range limit"],
-                        disabled = "isSectionDisabled",
                         set = "setSectionOption",
                         get = "getSectionOption",
                         min = MinRangeLimit,
@@ -254,7 +329,7 @@ local function addUnitOptions(ud, order)
             },
             srSection = {
                 type = 'group',
-                disabled = "isUnitDisabled",
+                disabled = "isSectionDisabled",
                 name = L["Short range section"],
                 --desc = L["Short range section"],
                 guiInline = true,
@@ -264,6 +339,7 @@ local function addUnitOptions(ud, order)
                         type = 'toggle',
                         name = "", -- L["Enabled"],
                         desc = L["Enable this color section"],
+                        disabled = "isUnitDisabled",
                         set = "setSectionOption",
                         get = "getSectionOption",
                         width = 'half',
@@ -274,7 +350,6 @@ local function addUnitOptions(ud, order)
                         hasAlpha = true,
                         name = L["Color"],
                         --desc = L["Color"],
-                        disabled = "isSectionDisabled",
                         set = "setSectionColor",
                         get = "getSectionColor",
                         width = 'half',
@@ -284,7 +359,6 @@ local function addUnitOptions(ud, order)
                         type = 'range',
                         name = L["Range limit"],
                         --desc = L["Range limit"],
-                        disabled = "isSectionDisabled",
                         set = "setSectionOption",
                         get = "getSectionOption",
                         min = MinRangeLimit,
@@ -296,7 +370,7 @@ local function addUnitOptions(ud, order)
             },
             mrSection = {
                 type = 'group',
-                disabled = "isUnitDisabled",
+                disabled = "isSectionDisabled",
                 name = L["Medium range section"],
                 --desc = L["Medium range section"],
                 guiInline = true,
@@ -306,6 +380,7 @@ local function addUnitOptions(ud, order)
                         type = 'toggle',
                         name = "", -- L["Enabled"],
                         desc = L["Enable this color section"],
+                        disabled = "isUnitDisabled",
                         set = "setSectionOption",
                         get = "getSectionOption",
                         width = 'half',
@@ -316,7 +391,6 @@ local function addUnitOptions(ud, order)
                         hasAlpha = true,
                         name = L["Color"],
                         --desc = L["Color"],
-                        disabled = "isSectionDisabled",
                         set = "setSectionColor",
                         get = "getSectionColor",
                         width = 'half',
@@ -326,7 +400,6 @@ local function addUnitOptions(ud, order)
                         type = 'range',
                         name = L["Range limit"],
                         --desc = L["Range limit"],
-                        disabled = "isSectionDisabled",
                         set = "setSectionOption",
                         get = "getSectionOption",
                         min = MinRangeLimit,
@@ -338,7 +411,7 @@ local function addUnitOptions(ud, order)
             },
             oorSection = {
                 type = 'group',
-                disabled = "isUnitDisabled",
+                disabled = "isSectionDisabled",
                 name = L["Out of range section"],
                 --desc = L["Out of range section"],
                 guiInline = true,
@@ -348,6 +421,7 @@ local function addUnitOptions(ud, order)
                         type = 'toggle',
                         name = "", -- L["Enabled"],
                         desc = L["Enable this color section"],
+                        disabled = "isUnitDisabled",
                         set = "setSectionOption",
                         get = "getSectionOption",
                         width = 'half',
@@ -358,7 +432,6 @@ local function addUnitOptions(ud, order)
                         hasAlpha = true,
                         name = L["Color"],
                         --desc = L["Color"],
-                        disabled = "isSectionDisabled",
                         set = "setSectionColor",
                         get = "getSectionColor",
                         width = 'half',
@@ -368,7 +441,6 @@ local function addUnitOptions(ud, order)
                         type = 'range',
                         name = L["Range limit"],
                         --desc = L["Range limit"],
-                        disabled = "isSectionDisabled",
                         set = "setSectionOption",
                         get = "getSectionOption",
                         min = MinRangeLimit,
@@ -380,7 +452,6 @@ local function addUnitOptions(ud, order)
             },
             autoAdjust = {
                 type = 'execute',
-                disabled = "isUnitDisabled",
                 name = L["Auto adjust"],
                 width = 'full',
                 func = function()
@@ -443,6 +514,18 @@ local function setSectionColor(ud, info, r, g, b, a)
     setColor(ud, dbcolor, r, g, b, a)
 end
 
+local function setBGColor(ud, info, r, g, b, a)
+    local dbcolor = ud.db[info[#info]]
+    dbcolor.r, dbcolor.g, dbcolor.b, dbcolor.a = r, g, b, a
+    ud.mainFrame:SetBackdropColor(ud.db.bgColor.r, ud.db.bgColor.g, ud.db.bgColor.b, ud.db.bgColor.a)
+    ud.mainFrame:SetBackdropBorderColor(ud.db.bgBorderColor.r, ud.db.bgBorderColor.g, ud.db.bgBorderColor.b, ud.db.bgBorderColor.a)
+end
+
+local function getBGColor(ud, info)
+    local dbcolor = ud.db[info[#info]]
+    return getColor(ud, dbcolor)
+end
+
 local function isUnitDisabled(ud, info)
     return not ud.db.enabled
 end
@@ -463,6 +546,8 @@ local function addConfigFunctions(units)
         ud.setSectionOption = setSectionOption
         ud.isUnitDisabled = isUnitDisabled
         ud.isSectionDisabled = isSectionDisabled
+        ud.setBGColor = setBGColor
+        ud.getBGColor = getBGColor
     end
 end
 

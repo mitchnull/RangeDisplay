@@ -99,16 +99,17 @@ local defaults = {
                 overLimitDisplay = false,
                 overLimitSuffix = " +",
 
-                bg = {
-                    enabled = false,
-                    texture = DefaultBGTexture,
-                    borderTexture = DefaultEdgeTexture,
-                    tile = false,
-                    tileSize = 32,
-                    edgeSize = 16,
-                    bgColor = makeColor(1, 1, 1),
-                    borderColor = makeColor(0.8, 0.6, 0.0),
-                },
+                frameWidth = DefaultFrameWidth,
+                frameHeight = DefaultFrameHeight,
+                bgEnabled = false,
+                bgTexture = DefaultBGTexture,
+                bgBorderTexture = DefaultEdgeTexture,
+                bgTile = false,
+                bgTileSize = 32,
+                bgEdgeSize = 16,
+                bgColor = makeColor(1, 1, 1),
+                bgBorderColor = makeColor(0.8, 0.6, 0.0),
+
                 oorSection = {
                     enabled = true,
                     color = makeColor(0.9, 0.055, 0.075),
@@ -170,30 +171,30 @@ local function mediaUpdate(ud, event, mediaType, key)
             ud:applyFontSettings()
         end
     elseif (mediaType == 'background') then
-        if (key == ud.db.bg.texture) then
+        if (key == ud.db.bgTexture) then
             ud:applyBGSettings()
         end
     elseif (mediaType == 'border') then
-        if (key == ud.db.bg.borderTexture) then
+        if (key == ud.db.bgBorderTexture) then
             ud:applyBGSettings()
         end
     end
 end
 
 local function applyBGSettings(ud)
-    if (not ud.db.bg.enabled) then
+    if (not ud.db.bgEnabled) then
         ud.mainFrame:SetBackdrop(nil)
         return
     end
     ud.bg = ud.bg or { insets = {} }
     local bg = ud.bg
     if (LSM) then
-        bg.bgFile = LSM:Fetch("background", ud.db.bg.texture, true)
+        bg.bgFile = LSM:Fetch("background", ud.db.bgTexture, true)
         if (not bg.bgFile) then
             bg.bgFile = DefaultBGFile
             LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "mediaUpdate")
         end
-        bg.edgeFile = LSM:Fetch("border", ud.db.bg.borderTexture, true)
+        bg.edgeFile = LSM:Fetch("border", ud.db.bgBorderTexture, true)
         if (not bg.edgeFile) then
             bg.edgeFile = DefaultEdgeFile
             LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "mediaUpdate")
@@ -202,17 +203,17 @@ local function applyBGSettings(ud)
         bg.bgFile = DefaultBGFile
         bg.edgeFile = DefaultEdgeFile
     end
-    bg.tile = ud.db.bg.tile
-    bg.tileSize = ud.db.bg.tileSize
-    bg.edgeSize = ud.db.bg.edgeSize
-    local inset = math.floor(ud.db.bg.edgeSize / 4)
+    bg.tile = ud.db.bgTile
+    bg.tileSize = ud.db.bgTileSize
+    bg.edgeSize = ud.db.bgEdgeSize
+    local inset = math.floor(ud.db.bgEdgeSize / 4)
     bg.insets.left = inset
     bg.insets.right = inset
     bg.insets.top = inset
     bg.insets.bottom = inset
     ud.mainFrame:SetBackdrop(bg)
-    ud.mainFrame:SetBackdropColor(ud.db.bg.bgColor.r, ud.db.bg.bgColor.g, ud.db.bg.bgColor.b, ud.db.bg.bgColor.a)
-    ud.mainFrame:SetBackdropBorderColor(ud.db.bg.borderColor.r, ud.db.bg.borderColor.g, ud.db.bg.borderColor.b, ud.db.bg.borderColor.a)
+    ud.mainFrame:SetBackdropColor(ud.db.bgColor.r, ud.db.bgColor.g, ud.db.bgColor.b, ud.db.bgColor.a)
+    ud.mainFrame:SetBackdropBorderColor(ud.db.bgBorderColor.r, ud.db.bgBorderColor.g, ud.db.bgBorderColor.b, ud.db.bgBorderColor.a)
 end
 
 local function applyFontSettings(ud)
@@ -238,6 +239,8 @@ local function applySettings(ud)
         ud:enable()
         ud.mainFrame:ClearAllPoints()
         ud.mainFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
+        ud.mainFrame:SetWidth(ud.db.frameWidth)
+        ud.mainFrame:SetHeight(ud.db.frameHeight)
         ud.mainFrame:SetFrameStrata(ud.db.strata)
         ud:applyFontSettings()
         ud:applyBGSettings()
@@ -270,8 +273,8 @@ local function createFrame(ud)
     ud.mainFrame:EnableMouse(false)
     ud.mainFrame:SetClampedToScreen()
     ud.mainFrame:SetMovable(true)
-    ud.mainFrame:SetWidth(DefaultFrameWidth)
-    ud.mainFrame:SetHeight(DefaultFrameHeight)
+    ud.mainFrame:SetWidth(ud.db.frameWidth)
+    ud.mainFrame:SetHeight(ud.db.frameHeight)
     ud.mainFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
 
     ud.rangeFrame = CreateFrame("Frame", "RangeDisplayFrame_" .. unit, ud.mainFrame)
