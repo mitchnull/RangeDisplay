@@ -527,14 +527,6 @@ function RangeDisplay:setupLDB()
     }
 end
 
-function RangeDisplay:toggleLocked(flag)
-    if (flag == nil) then flag = not self.db.profile.locked end
-    if (flag == not self.db.profile.locked) then
-        self.db.profile.locked = flag
-        self:applySettings()
-    end
-end
-
 function RangeDisplay:openConfigDialog(ud)
     if (ud) then
         InterfaceOptionsFrame_OpenToCategory(ud.opts)
