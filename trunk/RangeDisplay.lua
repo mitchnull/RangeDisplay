@@ -37,9 +37,8 @@ local DefaultEdgeTexture = "Blizzard Tooltip"
 local DefaultEdgeFile = [[Interface\Tooltips\UI-Tooltip-Border]]
 local DefaultFontName = "Friz Quadrata TT"
 local DefaultFontPath = GameFontNormal:GetFont()
-
-local FrameWidth = 120
-local FrameHeight = 30
+local DefaultFrameWidth = 112
+local DefaultFrameHeight = 36
 
 local MaxRangeSpells = {
     ["HUNTER"] = {
@@ -133,11 +132,11 @@ local defaults = {
                 },
             },
             ["focus"] = {
-                x = -(FrameWidth + 10),
+                x = -(DefaultFrameWidth + 10),
             },
             ["pet"] = {
                 enabled = false,
-                x = (FrameWidth + 10),
+                x = (DefaultFrameWidth + 10),
             },
         },
     },
@@ -236,34 +235,16 @@ end
 
 local function applySettings(ud)
     if (ud.db.enabled) then
-        if (not ud.mainFrame) then
-            ud:createFrame()
-        end
+        ud:enable()
         ud.mainFrame:ClearAllPoints()
         ud.mainFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
         ud.mainFrame:SetFrameStrata(ud.db.strata)
-        ud.rangeFrameText:SetTextColor(ud.db.color.r, ud.db.color.g, ud.db.color.b, ud.db.color.a)
         ud:applyFontSettings()
         ud:applyBGSettings()
         ud.lastMinRange, ud.lastMaxRange = false, false -- to force update
-        if (ud.locked) then
-            ud:lock()
-        else
-            ud:unlock()
-        end
+        ud:update()
     else
         ud:disable()
-    end
-end
-
-local function lock(ud)
-    ud.locked = true
-    if (ud.db.enabled) then
-        ud.mainFrame:EnableMouse(false)
-        if (ud.overlay) then
-            ud.overlay:Hide()
-            ud.overlayText:Hide()
-        end
     end
 end
 
@@ -281,18 +262,6 @@ local function createOverlay(ud)
     ud.overlayText:SetText(L[unit])
 end
 
-local function unlock(ud)
-    ud.locked = false
-    if (ud.db.enabled) then
-        if (not ud.overlay) then
-            createOverlay(ud)
-        end
-        ud.mainFrame:EnableMouse(true)
-        ud.overlay:Show()
-        ud.overlayText:Show()
-    end
-end
-
 local function createFrame(ud)
     local unit = ud.unit
     ud.isMoving = false
@@ -301,8 +270,8 @@ local function createFrame(ud)
     ud.mainFrame:EnableMouse(false)
     ud.mainFrame:SetClampedToScreen()
     ud.mainFrame:SetMovable(true)
-    ud.mainFrame:SetWidth(FrameWidth)
-    ud.mainFrame:SetHeight(FrameHeight)
+    ud.mainFrame:SetWidth(DefaultFrameWidth)
+    ud.mainFrame:SetHeight(DefaultFrameHeight)
     ud.mainFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
 
     ud.rangeFrame = CreateFrame("Frame", "RangeDisplayFrame_" .. unit, ud.mainFrame)
@@ -366,12 +335,40 @@ local function enable(ud)
     if (not ud.mainFrame) then
         ud:createFrame()
     end
+    if (ud.locked) then
+        ud:lock()
+    else
+        ud:unlock()
+    end
     ud.mainFrame:Show()
 end
 
 local function disable(ud)
     if (ud.mainFrame) then
         ud.mainFrame:Hide()
+    end
+end
+
+local function lock(ud)
+    ud.locked = true
+    if (ud.db.enabled) then
+        ud.mainFrame:EnableMouse(false)
+        if (ud.overlay) then
+            ud.overlay:Hide()
+            ud.overlayText:Hide()
+        end
+    end
+end
+
+local function unlock(ud)
+    ud.locked = false
+    if (ud.db.enabled) then
+        if (not ud.overlay) then
+            createOverlay(ud)
+        end
+        ud.mainFrame:EnableMouse(true)
+        ud.overlay:Show()
+        ud.overlayText:Show()
     end
 end
 
@@ -491,15 +488,9 @@ function RangeDisplay:applySettings()
         self:OnDisable()
         return
     end
-    local locked = self.db.profile.locked
     for _, ud in ipairs(units) do
         if (ud.db.enabled) then
             ud:enable()
-            if (locked) then
-                ud:lock()
-            else
-                ud:unlock()
-            end
             ud:applySettings()
             self:registerTargetChangedEvent(ud)
         else
@@ -526,10 +517,35 @@ function RangeDisplay:unregisterTargetChangedEvent(ud)
 end
 
 function RangeDisplay:profileChanged()
+    local locked = self.db.profile.locked
     for _, ud in ipairs(units) do
+        ud.locked = locked
         local db = self.db.profile.units[ud.unit]
         ud:profileChanged(db)
     end
     self:applySettings()
+end
+
+function RangeDisplay:lock()
+    self.db.profile.locked = true
+    for _, ud in ipairs(units) do
+        ud:lock()
+    end
+end
+
+function RangeDisplay:unlock()
+    self.db.profile.locked = false
+    for _, ud in ipairs(units) do
+        ud:unlock()
+    end
+end
+
+function RangeDisplay:toggleLocked(flag)
+    if (flag == nil) then flag = not self.db.profile.locked end
+    if (flag) then
+        self:lock()
+    else
+        self:unlock()
+    end
 end
 
