@@ -413,14 +413,17 @@ end
 local units = {
     {
         unit = "playertarget",
+        name = L["playertarget"], -- to make Babelfish happy
         event = "PLAYER_TARGET_CHANGED",
     },
     {
         unit = "focus",
+        name = L["focus"], -- to make Babelfish happy
         event = "PLAYER_FOCUS_CHANGED",
     },
     {
         unit = "pet",
+        name = L["pet"], -- to make Babelfish happy
         event = "UNIT_PET",
         targetChanged = function(ud, event, unitId, ...)
                 if (unitId ~= "player") then return end
