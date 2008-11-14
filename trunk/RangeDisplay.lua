@@ -90,7 +90,6 @@ local defaults = {
                 fontSize = 24,
                 fontOutline = "",
                 strata = "HIGH",
-                checkVisibility = false,
                 enemyOnly = false,
                 maxRangeOnly = false,
                 suffix = "",
@@ -375,7 +374,7 @@ local function unlock(ud)
 end
 
 local function update(ud)
-    local minRange, maxRange = rc:getRange(ud.unit, ud.db.checkVisibility)
+    local minRange, maxRange = rc:getRange(ud.unit)
     if (minRange == ud.lastMinRange and maxRange == ud.lastMaxRange) then return end
     ud.lastMinRange, ud.lastMaxRange = minRange, maxRange
     local range = nil

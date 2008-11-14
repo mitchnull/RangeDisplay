@@ -77,6 +77,7 @@ local function addUnitOptions(ud, order)
                 name = L["Enabled"],
                 order = 114,
                 disabled = false,
+                width = 'full', -- to make the layout nicer
             },
             enemyOnly = {
                 type = 'toggle',
@@ -89,12 +90,6 @@ local function addUnitOptions(ud, order)
                 name = L["Max range only"],
                 desc = L["Show the maximum range only"],
                 order = 116,
-            },
-            checkVisibility = {
-                type = 'toggle',
-                name = L["Check visibility"],
-                desc = L["If set, the max range to check will be 'visibility range'"],
-                order = 117,
             },
             rangeLimit = {
                 type = 'range',
