@@ -237,6 +237,12 @@ local function addUnitOptions(ud, order)
                         desc = L["The thickness of the border"],
                         min = 1, max = 16, step = 1,
                     },
+                    bgAutoHide = {
+                        type = 'toggle',
+                        order = 18,
+                        name = L["Auto hide"],
+                        desc = L["Hide the background if the range display is not active"],
+                    },
                 },
             },
 
