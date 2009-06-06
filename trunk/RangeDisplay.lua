@@ -183,6 +183,7 @@ end
 local function applyBGSettings(ud)
     if (not ud.db.bgEnabled) then
         ud.mainFrame:SetBackdrop(nil)
+        ud.rangeFrame:SetBackdrop(nil)
         return
     end
     ud.bg = ud.bg or { insets = {} }
@@ -210,9 +211,17 @@ local function applyBGSettings(ud)
     bg.insets.right = inset
     bg.insets.top = inset
     bg.insets.bottom = inset
-    ud.mainFrame:SetBackdrop(bg)
-    ud.mainFrame:SetBackdropColor(ud.db.bgColor.r, ud.db.bgColor.g, ud.db.bgColor.b, ud.db.bgColor.a)
-    ud.mainFrame:SetBackdropBorderColor(ud.db.bgBorderColor.r, ud.db.bgBorderColor.g, ud.db.bgBorderColor.b, ud.db.bgBorderColor.a)
+    local bgFrame
+    if (ud.db.bgAutoHide) then
+        bgFrame = ud.rangeFrame
+        ud.mainFrame:SetBackdrop(nil)
+    else
+        bgFrame = ud.mainFrame
+        ud.rangeFrame:SetBackdrop(nil)
+    end
+    bgFrame:SetBackdrop(bg)
+    bgFrame:SetBackdropColor(ud.db.bgColor.r, ud.db.bgColor.g, ud.db.bgColor.b, ud.db.bgColor.a)
+    bgFrame:SetBackdropBorderColor(ud.db.bgBorderColor.r, ud.db.bgBorderColor.g, ud.db.bgBorderColor.b, ud.db.bgBorderColor.a)
 end
 
 local function applyFontSettings(ud)
