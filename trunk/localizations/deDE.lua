@@ -6,6 +6,7 @@ if not L then return end
 -- L["A free-form suffix to append to the range display when you are further than range limit"] = true
 -- L["A free-form suffix to append to the range display when you are in range"] = true
 -- L["Auto adjust"] = true
+-- L["Auto hide"] = true
 -- L["Background Color"] = true
 -- L["Background Options"] = true
 -- L["Background Texture"] = true
@@ -14,7 +15,6 @@ if not L then return end
 -- L["Border Texture"] = true
 -- L["Border Thickness"] = true
 -- L["Bring up GUI configure dialog"] = true
-L["Check visibility"] = "Prüfe Sichtbarkeit"
 -- L["Close range section"] = true
 L["Color"] = "Farbe"
 -- L["Configure"] = true
@@ -30,8 +30,8 @@ L["Font size"] = "Schriftgröße"
 -- L["Frame's border color"] = true
 -- L["Height"] = true
 -- L["Hide minimap icon"] = true
+-- L["Hide the background if the range display is not active"] = true
 L["High"] = "Hoch"
-L["If set, the max range to check will be 'visibility range'"] = "Wenn aktiv, ist die Sichtweite die Maximalreichweite, die geprüft wird"
 L["Lock/Unlock display frame"] = "Anzeige sperren/entsperren"
 L["Locked"] = "Gesperrt"
 L["Low"] = "Niedrig"
