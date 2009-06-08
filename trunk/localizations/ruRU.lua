@@ -6,7 +6,7 @@ if not L then return end
 L["A free-form suffix to append to the range display when you are further than range limit"] = "Суффикс, отображаемый на экране в то время, пока цель находится вне зоны досягаемости. (По умолчанию - +)"
 L["A free-form suffix to append to the range display when you are in range"] = "Суффикс, отображаемый на экране в то время, пока цель находится в пределах досягаемости"
 L["Auto adjust"] = "Авто регулировка"
--- L["Auto hide"] = true
+L["Auto hide"] = "Авто скрытие"
 L["Background Color"] = "Цвет фона"
 L["Background Options"] = "Настройки фона"
 L["Background Texture"] = "Текстура фона"
@@ -30,7 +30,7 @@ L["Frame's background color"] = "Цвет фона фрейма"
 L["Frame's border color"] = "Цвет края фрейма"
 L["Height"] = "Высота"
 L["Hide minimap icon"] = "Скрыть иконку у мини карты"
--- L["Hide the background if the range display is not active"] = true
+L["Hide the background if the range display is not active"] = "Скрыть фон если индикатор досягаемости не активен"
 L["High"] = "Высокий"
 L["Lock/Unlock display frame"] = "Фиксировать/освободить фреймы на экране"
 L["Locked"] = "Фиксировать"
