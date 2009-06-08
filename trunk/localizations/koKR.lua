@@ -6,7 +6,7 @@ if not L then return end
 L["A free-form suffix to append to the range display when you are further than range limit"] = "제한된 거리 밖에 있을 때 거리 표시에 추가할 자유로운 형태의 접미사"
 L["A free-form suffix to append to the range display when you are in range"] = "거리에 있을 때 거리 표시에 추가할 자유로운 형태의 접미사"
 L["Auto adjust"] = "자동 조절"
--- L["Auto hide"] = true
+L["Auto hide"] = "자동 숨김"
 L["Background Color"] = "배경 색상"
 L["Background Options"] = "배경 옵션"
 L["Background Texture"] = "배경 무늬"
@@ -30,7 +30,7 @@ L["Frame's background color"] = "창의 배경 색상"
 L["Frame's border color"] = "창의 테두리 색상"
 L["Height"] = "높이"
 L["Hide minimap icon"] = "미니맵 아이콘 숨김"
--- L["Hide the background if the range display is not active"] = true
+L["Hide the background if the range display is not active"] = "만약 거리를 표시할 수 없다면 배경을 숨깁니다."
 L["High"] = "높음"
 L["Lock/Unlock display frame"] = "화면의 창을 잠그거나 이동시킵니다."
 L["Locked"] = "잠금"
