@@ -479,6 +479,7 @@ end
 function RangeDisplay:OnInitialize()
     self.units = units
     self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
+    LibStub("LibDualSpec-1.0"):EnhanceDatabase(self.db, AppName)
     self.db.RegisterCallback(self, "OnProfileChanged", "profileChanged")
     self.db.RegisterCallback(self, "OnProfileCopied", "profileChanged")
     self.db.RegisterCallback(self, "OnProfileReset", "profileChanged")

@@ -568,6 +568,7 @@ function RangeDisplay:setupOptions()
         ud.opts = self:registerSubOptions(ud.unit, unitOpts)
     end
     local profiles =  AceDBOptions:GetOptionsTable(self.db)
+    LibStub("LibDualSpec-1.0"):EnhanceOptions(profiles, self.db)
     profiles.order = 900
     options.args.profiles = profiles
     self.profiles = self:registerSubOptions('profiles', profiles)

@@ -9,6 +9,7 @@
 <Include file="libs\Ace3\AceDB-3.0\AceDB-3.0.xml"/>
 <Include file="libs\Ace3\AceLocale-3.0\AceLocale-3.0.xml"/>
 <Include file="libs\LibSharedMedia-3.0\lib.xml"/>
+<Script file="libs\LibDualSpec-1.0\LibDualSpec-1.0.lua"/>
 
 <!-- These are only needed for the config part -->
 <Include file="libs\Ace3\AceGUI-3.0\AceGUI-3.0.xml"/>
