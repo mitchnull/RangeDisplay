@@ -462,8 +462,8 @@ local function addUnitOptions(ud, order)
             },
         },
     }
-    if (ud.updateWithMousePosition) then
-        opts.args.enabled.widht = nil
+    if (ud.mouseAnchor) then
+        opts.args.enabled.width = nil
         opts.args.mouseAnchor = {
             type = 'toggle',
             name = L["Anchor to Mouse"],

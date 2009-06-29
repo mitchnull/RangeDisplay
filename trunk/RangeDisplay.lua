@@ -161,6 +161,7 @@ end
 
 local function targetChanged(ud)
     if (ud:isTargetValid()) then
+        uiScale = UIParent:GetEffectiveScale() -- not an ideal place, but I couldn't find another reliable point to query this
         ud.rangeFrame:Show()
         ud.lastUpdate = UpdateDelay -- to force update in next onUpdate()
     else
@@ -326,7 +327,6 @@ local function createFrame(ud)
             ud.mainFrame:StopMovingOrSizing()
             ud.isMoving = false
             ud.db.point, _, ud.db.relPoint, ud.db.x, ud.db.y = ud.mainFrame:GetPoint()
-            print("### point: " .. tostring(ud.db.point) .. ", relPoint: " .. tostring(ud.db.relPoint) .. ", x: " .. tostring(ud.db.x) .. ", y: " .. tostring(ud.db.y))
         end
     end)
     ud.mainFrame:SetScript("OnEnter", function(frame)
@@ -427,6 +427,23 @@ local function update(ud)
     end
 end
 
+local function autoAdjust(ud)
+    local _, playerClass = UnitClass("player")
+    local maxRangeSpells = MaxRangeSpells[playerClass]
+    if (maxRangeSpells) then
+        local oor
+        for _, sid in ipairs(maxRangeSpells) do
+            local name, _, _, _, _, _, _, _, range = GetSpellInfo(sid)
+            if (range and (not oor or oor < range) and rc:findSpellIndex(name)) then
+                oor = range
+            end
+        end
+        if (oor) then
+            ud.db.oorSection.range = oor
+        end
+    end
+end
+
 local function calculateMouseOffset(ud)
     -- FIXME
     ud.mousePoint = ud.db.point
@@ -435,6 +452,10 @@ local function calculateMouseOffset(ud)
 end
 
 local function updateWithMousePosition(ud)
+    if (not UnitExists(ud.unit)) then
+        ud:targetChanged()
+        return
+    end
     update(ud)
     local x, y = GetCursorPosition()
     ud.mainFrame:SetPoint(ud.mousePoint, UIParent, "BOTTOMLEFT", (x / uiScale) + ud.mouseX, (y / uiScale) + ud.mouseY)
@@ -465,6 +486,7 @@ local units = {
         name = L["mouseover"], -- to make Babelfish happy
         event = "UPDATE_MOUSEOVER_UNIT",
         calculateMouseOffset = calculateMouseOffset,
+        mouseAnchor = true,
         applyMouseSettings = function(ud)
                 if (ud.db.enabled) then
                     if (ud.locked and ud.db.mouseAnchor) then
@@ -487,23 +509,6 @@ local units = {
     },
 }
 
-local function autoAdjust(ud)
-    local _, playerClass = UnitClass("player")
-    local maxRangeSpells = MaxRangeSpells[playerClass]
-    if (maxRangeSpells) then
-        local oor
-        for _, sid in ipairs(maxRangeSpells) do
-            local name, _, _, _, _, _, _, _, range = GetSpellInfo(sid)
-            if (range and (not oor or oor < range) and rc:findSpellIndex(name)) then
-                oor = range
-            end
-        end
-        if (oor) then
-            ud.db.oorSection.range = oor
-        end
-    end
-end
-
 for _, ud in ipairs(units) do
     ud.profileChanged = ud.profileChanged or profileChanged
     ud.applySettings = ud.applySettings or applySettings
@@ -521,18 +526,9 @@ for _, ud in ipairs(units) do
     ud.disable = disable
 end
 
-local function setScaleHook(frame, newScale)
-    print("### SetScale(" .. tostring(frame:GetName()) .. ", " .. tostring(newScale) .. ")")
-    if (frame ~= UIParent) then return end
-    uiScale = UIParent:GetEffectiveScale()
-    print("### new uiScale: " .. tostring(uiScale))
-end
-
 -- AceAddon stuff
 
 function RangeDisplay:OnInitialize()
-    uiScale = UIParent:GetEffectiveScale()
-    hooksecurefunc(UIParent, "SetScale", setScaleHook)
     self.units = units
     self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
     LibStub("LibDualSpec-1.0"):EnhanceDatabase(self.db, AppName)
