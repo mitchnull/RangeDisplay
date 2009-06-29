@@ -26,6 +26,8 @@ local UnitExists = UnitExists
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 local UnitCanAttack = UnitCanAttack
 local UnitIsUnit = UnitIsUnit
+local GetCursorPosition = GetCursorPosition
+local UIParent = UIParent
 
 -- hard-coded config stuff
 
@@ -137,6 +139,11 @@ local defaults = {
             ["pet"] = {
                 enabled = false,
                 x = (DefaultFrameWidth + 10),
+            },
+            ["mouseover"] = {
+                enabled = false,
+                x = 0,
+                y = - (DefaultFrameHeight + 5),
             },
         },
     },
@@ -418,6 +425,19 @@ local function update(ud)
     end
 end
 
+local function calculateMouseOffset(ud)
+    -- FIXME
+    ud.mousePoint = ud.db.point
+    ud.mouseX = ud.db.x
+    ud.mouseY = ud.db.y
+end
+
+local function updateWithMousePosition(ud)
+    update(ud)
+    local x, y = GetCursorPosition()
+    ud.mainFrame:SetPoint(ud.mousePoint, UIParent, "BOTTOMLEFT", x + ud.mouseX, y + ud.mouseY) -- might need to adjust with scale... z / UIParent:GetEffectiveScale()
+end
+
 local units = {
     {
         unit = "playertarget",
@@ -436,7 +456,32 @@ local units = {
         targetChanged = function(ud, event, unitId, ...)
                 if (unitId ~= "player") then return end
                 targetChanged(ud, event, unitId, ...)
-            end
+            end,
+    },
+    {
+        unit = "mouseover",
+        name = L["mouseover"], -- to make Babelfish happy
+        event = "UPDATE_MOUSEOVER_UNIT",
+        calculateMouseOffset = calculateMouseOffset,
+        applyMouseSettings = function(ud)
+                if (ud.db.enabled) then
+                    if (ud.locked and ud.db.mouseAnchor) then
+                        ud:calculateMouseOffset()
+                        ud.update = updateWithMousePosition
+                    else
+                        ud.update = update
+                        ud.mainFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
+                    end
+                end
+            end,
+        lock = function(ud)
+                lock(ud)
+                ud:applyMouseSettings()
+            end,
+        unlock = function(ud)
+                unlock(ud)
+                ud:applyMouseSettings()
+            end,
     },
 }
 
