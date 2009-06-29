@@ -18,6 +18,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale(AppName)
 
 -- internal vars
 
+local uiScale
 local _ -- throwaway
 
 -- cached stuff
@@ -435,8 +436,7 @@ end
 local function updateWithMousePosition(ud)
     update(ud)
     local x, y = GetCursorPosition()
-    local effScale = UIParent:GetEffectiveScale()
-    ud.mainFrame:SetPoint(ud.mousePoint, UIParent, "BOTTOMLEFT", (x / effScale) + ud.mouseX, (y / effScale) + ud.mouseY)
+    ud.mainFrame:SetPoint(ud.mousePoint, UIParent, "BOTTOMLEFT", (x / uiScale) + ud.mouseX, (y / uiScale) + ud.mouseY)
 end
 
 local units = {
@@ -520,9 +520,18 @@ for _, ud in ipairs(units) do
     ud.disable = disable
 end
 
+local function setScaleHook(frame, newScale)
+    print("### SetScale(" .. tostring(frame:GetName()) .. ", " .. tostring(newScale) .. ")")
+    if (frame ~= UIParent) then return end
+    uiScale = UIParent:GetEffectiveScale()
+    print("### new uiScale: " .. tostring(uiScale))
+end
+
 -- AceAddon stuff
 
 function RangeDisplay:OnInitialize()
+    uiScale = UIParent:GetEffectiveScale()
+    hooksecurefunc(UIParent, "SetScale", setScaleHook)
     self.units = units
     self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
     LibStub("LibDualSpec-1.0"):EnhanceDatabase(self.db, AppName)
