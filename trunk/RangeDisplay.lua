@@ -326,6 +326,7 @@ local function createFrame(ud)
             ud.mainFrame:StopMovingOrSizing()
             ud.isMoving = false
             ud.db.point, _, ud.db.relPoint, ud.db.x, ud.db.y = ud.mainFrame:GetPoint()
+            print("### point: " .. tostring(ud.db.point) .. ", relPoint: " .. tostring(ud.db.relPoint) .. ", x: " .. tostring(ud.db.x) .. ", y: " .. tostring(ud.db.y))
         end
     end)
     ud.mainFrame:SetScript("OnEnter", function(frame)
