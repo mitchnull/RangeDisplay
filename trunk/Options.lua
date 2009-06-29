@@ -466,8 +466,7 @@ local function addUnitOptions(ud, order)
         opts.args.enabled.widht = nil
         opts.args.mouseAnchor = {
             type = 'toggle',
-            name = L["Mouse Anchor"],
-            desc = L["Anchor to mouse pointer"],
+            name = L["Anchor to Mouse"],
             order = 114,
         }
     end
