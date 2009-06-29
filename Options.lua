@@ -75,7 +75,7 @@ local function addUnitOptions(ud, order)
             enabled = {
                 type = 'toggle',
                 name = L["Enabled"],
-                order = 114,
+                order = 113,
                 disabled = false,
                 width = 'full', -- to make the layout nicer
             },
@@ -462,6 +462,15 @@ local function addUnitOptions(ud, order)
             },
         },
     }
+    if (ud.updateWithMousePosition) then
+        opts.args.enabled.widht = nil
+        opts.args.mouseAnchor = {
+            type = 'toggle',
+            name = L["Mouse Anchor"],
+            desc = L["Anchor to mouse pointer"],
+            order = 114,
+        }
+    end
     options.args[unit] = opts
     return opts
 end
