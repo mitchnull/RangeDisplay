@@ -435,7 +435,8 @@ end
 local function updateWithMousePosition(ud)
     update(ud)
     local x, y = GetCursorPosition()
-    ud.mainFrame:SetPoint(ud.mousePoint, UIParent, "BOTTOMLEFT", x + ud.mouseX, y + ud.mouseY) -- might need to adjust with scale... z / UIParent:GetEffectiveScale()
+    local effScale = UIParent:GetEffectiveScale()
+    ud.mainFrame:SetPoint(ud.mousePoint, UIParent, "BOTTOMLEFT", (x / effScale) + ud.mouseX, (y / effScale) + ud.mouseY)
 end
 
 local units = {
