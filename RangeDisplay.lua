@@ -145,6 +145,9 @@ local defaults = {
                 enabled = false,
                 x = 0,
                 y = - (DefaultFrameHeight + 5),
+                bg = {
+                    bgAutoHide = true,
+                },
             },
         },
     },
