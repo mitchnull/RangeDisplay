@@ -18,7 +18,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale(AppName)
 
 -- internal vars
 
-local uiScale
+local uiScale = 1.0 -- just to be safe...
 local _ -- throwaway
 
 -- cached stuff
@@ -161,7 +161,6 @@ end
 
 local function targetChanged(ud)
     if (ud:isTargetValid()) then
-        uiScale = UIParent:GetEffectiveScale() -- not an ideal place, but I couldn't find another reliable point to query this
         ud.rangeFrame:Show()
         ud.lastUpdate = UpdateDelay -- to force update in next onUpdate()
     else
@@ -282,6 +281,73 @@ local function createOverlay(ud)
     ud.overlayText:SetText(L[unit])
 end
 
+local function update(ud)
+    local minRange, maxRange = rc:getRange(ud.unit)
+    if (minRange == ud.lastMinRange and maxRange == ud.lastMaxRange) then return end
+    ud.lastMinRange, ud.lastMaxRange = minRange, maxRange
+    local range = nil
+    local color = nil
+    if (minRange) then
+        if (minRange >= ud.db.rangeLimit) then maxRange = nil end
+        if (maxRange) then
+            if (ud.db.maxRangeOnly) then
+                range = maxRange .. ud.db.suffix
+            else
+                range = minRange .. " - " .. maxRange .. ud.db.suffix
+            end
+            if (ud.db.crSection.enabled and maxRange <= ud.db.crSection.range) then
+                color = ud.db.crSection.color
+            elseif (ud.db.srSection.enabled and maxRange <= ud.db.srSection.range) then
+                color = ud.db.srSection.color
+            elseif (ud.db.mrSection.enabled and maxRange <= ud.db.mrSection.range) then
+                color = ud.db.mrSection.color
+            elseif (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) then
+                color = ud.db.oorSection.color
+            else
+                color = ud.db.color
+            end
+        elseif (ud.db.overLimitDisplay) then
+            color = (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) and ud.db.oorSection.color or ud.db.color
+            range = minRange .. ud.db.overLimitSuffix
+        end
+    end
+    ud.rangeFrameText:SetText(range)
+    if (color) then
+        ud.rangeFrameText:SetTextColor(color.r, color.g, color.b, color.a)
+    end
+end
+
+local function updateCheckValid(ud) -- needed for mouseover target
+    if (not ud:isTargetValid()) then
+        ud.rangeFrame:Hide()
+        return
+    end
+    update(ud)
+end
+
+local function onUpdate(frame, elapsed)
+    local ud = frame.ud
+    ud.lastUpdate = ud.lastUpdate + elapsed
+    if (ud.lastUpdate < UpdateDelay) then return end
+    ud.lastUpdate = 0
+    ud:update()
+end
+
+local function onUpdateWithMousePos(frame, elapsed)
+    local ud = frame.ud
+    local x, y = GetCursorPosition()
+    ud.mainFrame:SetPoint(ud.db.point, UIParent, "BOTTOMLEFT", (x / uiScale) + ud.db.x, (y / uiScale) + ud.db.y)
+
+    ud.lastUpdate = ud.lastUpdate + elapsed
+    if (ud.lastUpdate < UpdateDelay) then return end
+    ud.lastUpdate = 0
+    ud:update()
+end
+
+local function updateUIScale()
+    uiScale = UIParent:GetEffectiveScale()
+end
+
 local function createFrame(ud)
     local unit = ud.unit
     ud.isMoving = false
@@ -342,12 +408,8 @@ local function createFrame(ud)
     end)
 
     -- OnUpdate is set only on the rangeFrame
-    ud.rangeFrame:SetScript("OnUpdate", function(frame, elapsed)
-        ud.lastUpdate = ud.lastUpdate + elapsed
-        if (ud.lastUpdate < UpdateDelay) then return end
-        ud.lastUpdate = 0
-        ud:update()
-    end)
+    ud.rangeFrame.ud = ud
+    ud.rangeFrame:SetScript("OnUpdate", onUpdate)
 end
 
 local function enable(ud)
@@ -391,42 +453,6 @@ local function unlock(ud)
     end
 end
 
-local function update(ud)
-    local minRange, maxRange = rc:getRange(ud.unit)
-    if (minRange == ud.lastMinRange and maxRange == ud.lastMaxRange) then return end
-    ud.lastMinRange, ud.lastMaxRange = minRange, maxRange
-    local range = nil
-    local color = nil
-    if (minRange) then
-        if (minRange >= ud.db.rangeLimit) then maxRange = nil end
-        if (maxRange) then
-            if (ud.db.maxRangeOnly) then
-                range = maxRange .. ud.db.suffix
-            else
-                range = minRange .. " - " .. maxRange .. ud.db.suffix
-            end
-            if (ud.db.crSection.enabled and maxRange <= ud.db.crSection.range) then
-                color = ud.db.crSection.color
-            elseif (ud.db.srSection.enabled and maxRange <= ud.db.srSection.range) then
-                color = ud.db.srSection.color
-            elseif (ud.db.mrSection.enabled and maxRange <= ud.db.mrSection.range) then
-                color = ud.db.mrSection.color
-            elseif (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) then
-                color = ud.db.oorSection.color
-            else
-                color = ud.db.color
-            end
-        elseif (ud.db.overLimitDisplay) then
-            color = (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) and ud.db.oorSection.color or ud.db.color
-            range = minRange .. ud.db.overLimitSuffix
-        end
-    end
-    ud.rangeFrameText:SetText(range)
-    if (color) then
-        ud.rangeFrameText:SetTextColor(color.r, color.g, color.b, color.a)
-    end
-end
-
 local function autoAdjust(ud)
     local _, playerClass = UnitClass("player")
     local maxRangeSpells = MaxRangeSpells[playerClass]
@@ -442,23 +468,6 @@ local function autoAdjust(ud)
             ud.db.oorSection.range = oor
         end
     end
-end
-
-local function calculateMouseOffset(ud)
-    -- FIXME
-    ud.mousePoint = ud.db.point
-    ud.mouseX = ud.db.x
-    ud.mouseY = ud.db.y
-end
-
-local function updateWithMousePosition(ud)
-    if (not UnitExists(ud.unit)) then
-        ud:targetChanged()
-        return
-    end
-    update(ud)
-    local x, y = GetCursorPosition()
-    ud.mainFrame:SetPoint(ud.mousePoint, UIParent, "BOTTOMLEFT", (x / uiScale) + ud.mouseX, (y / uiScale) + ud.mouseY)
 end
 
 local units = {
@@ -485,15 +494,15 @@ local units = {
         unit = "mouseover",
         name = L["mouseover"], -- to make Babelfish happy
         event = "UPDATE_MOUSEOVER_UNIT",
-        calculateMouseOffset = calculateMouseOffset,
         mouseAnchor = true,
         applyMouseSettings = function(ud)
                 if (ud.db.enabled) then
                     if (ud.locked and ud.db.mouseAnchor) then
-                        ud:calculateMouseOffset()
-                        ud.update = updateWithMousePosition
+                        ud.rangeFrame:SetScript("OnUpdate", onUpdateWithMousePos)
+                        ud.rangeFrame:SetScript("OnShow", updateUIScale)
                     else
-                        ud.update = update
+                        ud.rangeFrame:SetScript("OnUpdate", onUpdate)
+                        ud.rangeFrame:SetScript("OnShow", nil)
                         ud.mainFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
                     end
                 end
@@ -506,6 +515,7 @@ local units = {
                 unlock(ud)
                 ud:applyMouseSettings()
             end,
+        update = updateCheckValid,
     },
 }
 
