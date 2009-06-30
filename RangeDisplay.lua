@@ -422,11 +422,13 @@ local function enable(ud)
         ud:unlock()
     end
     ud.mainFrame:Show()
+    RangeDisplay:registerTargetChangedEvent(ud)
 end
 
 local function disable(ud)
     if (ud.mainFrame) then
         ud.mainFrame:Hide()
+        RangeDisplay:unregisterTargetChangedEvent(ud)
     end
 end
 
@@ -568,10 +570,8 @@ function RangeDisplay:applySettings()
         if (ud.db.enabled) then
             ud:enable()
             ud:applySettings()
-            self:registerTargetChangedEvent(ud)
         else
             ud:disable()
-            self:unregisterTargetChangedEvent(ud)
         end
     end
     self:toggleLocked(self.db.profile.locked == true)
