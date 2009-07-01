@@ -339,6 +339,7 @@ end
 local function onUpdateWithMousePos(frame, elapsed)
     local ud = frame.ud
     local x, y = GetCursorPosition()
+    ud.mainFrame:ClearAllPoints()
     ud.mainFrame:SetPoint(ud.db.point, UIParent, "BOTTOMLEFT", (x / uiScale) + ud.db.x, (y / uiScale) + ud.db.y)
 
     ud.lastUpdate = ud.lastUpdate + elapsed
@@ -508,6 +509,7 @@ local units = {
                     else
                         ud.rangeFrame:SetScript("OnUpdate", onUpdate)
                         ud.rangeFrame:SetScript("OnShow", nil)
+                        ud.mainFrame:ClearAllPoints()
                         ud.mainFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
                     end
                 end
