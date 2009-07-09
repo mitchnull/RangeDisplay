@@ -42,6 +42,7 @@ local DefaultFontName = "Friz Quadrata TT"
 local DefaultFontPath = GameFontNormal:GetFont()
 local DefaultFrameWidth = 112
 local DefaultFrameHeight = 36
+local FakeCursorImage = [[Interface\CURSOR\Point]]
 
 local MaxRangeSpells = {
     ["HUNTER"] = {
@@ -142,9 +143,13 @@ local defaults = {
                 x = (DefaultFrameWidth + 10),
             },
             ["mouseover"] = {
-                enabled = false,
-                x = 0,
-                y = - (DefaultFrameHeight + 5),
+                enabled = true,
+                x = 12,
+                y = -40,
+                frameWidth = 70,
+                frameHeight = 26,
+                fontSize = 16,
+                mouseAnchor = true,
                 bg = {
                     bgAutoHide = true,
                 },
@@ -223,7 +228,7 @@ local function applyBGSettings(ud)
     bg.insets.top = inset
     bg.insets.bottom = inset
     local bgFrame
-    if (ud.db.bgAutoHide) then
+    if (ud.db.bgAutoHide or ud.db.mouseAnchor) then
         bgFrame = ud.rangeFrame
         ud.mainFrame:SetBackdrop(nil)
     else
@@ -512,6 +517,25 @@ local units = {
                         ud.mainFrame:ClearAllPoints()
                         ud.mainFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
                     end
+                    if (not ud.locked and ud.db.mouseAnchor) then
+                        if (not ud.fakeCursor) then
+                            ud.fakeCursor = UIParent:CreateTexture("RangeDisplayFakeCursor", "OVERLAY")
+                            ud.fakeCursor:SetTexture(FakeCursorImage)
+                            ud.fakeCursor:ClearAllPoints()
+                            ud.fakeCursor:SetPoint("TOPLEFT", UIParent, "CENTER", 0, 0)
+                            ud.fakeCursor:SetVertexColor(0, .42, 0)
+                            ud.fakeCursor:SetAlpha(0.42)
+                        end
+                        ud.fakeCursor:Show()
+                    else
+                        if (ud.fakeCursor) then
+                            ud.fakeCursor:Hide()
+                        end
+                    end
+                else
+                    if (ud.fakeCursor) then
+                        ud.fakeCursor:Hide()
+                    end
                 end
             end,
         lock = function(ud)
@@ -521,6 +545,12 @@ local units = {
         unlock = function(ud)
                 unlock(ud)
                 ud:applyMouseSettings()
+            end,
+        disable = function(ud)
+                disable(ud)
+                if (ud.fakeCursor) then
+                    ud.fakeCursor:Hide()
+                end
             end,
         update = updateCheckValid,
     },
@@ -538,9 +568,9 @@ for _, ud in ipairs(units) do
     ud.unlock = ud.unlock or unlock
     ud.createFrame = ud.createFrame or createFrame
     ud.update = ud.update or update
-    ud.autoAdjust = autoAdjust
-    ud.enable = enable
-    ud.disable = disable
+    ud.autoAdjust = ud.autoAdjust or autoAdjust
+    ud.enable = ud.enable or enable
+    ud.disable = ud.disable or disable
 end
 
 -- AceAddon stuff
