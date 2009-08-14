@@ -119,6 +119,11 @@ local defaults = {
                     range = 40,
                 },
                 color = makeColor(1.0, 0.82, 0),
+                lrSection = {
+                    enabled = false,
+                    color = makeColor(1.0, 0.82, 0),
+                    range = 35,
+                },
                 mrSection = {
                     enabled = true,
                     color = makeColor(0.035, 0.865, 0.0),
@@ -309,6 +314,8 @@ local function update(ud)
                 color = ud.db.srSection.color
             elseif (ud.db.mrSection.enabled and maxRange <= ud.db.mrSection.range) then
                 color = ud.db.mrSection.color
+            elseif (ud.db.lrSection.enabled and maxRange <= ud.db.lrSection.range) then
+                color = ud.db.lrSection.color
             elseif (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) then
                 color = ud.db.oorSection.color
             else
@@ -661,3 +668,11 @@ function RangeDisplay:toggleLocked(flag)
     end
 end
 
+CONFIGMODE_CALLBACKS = CONFIGMODE_CALLBACKS or {};
+CONFIGMODE_CALLBACKS[AppName] = function(action)
+    if (action == "ON") then
+         RangeDisplay:toggleLocked(false)
+    elseif (action == "OFF") then
+         RangeDisplay:toggleLocked(true)
+    end
+end

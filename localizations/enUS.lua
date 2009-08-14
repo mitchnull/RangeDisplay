@@ -39,6 +39,7 @@ L["Hide the background if the range display is not active"] = "Hide the backgrou
 L["High"] = "High"
 L["Locked"] = "Locked"
 L["Lock/Unlock display frame"] = "Lock/Unlock display frame"
+L["Long range section"] = "Long range section"
 L["Low"] = "Low"
 L["Max range only"] = "Max range only"
 L["Medium"] = "Medium"
