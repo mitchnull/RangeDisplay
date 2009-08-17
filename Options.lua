@@ -253,7 +253,7 @@ local function addUnitOptions(ud, order)
                 name = L["Default section"],
                 inline = true,
                 cmdHidden = true,
-                order = 174,
+                order = 175,
                 args = {
                     enabled = {
                         type = 'toggle',
@@ -457,7 +457,7 @@ local function addUnitOptions(ud, order)
                 name = L["Out of range section"],
                 --desc = L["Out of range section"],
                 guiInline = true,
-                order = 175,
+                order = 176,
                 args = {
                     enabled = {
                         type = 'toggle',
