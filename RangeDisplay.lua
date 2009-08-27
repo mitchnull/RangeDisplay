@@ -338,8 +338,12 @@ local function update(ud)
                 color = ud.db.color
             end
         elseif (ud.db.overLimitDisplay) then
-            color = (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) and ud.db.oorSection.color or ud.db.color
             range = minRange .. ud.db.overLimitSuffix
+            if (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) then
+                color = ud.db.oorSection.color
+            else
+                color = ud.db.color
+            end
         end
     end
     ud.rangeFrameText:SetText(range)
