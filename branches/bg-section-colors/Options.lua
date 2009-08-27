@@ -9,6 +9,8 @@ local LDBIcon = LibStub("LibDBIcon-1.0", true)
 local Icon = "Interface\\Icons\\INV_Misc_Spyglass_02"
 local MinFontSize = 5
 local MaxFontSize = 30
+local MinRangeLimit = 0
+local MaxRangeLimit = 100
 
 local _
 
@@ -61,6 +63,13 @@ local options = {
     },
 }
 
+local function dummy()
+end
+
+local function yes()
+    return true
+end
+
 local function makeSectionOptions(ud, order, name, isDefault)
      return  {
         type = 'group',
@@ -76,8 +85,8 @@ local function makeSectionOptions(ud, order, name, isDefault)
                 name = "", -- L["Enabled"],
                 desc = (not isDefault) and L["Enable this color section"] or nil,
                 disabled = (not isDefault) and "isUnitDisabled" or false,
-                get = isDefault and function() return true end or nil,
-                set = isDefault and function() end or nil,
+                set = isDefault and dummy or nil,
+                get = isDefault and yes or nil,
                 width = 'half',
                 order = 10,
             },
@@ -91,15 +100,18 @@ local function makeSectionOptions(ud, order, name, isDefault)
                 width = 'half',
                 order = 20,
             },
-            range = (not isDefault) and {
+            range = {
                 type = 'range',
                 name = L["Range limit"],
                 --desc = L["Range limit"],
                 min = MinRangeLimit,
                 max = MaxRangeLimit,
+                set = isDefault and dummy or nil,
+                get = isDefault and function() return MaxRangeLimit end or nil,
+                disabled = isDefault and true or nil,
                 step = 1,
                 order = 30,
-            } or nil,
+            },
             useText = {
                 type = 'toggle',
                 name = L["Use Text"],

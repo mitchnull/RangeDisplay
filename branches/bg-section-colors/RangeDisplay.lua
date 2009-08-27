@@ -175,7 +175,7 @@ local function setDisplayColor_Text(ud, color)
 end
 
 local function setDisplayColor_Backdrop(ud, color)
-    ud.bgFrame:SetBackdropColor(color)
+    ud.bgFrame:SetBackdropColor(color.r, color.g, color.b, color.a)
 end
 
 local function isTargetValid(ud)
