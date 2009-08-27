@@ -34,8 +34,8 @@ local UIParent = UIParent
 
 local UpdateDelay = .1 -- update frequency == 1/UpdateDelay
 
-local DefaultBGTexture = "Blizzard Dialog Background"
-local DefaultBGFile = [[Interface\DialogFrame\UI-DialogBox-Background]]
+local DefaultBGTexture = "Blizzard Tooltip"
+local DefaultBGFile = [[Interface\Tooltips\UI-Tooltip-Background]]
 local DefaultEdgeTexture = "Blizzard Tooltip"
 local DefaultEdgeFile = [[Interface\Tooltips\UI-Tooltip-Border]]
 local DefaultFontName = "Friz Quadrata TT"
@@ -110,15 +110,19 @@ local defaults = {
                 bgTile = false,
                 bgTileSize = 32,
                 bgEdgeSize = 16,
-                bgColor = makeColor(1, 1, 1),
+                bgColor = makeColor(0, 0, 0),
                 bgBorderColor = makeColor(0.8, 0.6, 0.0),
 
                 oorSection = {
                     enabled = true,
                     color = makeColor(0.9, 0.055, 0.075),
                     range = 40,
+                    text = "Too far, mon!",
                 },
                 color = makeColor(1.0, 0.82, 0),
+                defaultSection = {
+                    enabled = true,
+                },
                 lrSection = {
                     enabled = false,
                     color = makeColor(1.0, 0.82, 0),
@@ -138,6 +142,7 @@ local defaults = {
                     enabled = true,
                     color = makeColor(0.9, 0.9, 0.9),
                     range = 5,
+                    text = "Melee",
                 },
             },
             ["focus"] = {
@@ -164,6 +169,14 @@ local defaults = {
 }
 
 -- Per unit data
+
+local function setDisplayColor_Text(ud, color)
+    ud.rangeFrameText:SetTextColor(color.r, color.g, color.b, color.a)
+end
+
+local function setDisplayColor_Backdrop(ud, color)
+    ud.bgFrame:SetBackdropColor(color.r, color.g, color.b, color.a)
+end
 
 local function isTargetValid(ud)
     local unit = ud.unit
@@ -205,6 +218,8 @@ local function applyBGSettings(ud)
     if (not ud.db.bgEnabled) then
         ud.mainFrame:SetBackdrop(nil)
         ud.rangeFrame:SetBackdrop(nil)
+        ud.bgFrame = nil
+        ud.setDisplayColor = setDisplayColor_Text
         return
     end
     ud.bg = ud.bg or { insets = {} }
@@ -232,17 +247,23 @@ local function applyBGSettings(ud)
     bg.insets.right = inset
     bg.insets.top = inset
     bg.insets.bottom = inset
-    local bgFrame
     if (ud.db.bgAutoHide or ud.db.mouseAnchor) then
-        bgFrame = ud.rangeFrame
+        ud.bgFrame = ud.rangeFrame
         ud.mainFrame:SetBackdrop(nil)
     else
-        bgFrame = ud.mainFrame
+        ud.bgFrame = ud.mainFrame
         ud.rangeFrame:SetBackdrop(nil)
     end
-    bgFrame:SetBackdrop(bg)
-    bgFrame:SetBackdropColor(ud.db.bgColor.r, ud.db.bgColor.g, ud.db.bgColor.b, ud.db.bgColor.a)
-    bgFrame:SetBackdropBorderColor(ud.db.bgBorderColor.r, ud.db.bgBorderColor.g, ud.db.bgBorderColor.b, ud.db.bgBorderColor.a)
+    ud.bgFrame:SetBackdrop(bg)
+    ud.bgFrame:SetBackdropBorderColor(ud.db.bgBorderColor.r, ud.db.bgBorderColor.g, ud.db.bgBorderColor.b, ud.db.bgBorderColor.a)
+    if (ud.db.bgUseSectionColors) then
+        ud.setDisplayColor = setDisplayColor_Backdrop
+        setDisplayColor_Text(ud, ud.db.bgColor)
+    else
+        ud.setDisplayColor = setDisplayColor_Text
+        setDisplayColor_Backdrop(ud, ud.db.bgColor)
+    end
+    -- ud:setDisplayColor(ud.db.color)
 end
 
 local function applyFontSettings(ud)
@@ -310,25 +331,53 @@ local function update(ud)
             end
             if (ud.db.crSection.enabled and maxRange <= ud.db.crSection.range) then
                 color = ud.db.crSection.color
+                if (ud.db.crSection.useText) then
+                    range = ud.db.crSection.text
+                end
             elseif (ud.db.srSection.enabled and maxRange <= ud.db.srSection.range) then
                 color = ud.db.srSection.color
+                if (ud.db.srSection.useText) then
+                    range = ud.db.srSection.text
+                end
             elseif (ud.db.mrSection.enabled and maxRange <= ud.db.mrSection.range) then
                 color = ud.db.mrSection.color
+                if (ud.db.mrSection.useText) then
+                    range = ud.db.mrSection.text
+                end
             elseif (ud.db.lrSection.enabled and maxRange <= ud.db.lrSection.range) then
                 color = ud.db.lrSection.color
+                if (ud.db.lrSection.useText) then
+                    range = ud.db.lrSection.text
+                end
             elseif (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) then
                 color = ud.db.oorSection.color
+                if (ud.db.oorSection.useText) then
+                    range = ud.db.oorSection.text
+                end
             else
                 color = ud.db.color
+                if (ud.db.defaultSection.useText) then
+                    range = ud.db.defaultSection.text
+                end
             end
         elseif (ud.db.overLimitDisplay) then
-            color = (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) and ud.db.oorSection.color or ud.db.color
             range = minRange .. ud.db.overLimitSuffix
+            if (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) then
+                color = ud.db.oorSection.color
+                if (ud.db.oorSection.useText) then
+                    range = ud.db.oorSection.text
+                end
+            else
+                color = ud.db.color
+                if (ud.db.defaultSection.useText) then
+                    range = ud.db.defaultSection.text
+                end
+            end
         end
     end
     ud.rangeFrameText:SetText(range)
     if (color) then
-        ud.rangeFrameText:SetTextColor(color.r, color.g, color.b, color.a)
+        ud:setDisplayColor(color)
     end
 end
 
@@ -668,7 +717,7 @@ function RangeDisplay:toggleLocked(flag)
     end
 end
 
-CONFIGMODE_CALLBACKS = CONFIGMODE_CALLBACKS or {};
+CONFIGMODE_CALLBACKS = CONFIGMODE_CALLBACKS or {}
 CONFIGMODE_CALLBACKS[AppName] = function(action)
     if (action == "ON") then
          RangeDisplay:toggleLocked(false)
