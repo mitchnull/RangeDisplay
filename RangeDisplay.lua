@@ -34,8 +34,8 @@ local UIParent = UIParent
 
 local UpdateDelay = .1 -- update frequency == 1/UpdateDelay
 
-local DefaultBGTexture = "Blizzard Dialog Background"
-local DefaultBGFile = [[Interface\DialogFrame\UI-DialogBox-Background]]
+local DefaultBGTexture = "Blizzard Tooltip"
+local DefaultBGFile = [[Interface\Tooltips\UI-Tooltip-Background]]
 local DefaultEdgeTexture = "Blizzard Tooltip"
 local DefaultEdgeFile = [[Interface\Tooltips\UI-Tooltip-Border]]
 local DefaultFontName = "Friz Quadrata TT"
@@ -110,7 +110,7 @@ local defaults = {
                 bgTile = false,
                 bgTileSize = 32,
                 bgEdgeSize = 16,
-                bgColor = makeColor(1, 1, 1),
+                bgColor = makeColor(0, 0, 0),
                 bgBorderColor = makeColor(0.8, 0.6, 0.0),
 
                 oorSection = {
