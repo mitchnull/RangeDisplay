@@ -2,6 +2,7 @@
 
 local L = LibStub("AceLocale-3.0"):NewLocale("RangeDisplay", "enUS", true)
 
+L["A free-form text to display for this section instead of the numeric range"] = "A free-form text to display for this section instead of the numeric range"
 L["A free-form suffix to append to the range display when you are further than range limit"] = "A free-form suffix to append to the range display when you are further than range limit"
 L["A free-form suffix to append to the range display when you are in range"] = "A free-form suffix to append to the range display when you are in range"
 L["Anchor to mouse pointer"] = "Anchor to mouse pointer"
@@ -62,6 +63,7 @@ L["Show range for enemy targets only"] = "Show range for enemy targets only"
 L["Show the maximum range only"] = "Show the maximum range only"
 L["Strata"] = "Strata"
 L["Suffix"] = "Suffix"
+L["Text"] = "Text"
 L["Texture to use for the frame's background"] = "Texture to use for the frame's background"
 L["Texture to use for the frame's border"] = "Texture to use for the frame's border"
 L["The size used to tile the background texture"] = "The size used to tile the background texture"
@@ -71,5 +73,7 @@ L["Tile Background"] = "Tile Background"
 L["Tile the background texture"] = "Tile the background texture"
 L["Use Section Colors"] = "Use Section Colors"
 L["Use section colors for background and background color for text"] = "Use section colors for background and background color for text"
+L["Use static text instead of the numeric range"] = "Use static text instead of the numeric range"
+L["Use Text"] = "Use Text"
 L["Width"] = "Width"
 
