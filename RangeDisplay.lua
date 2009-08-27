@@ -119,6 +119,9 @@ local defaults = {
                     range = 40,
                 },
                 color = makeColor(1.0, 0.82, 0),
+                defaultSection = {
+                    enabled = true,
+                },
                 lrSection = {
                     enabled = false,
                     color = makeColor(1.0, 0.82, 0),
@@ -326,23 +329,47 @@ local function update(ud)
             end
             if (ud.db.crSection.enabled and maxRange <= ud.db.crSection.range) then
                 color = ud.db.crSection.color
+                if (ud.db.crSection.useText) then
+                    range = ud.db.crSection.text
+                end
             elseif (ud.db.srSection.enabled and maxRange <= ud.db.srSection.range) then
                 color = ud.db.srSection.color
+                if (ud.db.srSection.useText) then
+                    range = ud.db.srSection.text
+                end
             elseif (ud.db.mrSection.enabled and maxRange <= ud.db.mrSection.range) then
                 color = ud.db.mrSection.color
+                if (ud.db.mrSection.useText) then
+                    range = ud.db.mrSection.text
+                end
             elseif (ud.db.lrSection.enabled and maxRange <= ud.db.lrSection.range) then
                 color = ud.db.lrSection.color
+                if (ud.db.lrSection.useText) then
+                    range = ud.db.lrSection.text
+                end
             elseif (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) then
                 color = ud.db.oorSection.color
+                if (ud.db.oorSection.useText) then
+                    range = ud.db.oorSection.text
+                end
             else
                 color = ud.db.color
+                if (ud.db.defaultSection.useText) then
+                    range = ud.db.defaultSection.text
+                end
             end
         elseif (ud.db.overLimitDisplay) then
             range = minRange .. ud.db.overLimitSuffix
             if (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) then
                 color = ud.db.oorSection.color
+                if (ud.db.oorSection.useText) then
+                    range = ud.db.oorSection.text
+                end
             else
                 color = ud.db.color
+                if (ud.db.defaultSection.useText) then
+                    range = ud.db.defaultSection.text
+                end
             end
         end
     end
@@ -688,7 +715,7 @@ function RangeDisplay:toggleLocked(flag)
     end
 end
 
-CONFIGMODE_CALLBACKS = CONFIGMODE_CALLBACKS or {};
+CONFIGMODE_CALLBACKS = CONFIGMODE_CALLBACKS or {}
 CONFIGMODE_CALLBACKS[AppName] = function(action)
     if (action == "ON") then
          RangeDisplay:toggleLocked(false)
