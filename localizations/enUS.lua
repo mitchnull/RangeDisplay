@@ -69,5 +69,7 @@ L["The thickness of the border"] = "The thickness of the border"
 L["Thick"] = "Thick"
 L["Tile Background"] = "Tile Background"
 L["Tile the background texture"] = "Tile the background texture"
+L["Use Section Colors"] = "Use Section Colors"
+L["Use section colors for background and background color for text"] = "Use section colors for background and background color for text"
 L["Width"] = "Width"
 

@@ -243,6 +243,12 @@ local function addUnitOptions(ud, order)
                         name = L["Auto hide"],
                         desc = L["Hide the background if the range display is not active"],
                     },
+                    bgUseSectionColors = {
+                        type = 'toggle',
+                        order = 19,
+                        name = L["Use Section Colors"],
+                        desc = L["Use section colors for background and background color for text"],
+                    },
                 },
             },
 
@@ -536,7 +542,7 @@ end
 local function setColor(ud, dbcolor, r, g, b, a)
     dbcolor.r, dbcolor.g, dbcolor.b, dbcolor.a = r, g, b, a
     if (ud.rangeFrameText) then
-        ud.rangeFrameText:SetTextColor(r, g, b, a)
+        ud:setDisplayColor(dbcolor)
     end
 end
 
@@ -567,9 +573,15 @@ end
 local function setBGColor(ud, info, r, g, b, a)
     local dbcolor = ud.db[info[#info]]
     dbcolor.r, dbcolor.g, dbcolor.b, dbcolor.a = r, g, b, a
-    local bgFrame = (ud.db.bgAutoHide or ud.db.mouseAnchor) and ud.rangeFrame or ud.mainFrame
-    bgFrame:SetBackdropColor(ud.db.bgColor.r, ud.db.bgColor.g, ud.db.bgColor.b, ud.db.bgColor.a)
-    bgFrame:SetBackdropBorderColor(ud.db.bgBorderColor.r, ud.db.bgBorderColor.g, ud.db.bgBorderColor.b, ud.db.bgBorderColor.a)
+    if (not ud.bgFrame) then
+         return
+    end
+    if (ud.db.bgUseSectionColors) then
+        ud.rangeFrameText:SetTextColor(ud.db.bgColor.r, ud.db.bgColor.g, ud.db.bgColor.b, ud.db.bgColor.a)
+    else
+        ud.bgFrame:SetBackdropColor(ud.db.bgColor.r, ud.db.bgColor.g, ud.db.bgColor.b, ud.db.bgColor.a)
+    end
+    ud.bgFrame:SetBackdropBorderColor(ud.db.bgBorderColor.r, ud.db.bgBorderColor.g, ud.db.bgBorderColor.b, ud.db.bgBorderColor.a)
 end
 
 local function getBGColor(ud, info)
