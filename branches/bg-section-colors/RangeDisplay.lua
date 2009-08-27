@@ -117,6 +117,7 @@ local defaults = {
                     enabled = true,
                     color = makeColor(0.9, 0.055, 0.075),
                     range = 40,
+                    text = "Too far, mon!",
                 },
                 color = makeColor(1.0, 0.82, 0),
                 defaultSection = {
@@ -141,6 +142,7 @@ local defaults = {
                     enabled = true,
                     color = makeColor(0.9, 0.9, 0.9),
                     range = 5,
+                    text = "Melee",
                 },
             },
             ["focus"] = {
