@@ -70,6 +70,19 @@ local function yes()
     return true
 end
 
+local function copyTable(src, dst)
+    if (type(dst) ~= "table") then dst = {} end
+    if (type(src) == "table") then
+        for k, v in pairs(src) do
+            if type(v) == "table" then
+                v = copyTable(v, dst[k])
+            end
+            dst[k] = v
+        end
+    end
+    return dst
+end
+
 local function makeSectionOptions(ud, order, name, isDefault)
      return  {
         type = 'group',
@@ -347,6 +360,25 @@ local function addUnitOptions(ud, order)
                     ud:autoAdjust()
                 end,
                 order = 185,
+            },
+            copySectionSettings = {
+                type = 'execute',
+                name = L["Copy section settings to other units"],
+                width = 'full',
+                func = function()
+                    for _, oud in ipairs(RangeDisplay.units) do
+                        if (oud ~= ud and oud.db.enabled) then
+                            copyTable(ud.db.crSection, oud.db.crSection)
+                            copyTable(ud.db.srSection, oud.db.srSection)
+                            copyTable(ud.db.mrSection, oud.db.mrSection)
+                            copyTable(ud.db.lrSection, oud.db.lrSection)
+                            copyTable(ud.db.defaultSection, oud.db.defaultSection)
+                            copyTable(ud.db.oorSection, oud.db.oorSection)
+                            copyTable(ud.db.color, oud.db.color)
+                        end
+                    end
+                end,
+                order = 186,
             },
         },
     }
