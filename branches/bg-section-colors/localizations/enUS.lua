@@ -23,6 +23,7 @@ L["|cffeda55fRight Click|r to open the configuration window"] = "|cffeda55fRight
 L["Close range section"] = "Close range section"
 L["Color"] = "Color"
 L["Configure"] = "Configure"
+L["Copy section settings to other units"] = "Copy section settings to other units"
 L["Default section"] = "Default section"
 L["Enabled"] = "Enabled"
 L["Enable this color section"] = "Enable this color section"
