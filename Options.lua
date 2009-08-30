@@ -12,6 +12,9 @@ local MaxFontSize = 30
 local MinRangeLimit = 0
 local MaxRangeLimit = 100
 
+local lastConfiguredUd -- stupid hack to remember last open config frame
+local fakeUdForProfiles = {}
+
 local _
 
 local FontOutlines = {
@@ -49,6 +52,10 @@ local options = {
                     name = L["Locked"],
                     desc = L["Lock/Unlock display frame"],
                     order = 110,
+                    disabled = function()
+                        lastConfiguredUd = nil
+                        return false
+                    end,
                 },
                 config = {
                     type = 'execute',
@@ -159,7 +166,10 @@ local function addUnitOptions(ud, order)
                 type = 'toggle',
                 name = L["Enabled"],
                 order = 113,
-                disabled = false,
+                disabled = function() 
+                    lastConfiguredUd = ud
+                    return false
+                end,
                 width = 'full', -- to make the layout nicer
             },
             enemyOnly = {
@@ -511,7 +521,12 @@ function RangeDisplay:setupOptions()
     LibStub("LibDualSpec-1.0"):EnhanceOptions(profiles, self.db)
     profiles.order = 900
     options.args.profiles = profiles
+    options.args.profiles.disabled = function()
+        lastConfiguredUd = fakeUdForProfiles
+        return false
+    end
     self.profiles = self:registerSubOptions('profiles', profiles)
+    fakeUdForProfiles.opts = self.profiles
     self:setupDebugOptions()
     AceConfig:RegisterOptionsTable(self.AppName .. '.Cmd', options, "rangedisplay")
 end
@@ -555,6 +570,7 @@ function RangeDisplay:setupLDB()
 end
 
 function RangeDisplay:openConfigDialog(ud)
+    ud = ud or lastConfiguredUd
     if (ud) then
         InterfaceOptionsFrame_OpenToCategory(ud.opts)
     else
