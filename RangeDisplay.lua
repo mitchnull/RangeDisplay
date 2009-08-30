@@ -445,6 +445,7 @@ local function createFrame(ud)
             end
             ud.mainFrame:StartMoving()
             ud.isMoving = true
+            GameTooltip:Hide()
         elseif (button == "RightButton") then
             if (IsShiftKeyDown() or IsControlKeyDown() or IsAltKeyDown()) then
                 RangeDisplay:openConfigDialog()
