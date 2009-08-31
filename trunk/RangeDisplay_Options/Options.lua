@@ -42,6 +42,7 @@ end
 
 function RangeDisplay:setOption(info, value)
     self.db.profile[info[#info]] = value
+    self:applySettings()
 end
 
 local function dummy()
@@ -498,19 +499,18 @@ do
 
     -- BEGIN
 
-    print("### loading")
     self.optionsLoaded = true
 
-    -- remove dummy options frame
+    -- remove dummy options frame, ugly hack
     if (self.dummyOpts) then 
-        print("### removing dummy options table")
         for k, f in ipairs(INTERFACEOPTIONS_ADDONCATEGORIES) do
-            if f == self.dummyOpts then
+            if (f == self.dummyOpts) then
                 tremove(INTERFACEOPTIONS_ADDONCATEGORIES, k)
+                f:SetParent(UIParent)
                 break
             end
-            self.dummyOpts = nil
         end
+        self.dummyOpts = nil
     end
 
     addConfigFunctions(self.units)

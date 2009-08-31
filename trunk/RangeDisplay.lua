@@ -450,11 +450,7 @@ local function createFrame(ud)
             ud.isMoving = true
             GameTooltip:Hide()
         elseif (button == "RightButton") then
-            if (IsShiftKeyDown() or IsControlKeyDown() or IsAltKeyDown()) then
-                RangeDisplay:openConfigDialog()
-            else
-                RangeDisplay:openConfigDialog(ud)
-            end
+            RangeDisplay:openConfigDialog(ud)
         end
     end)
     ud.mainFrame:SetScript("OnMouseUp", function(frame, button)
@@ -756,12 +752,12 @@ function RangeDisplay:setupDummyOptions()
     end
     self.dummyOpts = CreateFrame("Frame", AppName .. "DummyOptions", UIParent)
     self.dummyOpts.name = AppName
-    local text = self.dummyOpts:CreateFontString("RangeDisplayDummyText", "ARTWORK", "GameFontNormal")
-    text:SetPoint("CENTER", self.dummyOpts, "CENTER", 0, 0)
-    text:SetFormattedText(L["The %s addon is required for the configuration menu"], OptionsAppName)
     self.dummyOpts:SetScript("OnShow", function(frame)
-        frame:SetScript("OnShow", nil)
-        self:openConfigDialog()
+        if (not self.optionsLoaded) then
+            self:openConfigDialog()
+        else
+            frame:Hide()
+        end
     end)
     InterfaceOptions_AddCategory(self.dummyOpts)
 end
@@ -769,7 +765,6 @@ end
 function RangeDisplay:loadOptions()
     if (not self.optionsLoaded) then
         self.optionsLoaded = true
-        InterfaceOptionsFrame:Hide()
         local loaded, reason = LoadAddOn(OptionsAppName)
         if (not loaded) then
             print("Failed to load " .. tostring(OptionsAppName) .. ": " .. tostring(reason))
@@ -777,11 +772,11 @@ function RangeDisplay:loadOptions()
     end
 end
 
-function RangeDisplay:openConfigDialog()
+function RangeDisplay:openConfigDialog(ud)
     -- this function will be overwritten by the Options module when loaded
     if (not self.optionsLoaded) then
         self:loadOptions()
-        return self:openConfigDiealog()
+        return self:openConfigDialog(ud)
     end
     InterfaceOptionsFrame_OpenToCategory(self.dummyOpts)
 end
