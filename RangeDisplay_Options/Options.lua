@@ -1,7 +1,7 @@
 local AceConfig = LibStub("AceConfig-3.0")
 local AceDBOptions = LibStub("AceDBOptions-3.0")
 local ACD = LibStub("AceConfigDialog-3.0")
-local L = LibStub("AceLocale-3.0"):GetLocale(RangeDisplay.AppName)
+local L = LibStub("AceLocale-3.0"):GetLocale(RangeDisplay.OptionsAppName)
 local rc = LibStub("LibRangeCheck-2.0")
 
 local Icon = "Interface\\Icons\\INV_Misc_Spyglass_02"
@@ -54,14 +54,6 @@ local options = {
                         lastConfiguredUd = nil
                         return false
                     end,
-                },
-                config = {
-                    type = 'execute',
-                    name = L["Configure"],
-                    desc = L["Bring up GUI configure dialog"],
-                    guiHidden = true,
-                    order = 300,
-                    func = function() RangeDisplay:openConfigDialog() end,
                 },
             },
         },
@@ -358,17 +350,6 @@ local function addUnitOptions(ud, order)
                 },
             },
 
-            color = {
-                type = 'color',
-                guiHidden = true,
-                width = 'half',
-                hasAlpha = true,
-                name = L["Color"],
-                --desc = L["Color"],
-                set = "setUnitColor",
-                get = "getUnitColor",
-                order = 160,
-            },
             crSection = makeSectionOptions(ud, 165, "Close range section"),
             srSection = makeSectionOptions(ud, 170, "Short range section"),
             mrSection = makeSectionOptions(ud, 173, "Medium range section"),
@@ -541,7 +522,6 @@ function RangeDisplay:setupOptions()
     self.profiles = self:registerSubOptions('profiles', profiles)
     fakeUdForProfiles.opts = self.profiles
     self:setupDebugOptions()
-    AceConfig:RegisterOptionsTable(self.AppName .. '.Cmd', options, "rangedisplay")
 end
 
 function RangeDisplay:openConfigDialog(ud)
