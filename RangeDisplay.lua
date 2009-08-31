@@ -10,6 +10,7 @@ License: Public Domain
 ]]
 
 local AppName = "RangeDisplay"
+local AppOptionsName = AppName .. "_Options"
 local VERSION = AppName .. "-r" .. ("$Revision$"):match("%d+")
 
 local rc = LibStub("LibRangeCheck-2.0")
@@ -463,7 +464,7 @@ local function createFrame(ud)
     end)
     ud.mainFrame:SetScript("OnEnter", function(frame)
         GameTooltip:SetOwner(frame)
-        GameTooltip:AddLine(L["RangeDisplay: %s"]:format(L[unit]))
+        GameTooltip:AddLine("RangeDisplay: " .. L[unit])
         GameTooltip:AddLine(L["|cffeda55fDrag|r to move the frame"])
         GameTooltip:AddLine(L["|cffeda55fControl + Left Click|r to lock frames"])
         GameTooltip:AddLine(L["|cffeda55fRight Click|r to open the configuration window"])
@@ -639,8 +640,9 @@ function RangeDisplay:OnInitialize()
     self.db.RegisterCallback(self, "OnProfileChanged", "profileChanged")
     self.db.RegisterCallback(self, "OnProfileCopied", "profileChanged")
     self.db.RegisterCallback(self, "OnProfileReset", "profileChanged")
-    self:setupOptions()
     self:profileChanged()
+    self:setupDummyOptions()
+    self:setupLDB()
 end
 
 function RangeDisplay:OnEnable(first)
@@ -715,6 +717,97 @@ function RangeDisplay:toggleLocked(flag)
         self:lock()
     else
         self:unlock()
+    end
+end
+
+function RangeDisplay:setupLDB()
+    local LDB = LibStub:GetLibrary("LibDataBroker-1.1", true)
+    if (not LDB) then return end
+    local ldb = {
+        type = "launcher",
+        icon = Icon,
+        OnClick = function(frame, button)
+            if (button == "LeftButton") then
+                self:toggleLocked()
+            elseif (button == "RightButton") then
+                self:openConfigDialog()
+            end
+        end,
+        OnTooltipShow = function(tt)
+            tt:AddLine(self.AppName)
+            tt:AddLine(L["|cffeda55fLeft Click|r to lock/unlock frames"])
+            tt:AddLine(L["|cffeda55fRight Click|r to open the configuration window"])
+        end,
+    }
+    LDB:NewDataObject(self.AppName, ldb)
+    local LDBIcon = LibStub("LibDBIcon-1.0", true)
+    if (not LDBIcon) then return end
+    LDBIcon:Register(self.AppName, ldb, self.db.profile.minimap)
+    options.args.main.args.minimap = {
+        type = 'toggle',
+        name = L["Hide minimap icon"],
+        width = 'full',
+        order = 111,
+        get = function() return self.db.profile.minimap.hide end,
+        set = function(info, value)
+            if (value) then
+                LDBIcon:Hide(self.AppName)
+            else
+                LDBIcon:Show(self.AppName)
+            end
+            self.db.profile.minimap.hide = value
+        end,
+    }
+end
+
+
+-- LoD Options muckery
+
+function RangeDisplay:setupDummyOptions()
+    if (self.optionsLoaded) then
+        return
+    end
+    self.dummyOpts = CreateFrame("Frame", AppName .. "DummyOptions", UIParent)
+    self.dummyOpts.name = AppName
+    local text = self.dummyOpts:CreateFontString("RangeDisplayDummyText", "ARTWORK", "GameFontNormal")
+    text:SetPoint("CENTER", self.dummyOpts, "CENTER", 0, 0)
+    text:SetFormattedText(L["The %s addon is required for the configuration menu"], AppOptionsName)
+    self.dummyOpts:SetScript("OnShow", function(frame)
+        frame:SetScript("OnShow", nil)
+        self:openConfigDialog()
+    end)
+    InterfaceOptions_AddCategory(self.dummyOpts)
+end
+
+function RangeDisplay:loadOptions()
+    if (not self.optionsLoaded) then
+        self.optionsLoaded = true
+        InterfaceOptionsFrame:Hide()
+        local loaded, reason = LoadAddon(AppOptionsName)
+        if (not loaded) then
+            print("Failed to load " .. tostring(AppOptionsName) .. ": " .. tostring(reason))
+        end
+    end
+end
+
+function RangeDisplay:openConfigDialog()
+    -- this function will be overwritten by the Options module when loaded
+    if (not self.optionsLoaded) then
+        self:loadOptions()
+        return self:openConfigDiealog()
+    end
+    InterfaceOptionsFrame_OpenToCategory(self.dummyOpts)
+end
+
+-- register slash command
+
+SLASH_RANGEDISPLAY1 = "/rangedisplay"
+SlashCmdList["RANGEDISPLAY"] = function(msg)
+    msg = strtrim(msg or "")
+    if (msg == "locked") then
+        RangeDisplay:toggleLocked()
+    else
+        RangeDisplay:openConfigDialog()
     end
 end
 
