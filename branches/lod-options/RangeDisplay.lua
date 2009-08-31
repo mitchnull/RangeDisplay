@@ -10,7 +10,7 @@ License: Public Domain
 ]]
 
 local AppName = "RangeDisplay"
-local AppOptionsName = AppName .. "_Options"
+local OptionsAppName = AppName .. "_Options"
 local VERSION = AppName .. "-r" .. ("$Revision$"):match("%d+")
 
 local rc = LibStub("LibRangeCheck-2.0")
@@ -740,26 +740,7 @@ function RangeDisplay:setupLDB()
         end,
     }
     LDB:NewDataObject(self.AppName, ldb)
-    local LDBIcon = LibStub("LibDBIcon-1.0", true)
-    if (not LDBIcon) then return end
-    LDBIcon:Register(self.AppName, ldb, self.db.profile.minimap)
-    options.args.main.args.minimap = {
-        type = 'toggle',
-        name = L["Hide minimap icon"],
-        width = 'full',
-        order = 111,
-        get = function() return self.db.profile.minimap.hide end,
-        set = function(info, value)
-            if (value) then
-                LDBIcon:Hide(self.AppName)
-            else
-                LDBIcon:Show(self.AppName)
-            end
-            self.db.profile.minimap.hide = value
-        end,
-    }
 end
-
 
 -- LoD Options muckery
 
@@ -771,7 +752,7 @@ function RangeDisplay:setupDummyOptions()
     self.dummyOpts.name = AppName
     local text = self.dummyOpts:CreateFontString("RangeDisplayDummyText", "ARTWORK", "GameFontNormal")
     text:SetPoint("CENTER", self.dummyOpts, "CENTER", 0, 0)
-    text:SetFormattedText(L["The %s addon is required for the configuration menu"], AppOptionsName)
+    text:SetFormattedText(L["The %s addon is required for the configuration menu"], OptionsAppName)
     self.dummyOpts:SetScript("OnShow", function(frame)
         frame:SetScript("OnShow", nil)
         self:openConfigDialog()
@@ -783,9 +764,9 @@ function RangeDisplay:loadOptions()
     if (not self.optionsLoaded) then
         self.optionsLoaded = true
         InterfaceOptionsFrame:Hide()
-        local loaded, reason = LoadAddon(AppOptionsName)
+        local loaded, reason = LoadAddOn(OptionsAppName)
         if (not loaded) then
-            print("Failed to load " .. tostring(AppOptionsName) .. ": " .. tostring(reason))
+            print("Failed to load " .. tostring(OptionsAppName) .. ": " .. tostring(reason))
         end
     end
 end

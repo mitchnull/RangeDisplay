@@ -6,7 +6,7 @@
 --[[
 	The name of the AceLocale-3.0 Category, as being used in :NewLocale and :GetLocale
 ]]
-local localeName = "RangeDisplay"
+local localeName = "RangeDisplay_Options"
 
 --[[
 	Prefix to all files if this script is run from a subdir, for example
@@ -17,7 +17,7 @@ local filePrefix = "../"
 	List of all files to parse
 ]]
 local files = {
-	"RangeDisplay.lua",
+	"Options.lua",
 }
 
 --[[
