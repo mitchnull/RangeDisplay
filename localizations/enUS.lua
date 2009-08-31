@@ -2,7 +2,6 @@
 
 local L = LibStub("AceLocale-3.0"):NewLocale("RangeDisplay", "enUS", true)
 
-L["The %s addon is required for the configuration menu"] = "The %s addon is required for the configuration menu"
 L["focus"] = "Focus"
 L["mouseover"] = "Mouseover"
 L["pet"] = "Pet"
