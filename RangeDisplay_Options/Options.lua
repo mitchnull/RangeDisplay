@@ -2,9 +2,8 @@ local AceConfig = LibStub("AceConfig-3.0")
 local AceDBOptions = LibStub("AceDBOptions-3.0")
 local ACD = LibStub("AceConfigDialog-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale(RangeDisplay.OptionsAppName)
-local rc = LibStub("LibRangeCheck-2.0")
+local LL = LibStub("AceLocale-3.0"):GetLocale(RangeDisplay.AppName)
 
-local Icon = "Interface\\Icons\\INV_Misc_Spyglass_02"
 local MinFontSize = 5
 local MaxFontSize = 30
 local MinRangeLimit = 0
@@ -35,6 +34,14 @@ function RangeDisplay:openConfigDialog(ud)
         InterfaceOptionsFrame_OpenToCategory(self.profiles) -- to expand our tree
         InterfaceOptionsFrame_OpenToCategory(self.opts)
     end
+end
+
+function RangeDisplay:getOption(info)
+    return self.db.profile[info[#info]]
+end
+
+function RangeDisplay:setOption(info, value)
+    self.db.profile[info[#info]] = value
 end
 
 local function dummy()
@@ -229,7 +236,7 @@ do
         local unit = ud.unit
         local opts = {
             type = 'group',
-            name = L[unit],
+            name = LL[unit],
             handler = ud,
             get = "getUnitOption",
             set = "setUnitOption",
@@ -513,77 +520,83 @@ do
         local unitOpts = makeUnitOptions(ud)
         ud.opts = registerSubOptions(ud.unit, unitOpts)
     end
-    local profiles =  AceDBOptions:GetOptionsTable(self.db)
-    LibStub("LibDualSpec-1.0"):EnhanceOptions(profiles, self.db)
-    profiles.order = 900
-    options.args.profiles = profiles
-    options.args.profiles.disabled = function()
-        lastConfiguredUd = fakeUdForProfiles
-        return false
+    self.setupDBOptions = function(self)
+        local profiles =  AceDBOptions:GetOptionsTable(self.db)
+        LibStub("LibDualSpec-1.0"):EnhanceOptions(profiles, self.db)
+        profiles.disabled = function()
+            lastConfiguredUd = fakeUdForProfiles
+            return false
+        end
+        self.profiles = registerSubOptions('profiles', profiles)
+        fakeUdForProfiles.opts = self.profiles
+
+        if (self.db.profile.debug) then
+            local rc = LibStub("LibRangeCheck-2.0")
+            local debugOptions = {
+                type = 'group',
+                name = "Debug",
+                inline = true,
+                args = {
+                    startMeasurement = {
+                        type = 'execute',
+                        name = "StartMeasurement",
+                        --desc = "StartMeasurement",
+                        func = function()
+                            if (not self.db.profile.measurements) then
+                                self.db.profile.measurements = {}
+                            end
+                            self.db.profile.measurements[UnitName("player")] = {}
+                            rc:startMeasurement("target", self.db.profile.measurements[UnitName("player")])
+                        end,
+                    },
+                    stopMeasurement = {
+                        type = 'execute',
+                        name = "StopMeasurement",
+                        --desc = "StopMeasurement",
+                        func = function()
+                            rc:stopMeasurement()
+                        end,
+                    },
+                    clearMeasurement = {
+                        type = 'execute',
+                        name = "ClearMeasurement",
+                        --desc = "ClearMeasurement",
+                        func = function()
+                            self.db.profile.measurements = nil
+                        end,
+                    },
+                    cacheAllItems = {
+                        type = 'execute',
+                        name = "CacheAllItems",
+                        --desc = "CacheAllItems",
+                        func = function()
+                            rc:cacheAllItems()
+                        end,
+                    },
+                    checkAllItems = {
+                        type = 'execute',
+                        name = "CheckAllItems",
+                        --desc = "CheckAllItems",
+                        func = function()
+                            rc:checkAllItems()
+                        end,
+                    },
+                    checkAllCheckers = {
+                        type = 'execute',
+                        name = "CheckAllCheckers",
+                        --desc = "CheckAllCheckers",
+                        func = function()
+                            rc:checkAllCheckers()
+                        end,
+                    },
+                },
+            }
+            registerSubOptions('debug', debugOptions)
+        end
     end
-    self.profiles = self:registerSubOptions('profiles', profiles)
-    fakeUdForProfiles.opts = self.profiles
-    if (self.db.profile.debug) then
-        local debugOptions = {
-            type = 'group',
-            name = "Debug",
-            inline = true,
-            args = {
-                startMeasurement = {
-                    type = 'execute',
-                    name = "StartMeasurement",
-                    --desc = "StartMeasurement",
-                    func = function()
-                        if (not self.db.profile.measurements) then
-                            self.db.profile.measurements = {}
-                        end
-                        self.db.profile.measurements[UnitName("player")] = {}
-                        rc:startMeasurement("target", self.db.profile.measurements[UnitName("player")])
-                    end,
-                },
-                stopMeasurement = {
-                    type = 'execute',
-                    name = "StopMeasurement",
-                    --desc = "StopMeasurement",
-                    func = function()
-                        rc:stopMeasurement()
-                    end,
-                },
-                clearMeasurement = {
-                    type = 'execute',
-                    name = "ClearMeasurement",
-                    --desc = "ClearMeasurement",
-                    func = function()
-                        self.db.profile.measurements = nil
-                    end,
-                },
-                cacheAllItems = {
-                    type = 'execute',
-                    name = "CacheAllItems",
-                    --desc = "CacheAllItems",
-                    func = function()
-                        rc:cacheAllItems()
-                    end,
-                },
-                checkAllItems = {
-                    type = 'execute',
-                    name = "CheckAllItems",
-                    --desc = "CheckAllItems",
-                    func = function()
-                        rc:checkAllItems()
-                    end,
-                },
-                checkAllCheckers = {
-                    type = 'execute',
-                    name = "CheckAllCheckers",
-                    --desc = "CheckAllCheckers",
-                    func = function()
-                        rc:checkAllCheckers()
-                    end,
-                },
-            },
-        }
-        registerSubOptions('debug', debugOptions)
+    if (self.db) then -- trickery to make it work with a straight checkout
+        self:setupDBOptions()
+        self.setupDBOptions = nil
     end
 end
 
