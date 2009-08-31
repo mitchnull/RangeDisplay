@@ -44,6 +44,7 @@ local DefaultFontPath = GameFontNormal:GetFont()
 local DefaultFrameWidth = 112
 local DefaultFrameHeight = 36
 local FakeCursorImage = [[Interface\CURSOR\Point]]
+local Icon = [[Interface\Icons\INV_Misc_Spyglass_02]]
 
 local MaxRangeSpells = {
     ["HUNTER"] = {
@@ -72,6 +73,7 @@ RangeDisplay:SetDefaultModuleState(false)
 
 RangeDisplay.version = VERSION
 RangeDisplay.AppName = AppName
+RangeDisplay.OptionsAppName = OptionsAppName
 
 -- Default DB stuff
 
@@ -631,10 +633,11 @@ for _, ud in ipairs(units) do
     ud.disable = ud.disable or disable
 end
 
+RangeDisplay.units = units
+
 -- AceAddon stuff
 
 function RangeDisplay:OnInitialize()
-    self.units = units
     self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
     LibStub("LibDualSpec-1.0"):EnhanceDatabase(self.db, AppName)
     self.db.RegisterCallback(self, "OnProfileChanged", "profileChanged")
@@ -642,6 +645,9 @@ function RangeDisplay:OnInitialize()
     self.db.RegisterCallback(self, "OnProfileReset", "profileChanged")
     self:profileChanged()
     self:setupDummyOptions()
+    if (self.setupDBOptions) then -- trickery to make it work with a straight checkout
+        self:setupDBOptions()
+    end
     self:setupLDB()
 end
 
