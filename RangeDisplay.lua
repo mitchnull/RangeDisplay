@@ -68,7 +68,7 @@ local MaxRangeSpells = {
 
 ---------------------------------
 
-RangeDisplay = LibStub("AceAddon-3.0"):NewAddon(AppName, "AceConsole-3.0", "AceEvent-3.0")
+RangeDisplay = LibStub("AceAddon-3.0"):NewAddon(AppName, "AceEvent-3.0")
 RangeDisplay:SetDefaultModuleState(false)
 
 RangeDisplay.version = VERSION
