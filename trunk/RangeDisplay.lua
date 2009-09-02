@@ -754,6 +754,9 @@ function RangeDisplay:setupDummyOptions()
     self.dummyOpts.name = AppName
     self.dummyOpts:SetScript("OnShow", function(frame)
         if (not self.optionsLoaded) then
+            if (not InterfaceOptionsFrame:IsVisible()) then
+                return -- wtf... Happens if you open the game map and close it with ESC
+            end
             self:openConfigDialog()
         else
             frame:Hide()
