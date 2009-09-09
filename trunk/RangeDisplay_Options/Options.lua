@@ -1,3 +1,4 @@
+local RangeDisplay = RangeDisplay
 local AceConfig = LibStub("AceConfig-3.0")
 local AceDBOptions = LibStub("AceDBOptions-3.0")
 local ACD = LibStub("AceConfigDialog-3.0")
@@ -56,7 +57,7 @@ local function copyTable(src, dst)
     if (type(dst) ~= "table") then dst = {} end
     if (type(src) == "table") then
         for k, v in pairs(src) do
-            if type(v) == "table" then
+            if (type(v) == "table") then
                 v = copyTable(v, dst[k])
             end
             dst[k] = v
