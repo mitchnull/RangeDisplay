@@ -14,6 +14,7 @@ local VERSION = AppName .. "-r" .. ("$Revision$"):match("%d+")
 
 local rc = LibStub("LibRangeCheck-2.0")
 local LSM = LibStub:GetLibrary("LibSharedMedia-3.0", true)
+local LibDualSpec = LibStub("LibDualSpec-1.0", true)
 local L = LibStub("AceLocale-3.0"):GetLocale(AppName)
 
 -- internal vars
@@ -635,7 +636,9 @@ RangeDisplay.units = units
 
 function RangeDisplay:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
-    LibStub("LibDualSpec-1.0"):EnhanceDatabase(self.db, AppName)
+    if LibDualSpec then
+        LibDualSpec:EnhanceDatabase(self.db, AppName)
+    end
     self.db.RegisterCallback(self, "OnProfileChanged", "profileChanged")
     self.db.RegisterCallback(self, "OnProfileCopied", "profileChanged")
     self.db.RegisterCallback(self, "OnProfileReset", "profileChanged")

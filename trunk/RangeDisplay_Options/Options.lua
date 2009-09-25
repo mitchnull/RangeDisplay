@@ -1,6 +1,7 @@
 local RangeDisplay = RangeDisplay
 local AceConfig = LibStub("AceConfig-3.0")
 local AceDBOptions = LibStub("AceDBOptions-3.0")
+local LibDualSpec = LibStub("LibDualSpec-1.0", true)
 local ACD = LibStub("AceConfigDialog-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale(RangeDisplay.OptionsAppName)
 local LL = LibStub("AceLocale-3.0"):GetLocale(RangeDisplay.AppName)
@@ -523,7 +524,9 @@ do
     end
     self.setupDBOptions = function(self)
         local profiles =  AceDBOptions:GetOptionsTable(self.db)
-        LibStub("LibDualSpec-1.0"):EnhanceOptions(profiles, self.db)
+        if LibDualSpec then
+            LibDualSpec:EnhanceOptions(profiles, self.db)
+        end
         profiles.disabled = function()
             lastConfiguredUd = fakeUdForProfiles
             return false
