@@ -184,7 +184,7 @@ end
 
 local function isTargetValid(ud)
     local unit = ud.unit
-    return UnitExists(unit) and (not UnitIsDeadOrGhost(unit))
+    return UnitExists(unit)
             and (not ud.db.enemyOnly or UnitCanAttack("player", unit))
             and (not UnitIsUnit(unit, "player"))
 end
