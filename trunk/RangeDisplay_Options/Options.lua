@@ -533,7 +533,7 @@ do
         end
         self.profiles = registerSubOptions('profiles', profiles)
         fakeUdForProfiles.opts = self.profiles
-
+--@do-not-package@
         if (self.db.profile.debug) then
             local rc = LibStub("LibRangeCheck-2.0")
             local debugOptions = {
@@ -597,6 +597,7 @@ do
             }
             registerSubOptions('debug', debugOptions)
         end
+--@end-do-not-package@ 
     end
     if (self.db) then -- trickery to make it work with a straight checkout
         self:setupDBOptions()
