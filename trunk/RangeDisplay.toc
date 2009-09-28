@@ -26,7 +26,7 @@ libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 localizations\localizations.xml
 RangeDisplay.lua
 #@do-not-package@
-#RangeDisplay_Options\embeds.xml
-#RangeDisplay_Options\localizations\localizations.xml
-#RangeDisplay_Options\Options.lua
+RangeDisplay_Options\embeds.xml
+RangeDisplay_Options\localizations\localizations.xml
+RangeDisplay_Options\Options.lua
 #@end-do-not-package@ 
