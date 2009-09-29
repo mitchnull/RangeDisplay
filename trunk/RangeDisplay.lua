@@ -717,7 +717,12 @@ function RangeDisplay:unlock()
 end
 
 function RangeDisplay:toggleLocked(flag)
-    if (flag == nil) then flag = not self.db.profile.locked end
+    if flag == nil then
+        flag = not self.db.profile.locked
+    end
+    if flag ~= self.db.profile.locked then
+        self:updateMainOptions()
+    end
     if (flag) then
         self:lock()
     else
@@ -785,6 +790,11 @@ function RangeDisplay:openConfigDialog(ud)
         return self:openConfigDialog(ud)
     end
     InterfaceOptionsFrame_OpenToCategory(self.dummyOpts)
+end
+
+-- Stubs for RangeDisplay_Options
+
+function RangeDisplay:updateMainOptions()
 end
 
 -- register slash command
