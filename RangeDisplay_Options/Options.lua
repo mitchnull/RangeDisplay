@@ -1,5 +1,5 @@
 local RangeDisplay = RangeDisplay
-local AceConfig = LibStub("AceConfig-3.0")
+local ACR = LibStub("AceConfigRegistry-3.0")
 local AceDBOptions = LibStub("AceDBOptions-3.0")
 local LibDualSpec = LibStub("LibDualSpec-1.0", true)
 local ACD = LibStub("AceConfigDialog-3.0")
@@ -145,6 +145,10 @@ end
 
 local function isSectionTextDisabled(ud, info)
     return (not ud.db.enabled) or (not ud.db[info[#info - 1]].enabled) or (not ud.db[info[#info - 1]].useText)
+end
+
+function RangeDisplay:updateMainOptions()
+    ACR:NotifyChange(self.AppName)
 end
 
 do
@@ -495,7 +499,7 @@ do
 
     local function registerSubOptions(name, opts)
         local appName = self.AppName .. "." .. name
-        AceConfig:RegisterOptionsTable(appName, opts)
+        ACR:RegisterOptionsTable(appName, opts)
         return ACD:AddToBlizOptions(appName, opts.name or name, self.AppName)
     end
 
@@ -516,7 +520,7 @@ do
     end
 
     addConfigFunctions(self.units)
-    AceConfig:RegisterOptionsTable(self.AppName, mainOptions)
+    ACR:RegisterOptionsTable(self.AppName, mainOptions)
     self.opts = ACD:AddToBlizOptions(self.AppName, self.AppName)
     for i, ud in ipairs(self.units) do
         local unitOpts = makeUnitOptions(ud)
