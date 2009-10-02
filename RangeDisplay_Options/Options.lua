@@ -597,6 +597,85 @@ do
                             rc:checkAllCheckers()
                         end,
                     },
+                    testIters = {
+                        type = 'execute',
+                        name = "testIters",
+                        func = function()
+                            print("### friend checkers:")
+                            for range, checker in rc:GetFriendCheckers() do
+                                print(range, checker)
+                            end
+                            print("### harm checkers:")
+                            for range, checker in rc:GetHarmCheckers() do
+                                print(range, checker)
+                            end
+                            print("### misc checkers:")
+                            for range, checker in rc:GetMiscCheckers() do
+                                print(range, checker)
+                            end
+                            local t = {1, 15, 19, 20, 200}
+                            for i, r in ipairs(t) do
+                                print("### Friend Min/X/Max: ", r, rc:GetFriendMinChecker(r), rc:GetFriendChecker(r), rc:GetFriendMaxChecker(r))
+                                print("### Harm Min/X/Max: ", r, rc:GetHarmMinChecker(r), rc:GetHarmChecker(r), rc:GetHarmMaxChecker(r))
+                            end
+                        end,
+                    },
+                    debugRange = {
+                        type = 'range',
+                        name = "debugRange",
+                        min = 0,
+                        max = 101,
+                        step = 1,
+                        set = function(info, value) self.debugRange = value end,
+                        get = function() return self.debugRange end,
+                    },
+                    testMin = {
+                        type = 'execute',
+                        name = "testMin",
+                        func = function()
+                            local range = self.debugRange or 31
+                            local fc = rc:GetFriendMinChecker(range) or function() return "no checker" end
+                            local hc = rc:GetHarmMinChecker(range) or function() return "no checker" end
+                            local mc = rc:GetMiscMinChecker(range) or function() return "no checker" end
+                            local sc = rc:GetSmartMinChecker(range) or function() return "no checker" end
+                            print("FriendMinChecker(%d): %s", range, fc('target'))
+                            print("HarmMinChecker(%d): %s", range, hc('target'))
+                            print("MiscMinChecker(%d): %s", range, mc('target'))
+                            print("SmartMinChecker(%d): %s", range, sc('target'))
+                        end,
+                    },
+                    testMax = {
+                        type = 'execute',
+                        name = "testMax",
+                        func = function()
+                            local range = self.debugRange or 31
+                            local fc = rc:GetFriendMaxChecker(range) or function() return "no checker" end
+                            local hc = rc:GetHarmMaxChecker(range) or function() return "no checker" end
+                            local mc = rc:GetMiscMaxChecker(range) or function() return "no checker" end
+                            local sc = rc:GetSmartMaxChecker(range) or function() return "no checker" end
+                            print("FriendMaxChecker(%d): %s", range, fc('target'))
+                            print("HarmMaxChecker(%d): %s", range, hc('target'))
+                            print("MiscMaxChecker(%d): %s", range, mc('target'))
+                            print("SmartMaxChecker(%d): %s", range, sc('target'))
+                        end,
+                    },
+                    test = {
+                        type = 'execute',
+                        name = "test",
+                        func = function()
+                            local range = self.debugRange or 31
+                            local fc = rc:GetFriendChecker(range) or function() return "no checker" end
+                            local hc = rc:GetHarmChecker(range) or function() return "no checker" end
+                            local mc = rc:GetMiscChecker(range) or function() return "no checker" end
+                            local sc = rc:GetSmartChecker(range) or function() return "no checker" end
+                            local scd = rc:GetSmartChecker(range, function() return "default" end) or function() return "no checker" end
+                            print("FriendChecker(%d): %s", range, fc('target'))
+                            print("HarmChecker(%d): %s", range, hc('target'))
+                            print("MiscChecker(%d): %s", range, mc('target'))
+                            print("SmartChecker(%d): %s", range, sc('target'))
+                            print("SmartChecker(%d, def): %s", range, scd('target'))
+                        end,
+                    },
                 },
             }
             registerSubOptions('debug', debugOptions)
