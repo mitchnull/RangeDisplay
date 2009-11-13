@@ -1,0 +1,16 @@
+## Interface: 30200
+## Title: RangeDisplay Options
+## Author: mitch0
+## Version: @project-version@
+## Notes: Configuration options for RangeDisplay
+## OptionalDeps: AceGUI-3.0-SharedMediaWidgets
+## Dependencies: RangeDisplay
+## LoadOnDemand: 1
+## X-License: Public Domain
+## X-RelSite-WoWI: 7297
+
+#@no-lib-strip@
+embeds.xml
+#@end-no-lib-strip@
+localizations\localizations.xml
+Options.lua
