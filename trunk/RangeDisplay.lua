@@ -190,7 +190,7 @@ local function isTargetValid(ud)
 end
 
 local function targetChanged(ud)
-    if (ud:isTargetValid()) then
+    if ud:isTargetValid() then
         ud.rangeFrame:Show()
         ud.lastUpdate = UpdateDelay -- to force update in next onUpdate()
     else
@@ -203,23 +203,23 @@ local function profileChanged(ud, db)
 end
 
 local function mediaUpdate(ud, event, mediaType, key)
-    if (mediaType == 'font') then
-        if (key == ud.db.font) then
+    if mediaType == 'font' then
+        if key == ud.db.font then
             ud:applyFontSettings()
         end
-    elseif (mediaType == 'background') then
-        if (key == ud.db.bgTexture) then
+    elseif mediaType == 'background' then
+        if key == ud.db.bgTexture then
             ud:applyBGSettings()
         end
-    elseif (mediaType == 'border') then
-        if (key == ud.db.bgBorderTexture) then
+    elseif mediaType == 'border' then
+        if key == ud.db.bgBorderTexture then
             ud:applyBGSettings()
         end
     end
 end
 
 local function applyBGSettings(ud)
-    if (not ud.db.bgEnabled) then
+    if not ud.db.bgEnabled then
         ud.mainFrame:SetBackdrop(nil)
         ud.rangeFrame:SetBackdrop(nil)
         ud.bgFrame = nil
@@ -228,14 +228,14 @@ local function applyBGSettings(ud)
     end
     ud.bg = ud.bg or { insets = {} }
     local bg = ud.bg
-    if (LSM) then
+    if LSM then
         bg.bgFile = LSM:Fetch("background", ud.db.bgTexture, true)
-        if (not bg.bgFile) then
+        if not bg.bgFile then
             bg.bgFile = DefaultBGFile
             LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "mediaUpdate")
         end
         bg.edgeFile = LSM:Fetch("border", ud.db.bgBorderTexture, true)
-        if (not bg.edgeFile) then
+        if not bg.edgeFile then
             bg.edgeFile = DefaultEdgeFile
             LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "mediaUpdate")
         end
@@ -251,7 +251,7 @@ local function applyBGSettings(ud)
     bg.insets.right = inset
     bg.insets.top = inset
     bg.insets.bottom = inset
-    if (ud.db.bgAutoHide or ud.db.mouseAnchor) then
+    if ud.db.bgAutoHide or ud.db.mouseAnchor then
         ud.bgFrame = ud.rangeFrame
         ud.mainFrame:SetBackdrop(nil)
     else
@@ -260,7 +260,7 @@ local function applyBGSettings(ud)
     end
     ud.bgFrame:SetBackdrop(bg)
     ud.bgFrame:SetBackdropBorderColor(ud.db.bgBorderColor.r, ud.db.bgBorderColor.g, ud.db.bgBorderColor.b, ud.db.bgBorderColor.a)
-    if (ud.db.bgUseSectionColors) then
+    if ud.db.bgUseSectionColors then
         ud.setDisplayColor = setDisplayColor_Backdrop
         setDisplayColor_Text(ud, ud.db.bgColor)
     else
@@ -272,9 +272,9 @@ end
 
 local function applyFontSettings(ud)
     local dbFontPath
-    if (LSM) then
+    if LSM then
         dbFontPath = LSM:Fetch("font", ud.db.font, true)
-        if (not dbFontPath) then
+        if not dbFontPath then
             dbFontPath = DefaultFontPath
             LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "mediaUpdate")
         end
@@ -283,13 +283,13 @@ local function applyFontSettings(ud)
     end
     local fontPath, fontSize, fontOutline = ud.rangeFrameText:GetFont()
     fontOutline = fontOutline or ""
-    if (dbFontPath ~= fontPath or ud.db.fontSize ~= fontSize or ud.db.fontOutline ~= fontOutline) then
+    if dbFontPath ~= fontPath or ud.db.fontSize ~= fontSize or ud.db.fontOutline ~= fontOutline then
         ud.rangeFrameText:SetFont(dbFontPath, ud.db.fontSize, ud.db.fontOutline)
     end
 end
 
 local function applySettings(ud)
-    if (ud.db.enabled) then
+    if ud.db.enabled then
         ud:enable()
         ud.mainFrame:ClearAllPoints()
         ud.mainFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
@@ -321,72 +321,72 @@ end
 
 local function update(ud)
     local minRange, maxRange = rc:GetRange(ud.unit)
-    if (minRange == ud.lastMinRange and maxRange == ud.lastMaxRange) then return end
+    if minRange == ud.lastMinRange and maxRange == ud.lastMaxRange then return end
     ud.lastMinRange, ud.lastMaxRange = minRange, maxRange
     local range = nil
     local color = nil
-    if (minRange) then
-        if (minRange >= ud.db.rangeLimit) then maxRange = nil end
-        if (maxRange) then
-            if (ud.db.maxRangeOnly) then
+    if minRange then
+        if minRange >= ud.db.rangeLimit then maxRange = nil end
+        if maxRange then
+            if ud.db.maxRangeOnly then
                 range = maxRange .. ud.db.suffix
             else
                 range = minRange .. " - " .. maxRange .. ud.db.suffix
             end
-            if (ud.db.crSection.enabled and maxRange <= ud.db.crSection.range) then
+            if ud.db.crSection.enabled and maxRange <= ud.db.crSection.range then
                 color = ud.db.crSection.color
-                if (ud.db.crSection.useText) then
+                if ud.db.crSection.useText then
                     range = ud.db.crSection.text
                 end
-            elseif (ud.db.srSection.enabled and maxRange <= ud.db.srSection.range) then
+            elseif ud.db.srSection.enabled and maxRange <= ud.db.srSection.range then
                 color = ud.db.srSection.color
-                if (ud.db.srSection.useText) then
+                if ud.db.srSection.useText then
                     range = ud.db.srSection.text
                 end
-            elseif (ud.db.mrSection.enabled and maxRange <= ud.db.mrSection.range) then
+            elseif ud.db.mrSection.enabled and maxRange <= ud.db.mrSection.range then
                 color = ud.db.mrSection.color
-                if (ud.db.mrSection.useText) then
+                if ud.db.mrSection.useText then
                     range = ud.db.mrSection.text
                 end
-            elseif (ud.db.lrSection.enabled and maxRange <= ud.db.lrSection.range) then
+            elseif ud.db.lrSection.enabled and maxRange <= ud.db.lrSection.range then
                 color = ud.db.lrSection.color
-                if (ud.db.lrSection.useText) then
+                if ud.db.lrSection.useText then
                     range = ud.db.lrSection.text
                 end
-            elseif (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) then
+            elseif ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range then
                 color = ud.db.oorSection.color
-                if (ud.db.oorSection.useText) then
+                if ud.db.oorSection.useText then
                     range = ud.db.oorSection.text
                 end
             else
                 color = ud.db.color
-                if (ud.db.defaultSection.useText) then
+                if ud.db.defaultSection.useText then
                     range = ud.db.defaultSection.text
                 end
             end
-        elseif (ud.db.overLimitDisplay) then
+        elseif ud.db.overLimitDisplay then
             range = minRange .. ud.db.overLimitSuffix
-            if (ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range) then
+            if ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range then
                 color = ud.db.oorSection.color
-                if (ud.db.oorSection.useText) then
+                if ud.db.oorSection.useText then
                     range = ud.db.oorSection.text
                 end
             else
                 color = ud.db.color
-                if (ud.db.defaultSection.useText) then
+                if ud.db.defaultSection.useText then
                     range = ud.db.defaultSection.text
                 end
             end
         end
     end
     ud.rangeFrameText:SetText(range)
-    if (color) then
+    if color then
         ud:setDisplayColor(color)
     end
 end
 
 local function updateCheckValid(ud) -- needed for mouseover target
-    if (not ud:isTargetValid()) then
+    if not ud:isTargetValid() then
         ud.rangeFrame:Hide()
         return
     end
@@ -396,7 +396,7 @@ end
 local function onUpdate(frame, elapsed)
     local ud = frame.ud
     ud.lastUpdate = ud.lastUpdate + elapsed
-    if (ud.lastUpdate < UpdateDelay) then return end
+    if ud.lastUpdate < UpdateDelay then return end
     ud.lastUpdate = 0
     ud:update()
 end
@@ -408,7 +408,7 @@ local function onUpdateWithMousePos(frame, elapsed)
     ud.mainFrame:SetPoint(ud.db.point, UIParent, "BOTTOMLEFT", (x / uiScale) + ud.db.x, (y / uiScale) + ud.db.y)
 
     ud.lastUpdate = ud.lastUpdate + elapsed
-    if (ud.lastUpdate < UpdateDelay) then return end
+    if ud.lastUpdate < UpdateDelay then return end
     ud.lastUpdate = 0
     ud:update()
 end
@@ -442,20 +442,20 @@ local function createFrame(ud)
     ud.lastUpdate = 0
 
     ud.mainFrame:SetScript("OnMouseDown", function(frame, button)
-        if (button == "LeftButton") then
-            if (IsControlKeyDown()) then
+        if button == "LeftButton" then
+            if IsControlKeyDown() then
                 RangeDisplay:lock()
                 return
             end
             ud.mainFrame:StartMoving()
             ud.isMoving = true
             GameTooltip:Hide()
-        elseif (button == "RightButton") then
+        elseif button == "RightButton" then
             RangeDisplay:openConfigDialog(ud)
         end
     end)
     ud.mainFrame:SetScript("OnMouseUp", function(frame, button)
-        if (ud.isMoving and button == "LeftButton") then
+        if ud.isMoving and button == "LeftButton" then
             ud.mainFrame:StopMovingOrSizing()
             ud.isMoving = false
             ud.db.point, _, ud.db.relPoint, ud.db.x, ud.db.y = ud.mainFrame:GetPoint()
@@ -479,10 +479,10 @@ local function createFrame(ud)
 end
 
 local function enable(ud)
-    if (not ud.mainFrame) then
+    if not ud.mainFrame then
         ud:createFrame()
     end
-    if (ud.locked) then
+    if ud.locked then
         ud:lock()
     else
         ud:unlock()
@@ -492,7 +492,7 @@ local function enable(ud)
 end
 
 local function disable(ud)
-    if (ud.mainFrame) then
+    if ud.mainFrame then
         ud.mainFrame:Hide()
         RangeDisplay:unregisterTargetChangedEvent(ud)
     end
@@ -500,9 +500,9 @@ end
 
 local function lock(ud)
     ud.locked = true
-    if (ud.db.enabled) then
+    if ud.db.enabled then
         ud.mainFrame:EnableMouse(false)
-        if (ud.overlay) then
+        if ud.overlay then
             ud.overlay:Hide()
             ud.overlayText:Hide()
         end
@@ -511,8 +511,8 @@ end
 
 local function unlock(ud)
     ud.locked = false
-    if (ud.db.enabled) then
-        if (not ud.overlay) then
+    if ud.db.enabled then
+        if not ud.overlay then
             createOverlay(ud)
         end
         ud.mainFrame:EnableMouse(true)
@@ -524,15 +524,15 @@ end
 local function autoAdjust(ud)
     local _, playerClass = UnitClass("player")
     local maxRangeSpells = MaxRangeSpells[playerClass]
-    if (maxRangeSpells) then
+    if maxRangeSpells then
         local oor
         for _, sid in ipairs(maxRangeSpells) do
             local name, _, _, _, _, _, _, _, range = GetSpellInfo(sid)
-            if (range and (not oor or oor < range) and rc:findSpellIndex(name)) then
+            if range and (not oor or oor < range) and rc:findSpellIndex(name) then
                 oor = range
             end
         end
-        if (oor) then
+        if oor then
             ud.db.oorSection.range = oor
         end
     end
@@ -554,7 +554,7 @@ local units = {
         name = L["pet"], -- to make Babelfish happy
         event = "UNIT_PET",
         targetChanged = function(ud, event, unitId, ...)
-                if (unitId ~= "player") then return end
+                if unitId ~= "player" then return end
                 targetChanged(ud, event, unitId, ...)
             end,
     },
@@ -564,8 +564,8 @@ local units = {
         event = "UPDATE_MOUSEOVER_UNIT",
         mouseAnchor = true,
         applyMouseSettings = function(ud)
-                if (ud.db.enabled) then
-                    if (ud.locked and ud.db.mouseAnchor) then
+                if ud.db.enabled then
+                    if ud.locked and ud.db.mouseAnchor then
                         ud.rangeFrame:SetScript("OnUpdate", onUpdateWithMousePos)
                         ud.rangeFrame:SetScript("OnShow", updateUIScale)
                     else
@@ -574,8 +574,8 @@ local units = {
                         ud.mainFrame:ClearAllPoints()
                         ud.mainFrame:SetPoint(ud.db.point, UIParent, ud.db.relPoint, ud.db.x, ud.db.y)
                     end
-                    if (not ud.locked and ud.db.mouseAnchor) then
-                        if (not ud.fakeCursor) then
+                    if not ud.locked and ud.db.mouseAnchor then
+                        if not ud.fakeCursor then
                             ud.fakeCursor = UIParent:CreateTexture("RangeDisplayFakeCursor", "OVERLAY")
                             ud.fakeCursor:SetTexture(FakeCursorImage)
                             ud.fakeCursor:ClearAllPoints()
@@ -585,12 +585,12 @@ local units = {
                         end
                         ud.fakeCursor:Show()
                     else
-                        if (ud.fakeCursor) then
+                        if ud.fakeCursor then
                             ud.fakeCursor:Hide()
                         end
                     end
                 else
-                    if (ud.fakeCursor) then
+                    if ud.fakeCursor then
                         ud.fakeCursor:Hide()
                     end
                 end
@@ -605,7 +605,7 @@ local units = {
             end,
         disable = function(ud)
                 disable(ud)
-                if (ud.fakeCursor) then
+                if ud.fakeCursor then
                     ud.fakeCursor:Hide()
                 end
             end,
@@ -644,7 +644,7 @@ function RangeDisplay:OnInitialize()
     self.db.RegisterCallback(self, "OnProfileReset", "profileChanged")
     self:profileChanged()
     self:setupDummyOptions()
-    if (self.setupDBOptions) then -- trickery to make it work with a straight checkout
+    if self.setupDBOptions then -- trickery to make it work with a straight checkout
         self:setupDBOptions()
     end
     self:setupLDB()
@@ -661,12 +661,12 @@ function RangeDisplay:OnDisable()
 end
 
 function RangeDisplay:applySettings()
-    if (not self:IsEnabled()) then
+    if not self:IsEnabled() then
         self:OnDisable()
         return
     end
     for _, ud in ipairs(units) do
-        if (ud.db.enabled) then
+        if ud.db.enabled then
             ud:enable()
             ud:applySettings()
         else
@@ -678,7 +678,7 @@ end
 
 -- for now we assume that each unitdata is using only 1 event, and there are no overlapping events, as it's faster like this
 function RangeDisplay:registerTargetChangedEvent(ud)
-    if (ud.event) then
+    if ud.event then
         ud.eventHandler = ud.eventHandler or function(...)
             ud:targetChanged(...)
         end
@@ -687,7 +687,7 @@ function RangeDisplay:registerTargetChangedEvent(ud)
 end
 
 function RangeDisplay:unregisterTargetChangedEvent(ud)
-    if (ud.event) then
+    if ud.event then
         self:UnregisterEvent(ud.event)
     end
 end
@@ -723,7 +723,7 @@ function RangeDisplay:toggleLocked(flag)
     if flag ~= self.db.profile.locked then
         self:updateMainOptions()
     end
-    if (flag) then
+    if flag then
         self:lock()
     else
         self:unlock()
@@ -732,14 +732,14 @@ end
 
 function RangeDisplay:setupLDB()
     local LDB = LibStub:GetLibrary("LibDataBroker-1.1", true)
-    if (not LDB) then return end
+    if not LDB then return end
     local ldb = {
         type = "launcher",
         icon = Icon,
         OnClick = function(frame, button)
-            if (button == "LeftButton") then
+            if button == "LeftButton" then
                 self:toggleLocked()
-            elseif (button == "RightButton") then
+            elseif button == "RightButton" then
                 self:openConfigDialog()
             end
         end,
@@ -755,14 +755,14 @@ end
 -- LoD Options muckery
 
 function RangeDisplay:setupDummyOptions()
-    if (self.optionsLoaded) then
+    if self.optionsLoaded then
         return
     end
     self.dummyOpts = CreateFrame("Frame", AppName .. "DummyOptions", UIParent)
     self.dummyOpts.name = AppName
     self.dummyOpts:SetScript("OnShow", function(frame)
-        if (not self.optionsLoaded) then
-            if (not InterfaceOptionsFrame:IsVisible()) then
+        if not self.optionsLoaded then
+            if not InterfaceOptionsFrame:IsVisible() then
                 return -- wtf... Happens if you open the game map and close it with ESC
             end
             self:openConfigDialog()
@@ -774,10 +774,10 @@ function RangeDisplay:setupDummyOptions()
 end
 
 function RangeDisplay:loadOptions()
-    if (not self.optionsLoaded) then
+    if not self.optionsLoaded then
         self.optionsLoaded = true
         local loaded, reason = LoadAddOn(OptionsAppName)
-        if (not loaded) then
+        if not loaded then
             print("Failed to load " .. tostring(OptionsAppName) .. ": " .. tostring(reason))
         end
     end
@@ -785,7 +785,7 @@ end
 
 function RangeDisplay:openConfigDialog(ud)
     -- this function will be overwritten by the Options module when loaded
-    if (not self.optionsLoaded) then
+    if not self.optionsLoaded then
         self:loadOptions()
         return self:openConfigDialog(ud)
     end
@@ -802,7 +802,7 @@ end
 SLASH_RANGEDISPLAY1 = "/rangedisplay"
 SlashCmdList["RANGEDISPLAY"] = function(msg)
     msg = strtrim(msg or "")
-    if (msg == "locked") then
+    if msg == "locked" then
         RangeDisplay:toggleLocked()
     else
         RangeDisplay:openConfigDialog()
@@ -811,9 +811,9 @@ end
 
 CONFIGMODE_CALLBACKS = CONFIGMODE_CALLBACKS or {}
 CONFIGMODE_CALLBACKS[AppName] = function(action)
-    if (action == "ON") then
+    if action == "ON" then
          RangeDisplay:toggleLocked(false)
-    elseif (action == "OFF") then
+    elseif action == "OFF" then
          RangeDisplay:toggleLocked(true)
     end
 end
