@@ -30,7 +30,7 @@ local FrameStratas = {
 
 function RangeDisplay:openConfigDialog(ud)
     ud = ud or lastConfiguredUd
-    if (ud) then
+    if ud then
         InterfaceOptionsFrame_OpenToCategory(ud.opts)
     else
         InterfaceOptionsFrame_OpenToCategory(self.profiles) -- to expand our tree
@@ -55,10 +55,10 @@ local function yes()
 end
 
 local function copyTable(src, dst)
-    if (type(dst) ~= "table") then dst = {} end
-    if (type(src) == "table") then
+    if type(dst) ~= "table" then dst = {} end
+    if type(src) == "table" then
         for k, v in pairs(src) do
-            if (type(v) == "table") then
+            if type(v) == "table" then
                 v = copyTable(v, dst[k])
             end
             dst[k] = v
@@ -87,7 +87,7 @@ end
 
 local function setColor(ud, dbcolor, r, g, b, a)
     dbcolor.r, dbcolor.g, dbcolor.b, dbcolor.a = r, g, b, a
-    if (ud.rangeFrameText) then
+    if ud.rangeFrameText then
         ud:setDisplayColor(dbcolor)
     end
 end
@@ -119,10 +119,10 @@ end
 local function setBGColor(ud, info, r, g, b, a)
     local dbcolor = ud.db[info[#info]]
     dbcolor.r, dbcolor.g, dbcolor.b, dbcolor.a = r, g, b, a
-    if (not ud.bgFrame) then
+    if not ud.bgFrame then
          return
     end
-    if (ud.db.bgUseSectionColors) then
+    if ud.db.bgUseSectionColors then
         ud.rangeFrameText:SetTextColor(ud.db.bgColor.r, ud.db.bgColor.g, ud.db.bgColor.b, ud.db.bgColor.a)
     else
         ud.bgFrame:SetBackdropColor(ud.db.bgColor.r, ud.db.bgColor.g, ud.db.bgColor.b, ud.db.bgColor.a)
@@ -453,7 +453,7 @@ do
                     width = 'full',
                     func = function()
                         for _, oud in ipairs(RangeDisplay.units) do
-                            if (oud ~= ud and oud.db.enabled) then
+                            if oud ~= ud and oud.db.enabled then
                                 copyTable(ud.db.crSection, oud.db.crSection)
                                 copyTable(ud.db.srSection, oud.db.srSection)
                                 copyTable(ud.db.mrSection, oud.db.mrSection)
@@ -468,7 +468,7 @@ do
                 },
             },
         }
-        if (ud.mouseAnchor) then
+        if ud.mouseAnchor then
             opts.args.enabled.width = nil
             opts.args.mouseAnchor = {
                 type = 'toggle',
@@ -508,9 +508,9 @@ do
     self.optionsLoaded = true
 
     -- remove dummy options frame, ugly hack
-    if (self.dummyOpts) then 
+    if self.dummyOpts then 
         for k, f in ipairs(INTERFACEOPTIONS_ADDONCATEGORIES) do
-            if (f == self.dummyOpts) then
+            if f == self.dummyOpts then
                 tremove(INTERFACEOPTIONS_ADDONCATEGORIES, k)
                 f:SetParent(UIParent)
                 break
@@ -538,7 +538,7 @@ do
         self.profiles = registerSubOptions('profiles', profiles)
         fakeUdForProfiles.opts = self.profiles
 --@do-not-package@
-        if (self.db.profile.debug) then
+        if self.db.profile.debug then
             local rc = LibStub("LibRangeCheck-2.0")
             local debugOptions = {
                 type = 'group',
@@ -550,7 +550,7 @@ do
                         name = "StartMeasurement",
                         --desc = "StartMeasurement",
                         func = function()
-                            if (not self.db.profile.measurements) then
+                            if not self.db.profile.measurements then
                                 self.db.profile.measurements = {}
                             end
                             self.db.profile.measurements[UnitName("player")] = {}
@@ -682,7 +682,7 @@ do
         end
 --@end-do-not-package@ 
     end
-    if (self.db) then -- trickery to make it work with a straight checkout
+    if self.db then -- trickery to make it work with a straight checkout
         self:setupDBOptions()
         self.setupDBOptions = nil
     end
