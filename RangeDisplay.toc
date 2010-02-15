@@ -10,7 +10,7 @@
 ## OptionalDeps: LibStub, CallbackHandler-1.0, LibRangeCheck-2.0, Ace3, LibSharedMedia-3.0, LibDualSpec-1.0
 #@do-not-package@
 ## OptionalDeps: LibStub, CallbackHandler-1.0, LibRangeCheck-2.0, Ace3, LibSharedMedia-3.0, LibDualSpec-1.0 AceGUI-3.0-SharedMediaWidgets
-#@end-do-not-package@ 
+#@end-do-not-package@
 ## X-Category: Combat
 ## X-License: Public Domain
 ## X-RelSite-WoWI: 7297
@@ -29,4 +29,4 @@ RangeDisplay.lua
 RangeDisplay_Options\embeds.xml
 RangeDisplay_Options\localizations\localizations.xml
 RangeDisplay_Options\Options.lua
-#@end-do-not-package@ 
+#@end-do-not-package@
