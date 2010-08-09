@@ -97,7 +97,7 @@ end
 
 local defaults = {
     profile = {
-        locked = true,
+        locked = false,
         mute = false,
         minimap = {},
         units = {
@@ -492,9 +492,10 @@ local function createFrame(ud)
     ud.mainFrame:SetScript("OnEnter", function(frame)
         GameTooltip:SetOwner(frame)
         GameTooltip:AddLine("RangeDisplay: " .. L[unit])
-        GameTooltip:AddLine(L["|cffeda55fDrag|r to move the frame"])
+        GameTooltip:AddLine(" ")
         GameTooltip:AddLine(L["|cffeda55fControl + Left Click|r to lock frames"])
         GameTooltip:AddLine(L["|cffeda55fRight Click|r to open the configuration window"])
+        GameTooltip:AddLine(L["|cffeda55fDrag|r to move the frame"])
         GameTooltip:Show()
     end)
     ud.mainFrame:SetScript("OnLeave", function(frame)
