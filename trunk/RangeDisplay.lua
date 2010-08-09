@@ -208,6 +208,7 @@ local function targetChanged(ud)
         ud.lastUpdate = UpdateDelay -- to force update in next onUpdate()
         if not ud.db.targetChangeKeepsSound then
             ud.lastSound = nil -- to force playing sound
+            ud.lastMinRange, ud.lastMaxRange = false, false -- to force update
         end
     else
         ud.rangeFrame:Hide()
