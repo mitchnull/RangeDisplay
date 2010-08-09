@@ -28,6 +28,15 @@ local FrameStratas = {
     ["LOW"] = L["Low"],
 }
 
+local SectionNames = {
+    ["crSection"] = L["Close range section"],
+    ["srSection"] = L["Short range section"],
+    ["mrSection"] = L["Medium range section"],
+    ["lrSection"] = L["Long range section"],
+    ["defaultSection"] = L["Default section"],
+    ["oorSection"] = L["Out of range section"],
+}
+
 function RangeDisplay:openConfigDialog(ud)
     ud = ud or lastConfiguredUd
     if ud then
@@ -156,7 +165,7 @@ do
         args = {
             locked = {
                 type = 'toggle',
-                width = 'full',
+                -- width = 'full',
                 name = L["Locked"],
                 desc = L["Lock/Unlock display frame"],
                 order = 110,
@@ -165,16 +174,24 @@ do
                     return false
                 end,
             },
+            mute = {
+                type = 'toggle',
+                -- width = 'full',
+                name = L["Mute"],
+                desc = L["Toggle sound"],
+                order = 111,
+            },
         },
     }
 
-    local function makeSectionOptions(ud, order, name, isDefault)
+    local function makeSectionOptions(ud, order, section)
+        local isDefault = (section == "defaultSection")
         return  {
             type = 'group',
             disabled = "isSectionDisabled",
             set = "setSectionOption",
             get = "getSectionOption",
-            name = L[name],
+            name = SectionNames[section],
             guiInline = true,
             order = order,
             args = {
@@ -224,6 +241,19 @@ do
                     disabled = "isSectionTextDisabled",
                     -- width = 'half',
                     order = 50,
+                },
+                warnSound = {
+                    type = 'toggle',
+                    name = L["Warning Sound"],
+                    desc = L["Play a sound when entering this range"],
+                    order = 60,
+                },
+                warnSoundName = {
+                    type = "select", dialogControl = 'LSM30_Sound',
+                    disabled = function() return not ud.db[section].warnSound end,
+                    name = L["Warning Sound Name"],
+                    values = AceGUIWidgetLSMlists.sound,
+                    order = 70,
                 },
             },
         }
@@ -421,13 +451,6 @@ do
                         },
                     },
                 },
-
-                crSection = makeSectionOptions(ud, 165, "Close range section"),
-                srSection = makeSectionOptions(ud, 170, "Short range section"),
-                mrSection = makeSectionOptions(ud, 173, "Medium range section"),
-                lrSection = makeSectionOptions(ud, 174, "Long range section"),
-                defaultSection = makeSectionOptions(ud, 175, "Default section", true),
-                oorSection = makeSectionOptions(ud, 176, "Out of range section"),
                 autoAdjust = {
                     type = 'execute',
                     name = L["Auto adjust"],
@@ -457,6 +480,10 @@ do
                 },
             },
         }
+
+        for i, section in pairs(RangeDisplay.Sections) do
+            opts.args[section] = makeSectionOptions(ud, 170 + i, section)
+        end
         if ud.mouseAnchor then
             opts.args.enabled.width = nil
             opts.args.mouseAnchor = {
