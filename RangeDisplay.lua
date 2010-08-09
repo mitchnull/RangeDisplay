@@ -97,7 +97,7 @@ end
 
 local defaults = {
     profile = {
-        locked = false,
+        locked = true,
         mute = false,
         minimap = {},
         units = {
