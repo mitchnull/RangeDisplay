@@ -86,6 +86,7 @@ RangeDisplay:SetDefaultModuleState(false)
 RangeDisplay.version = VERSION
 RangeDisplay.AppName = AppName
 RangeDisplay.OptionsAppName = OptionsAppName
+RangeDisplay.Sections = Sections
 
 -- Default DB stuff
 
@@ -97,6 +98,7 @@ end
 local defaults = {
     profile = {
         locked = false,
+        mute = false,
         minimap = {},
         units = {
             ["**"] = {
@@ -204,7 +206,9 @@ local function targetChanged(ud)
     if ud:isTargetValid() then
         ud.rangeFrame:Show()
         ud.lastUpdate = UpdateDelay -- to force update in next onUpdate()
-        ud.lastSound = nil -- to force playing sound
+        if not ud.db.targetChangeKeepsSound then
+            ud.lastSound = nil -- to force playing sound
+        end
     else
         ud.rangeFrame:Hide()
     end
@@ -401,7 +405,7 @@ local function update(ud)
     if section then
         ud:setDisplayColor(ud.db[section].color)
         local sound = ud.sounds[section]
-        if sound and not mute then
+        if sound and not mute and sound ~= ud.lastSound then
             PlaySoundFile(sound)
         end
         ud.lastSound = sound
@@ -700,6 +704,7 @@ function RangeDisplay:applySettings()
         end
     end
     self:toggleLocked(self.db.profile.locked == true)
+    self:toggleMute(self.db.profile.mute == true)
 end
 
 -- for now we assume that each unitdata is using only 1 event, and there are no overlapping events, as it's faster like this
@@ -760,9 +765,10 @@ function RangeDisplay:toggleMute(flag)
     if flag == nil then
         flag = not self.db.profile.mute
     end
-    if flag ~= self.db.profile.locked then
+    if flag ~= self.db.profile.mute then
         self:updateMainOptions()
     end
+    self.db.profile.mute = flag
     mute = flag
 end
 
