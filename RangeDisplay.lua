@@ -21,6 +21,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale(AppName)
 
 local uiScale = 1.0 -- just to be safe...
 local _ -- throwaway
+local mute = nil
 
 -- cached stuff
 
@@ -30,6 +31,7 @@ local UnitCanAttack = UnitCanAttack
 local UnitIsUnit = UnitIsUnit
 local GetCursorPosition = GetCursorPosition
 local UIParent = UIParent
+local PlaySoundFile = PlaySoundFile
 
 -- hard-coded config stuff
 
@@ -64,6 +66,15 @@ local MaxRangeSpells = {
         348, -- ["Immolate"], -- 30 (Destructive Reach: 33, 36)
         172, -- ["Corruption"], -- 30 (Grim Reach: 33, 36)
     },
+}
+
+local Sections = {
+    "crSection",
+    "srSection",
+    "mrSection",
+    "lrSection",
+    "defaultSection",
+    "oorSection",
 }
 
 ---------------------------------
@@ -123,9 +134,9 @@ local defaults = {
                     range = 40,
                     text = "Too far, mon!",
                 },
-                color = makeColor(1.0, 0.82, 0),
                 defaultSection = {
                     enabled = true,
+                    color = makeColor(1.0, 0.82, 0),
                 },
                 lrSection = {
                     enabled = false,
@@ -193,13 +204,20 @@ local function targetChanged(ud)
     if ud:isTargetValid() then
         ud.rangeFrame:Show()
         ud.lastUpdate = UpdateDelay -- to force update in next onUpdate()
+        ud.lastSound = nil -- to force playing sound
     else
         ud.rangeFrame:Hide()
     end
 end
 
-local function profileChanged(ud, db) 
+local function profileChanged(ud, db)
     ud.db = db
+    if db.color then -- FIXME: migration from pre 1.9.0 version, remove later
+        db.defaultSection.color.r = db.color.r
+        db.defaultSection.color.g = db.color.g
+        db.defaultSection.color.b = db.color.b
+        db.color = nil
+    end
 end
 
 local function mediaUpdate(ud, event, mediaType, key)
@@ -214,6 +232,12 @@ local function mediaUpdate(ud, event, mediaType, key)
     elseif mediaType == 'border' then
         if key == ud.db.bgBorderTexture then
             ud:applyBGSettings()
+        end
+    elseif mediaType == 'sound' then
+        for _, section in pairs(Sections) do
+            if ud.db[section].warnSound and key == ud.db[section].warnSoundName then
+                ud.sounds[section] = LSM:Fetch("sound", ud.db[section].warnSoundName)
+            end
         end
     end
 end
@@ -267,7 +291,7 @@ local function applyBGSettings(ud)
         ud.setDisplayColor = setDisplayColor_Text
         setDisplayColor_Backdrop(ud, ud.db.bgColor)
     end
-    -- ud:setDisplayColor(ud.db.color)
+    -- ud:setDisplayColor(ud.db.defaultSection.color)
 end
 
 local function applyFontSettings(ud)
@@ -298,6 +322,18 @@ local function applySettings(ud)
         ud.mainFrame:SetFrameStrata(ud.db.strata)
         ud:applyFontSettings()
         ud:applyBGSettings()
+        if LSM then
+            for _, section in pairs(Sections) do
+                if ud.db[section].warnSound then
+                    ud.sounds[section] = LSM:Fetch("sound", ud.db[section].warnSoundName)
+                    if not ud.sounds[section] then
+                        LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "mediaUpdate")
+                    end
+                else
+                    ud.sounds[section] = nil
+                end
+            end
+        end
         ud.lastMinRange, ud.lastMaxRange = false, false -- to force update
         ud:update()
     else
@@ -324,64 +360,51 @@ local function update(ud)
     if minRange == ud.lastMinRange and maxRange == ud.lastMaxRange then return end
     ud.lastMinRange, ud.lastMaxRange = minRange, maxRange
     local range = nil
-    local color = nil
+    local section = nil
     if minRange then
         if minRange >= ud.db.rangeLimit then maxRange = nil end
         if maxRange then
-            if ud.db.maxRangeOnly then
+            if ud.db.crSection.enabled and maxRange <= ud.db.crSection.range then
+                section = "crSection"
+            elseif ud.db.srSection.enabled and maxRange <= ud.db.srSection.range then
+                section = "srSection"
+            elseif ud.db.mrSection.enabled and maxRange <= ud.db.mrSection.range then
+                section = "mrSection"
+            elseif ud.db.lrSection.enabled and maxRange <= ud.db.lrSection.range then
+                section = "lrSection"
+            elseif ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range then
+                section = "oorSection"
+            else
+                section = "defaultSection"
+            end
+            if ud.db[section].useText then
+                range = ud.db[section].text
+            elseif ud.db.maxRangeOnly then
                 range = maxRange .. ud.db.suffix
             else
                 range = minRange .. " - " .. maxRange .. ud.db.suffix
             end
-            if ud.db.crSection.enabled and maxRange <= ud.db.crSection.range then
-                color = ud.db.crSection.color
-                if ud.db.crSection.useText then
-                    range = ud.db.crSection.text
-                end
-            elseif ud.db.srSection.enabled and maxRange <= ud.db.srSection.range then
-                color = ud.db.srSection.color
-                if ud.db.srSection.useText then
-                    range = ud.db.srSection.text
-                end
-            elseif ud.db.mrSection.enabled and maxRange <= ud.db.mrSection.range then
-                color = ud.db.mrSection.color
-                if ud.db.mrSection.useText then
-                    range = ud.db.mrSection.text
-                end
-            elseif ud.db.lrSection.enabled and maxRange <= ud.db.lrSection.range then
-                color = ud.db.lrSection.color
-                if ud.db.lrSection.useText then
-                    range = ud.db.lrSection.text
-                end
-            elseif ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range then
-                color = ud.db.oorSection.color
-                if ud.db.oorSection.useText then
-                    range = ud.db.oorSection.text
-                end
-            else
-                color = ud.db.color
-                if ud.db.defaultSection.useText then
-                    range = ud.db.defaultSection.text
-                end
-            end
         elseif ud.db.overLimitDisplay then
-            range = minRange .. ud.db.overLimitSuffix
             if ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range then
-                color = ud.db.oorSection.color
-                if ud.db.oorSection.useText then
-                    range = ud.db.oorSection.text
-                end
+                section = "oorSection"
             else
-                color = ud.db.color
-                if ud.db.defaultSection.useText then
-                    range = ud.db.defaultSection.text
-                end
+                section = "defaultSection"
+            end
+            if ud.db[section].useText then
+                range = ud.db[section].text
+            else
+                range = minRange .. ud.db.overLimitSuffix
             end
         end
     end
     ud.rangeFrameText:SetText(range)
-    if color then
-        ud:setDisplayColor(color)
+    if section then
+        ud:setDisplayColor(ud.db[section].color)
+        local sound = ud.sounds[section]
+        if sound and not mute then
+            PlaySoundFile(sound)
+        end
+        ud.lastSound = sound
     end
 end
 
@@ -481,6 +504,9 @@ end
 local function enable(ud)
     if not ud.mainFrame then
         ud:createFrame()
+    end
+    if not ud.sounds then
+        ud.sounds = {}
     end
     if ud.locked then
         ud:lock()
@@ -730,6 +756,16 @@ function RangeDisplay:toggleLocked(flag)
     end
 end
 
+function RangeDisplay:toggleMute(flag)
+    if flag == nil then
+        flag = not self.db.profile.mute
+    end
+    if flag ~= self.db.profile.locked then
+        self:updateMainOptions()
+    end
+    mute = flag
+end
+
 function RangeDisplay:setupLDB()
     local LDB = LibStub:GetLibrary("LibDataBroker-1.1", true)
     if not LDB then return end
@@ -738,7 +774,11 @@ function RangeDisplay:setupLDB()
         icon = Icon,
         OnClick = function(frame, button)
             if button == "LeftButton" then
-                self:toggleLocked()
+                if IsShiftKeyDown() then
+                    self:toggleMute()
+                else
+                    self:toggleLocked()
+                end
             elseif button == "RightButton" then
                 self:openConfigDialog()
             end
@@ -746,6 +786,7 @@ function RangeDisplay:setupLDB()
         OnTooltipShow = function(tt)
             tt:AddLine(self.AppName)
             tt:AddLine(L["|cffeda55fLeft Click|r to lock/unlock frames"])
+            tt:AddLine(L["|cffeda55fShift + Left Click|r to toggle sound"])
             tt:AddLine(L["|cffeda55fRight Click|r to open the configuration window"])
         end,
     }

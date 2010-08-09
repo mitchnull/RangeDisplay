@@ -96,16 +96,6 @@ local function getColor(ud, dbcolor)
     return dbcolor.r, dbcolor.g, dbcolor.b, dbcolor.a
 end
 
-local function getUnitColor(ud, info)
-    local dbcolor = ud.db[info[#info]]
-    return getColor(ud, dbcolor)
-end
-
-local function setUnitColor(ud, info, r, g, b, a)
-    local dbcolor = ud.db[info[#info]]
-    setColor(ud, dbcolor, r, g, b, a)
-end
-
 local function getSectionColor(ud, info)
     local dbcolor =  ud.db[info[#info - 1]][info[#info]]
     return getColor(ud, dbcolor)
@@ -203,8 +193,8 @@ do
                     hasAlpha = true,
                     name = L["Color"],
                     --desc = L["Color"],
-                    set = isDefault and "setUnitColor" or "setSectionColor",
-                    get = isDefault and "getUnitColor" or "getSectionColor",
+                    set = "setSectionColor",
+                    get = "getSectionColor",
                     width = 'half',
                     order = 20,
                 },
@@ -460,7 +450,6 @@ do
                                 copyTable(ud.db.lrSection, oud.db.lrSection)
                                 copyTable(ud.db.defaultSection, oud.db.defaultSection)
                                 copyTable(ud.db.oorSection, oud.db.oorSection)
-                                copyTable(ud.db.color, oud.db.color)
                             end
                         end
                     end,
@@ -483,8 +472,6 @@ do
         for _, ud in ipairs(units) do
             ud.getUnitOption = getUnitOption
             ud.setUnitOption = setUnitOption
-            ud.getUnitColor = getUnitColor
-            ud.setUnitColor = setUnitColor
             ud.getSectionColor = getSectionColor
             ud.setSectionColor = setSectionColor
             ud.getSectionOption = getSectionOption
