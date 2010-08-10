@@ -77,6 +77,22 @@ local Sections = {
     "oorSection",
 }
 
+-- all sounds are slightly edited samples from freesound.org
+local Sounds = {
+    ["DoubleSwoosh"] = [[Interface\AddOns\]] .. AppName .. [[\sounds\19312.wav]],
+    ["Goblet F Medium"] = [[Interface\AddOns\]] .. AppName .. [[\sounds\30600.wav]],
+    ["SwordUnsheathed"] = [[Interface\AddOns\]] .. AppName .. [[\sounds\74833.wav]],
+}
+
+local DefaultSoundNames = {
+    ["crSection"] = "SwordUnsheathed",
+    ["srSection"] = "DoubleSwoosh",
+    ["mrSection"] = "DoubleSwoosh",
+    ["lrSection"] = "DoubleSwoosh",
+    ["defaultSection"] = "DoubleSwoosh",
+    ["oorSection"] = "Goblet F Medium",
+}
+
 ---------------------------------
 
 RangeDisplay = LibStub("AceAddon-3.0"):NewAddon(AppName, "AceEvent-3.0")
@@ -135,31 +151,42 @@ local defaults = {
                     color = makeColor(0.9, 0.055, 0.075),
                     range = 40,
                     text = "Too far, mon!",
+                    warnSoundName = DefaultSoundNames["oorSection"],
                 },
                 defaultSection = {
                     enabled = true,
                     color = makeColor(1.0, 0.82, 0),
+                    warnSoundName = DefaultSoundNames["defaultSection"],
                 },
                 lrSection = {
                     enabled = false,
                     color = makeColor(1.0, 0.82, 0),
                     range = 35,
+                    warnSoundName = DefaultSoundNames["lrSection"],
                 },
                 mrSection = {
                     enabled = true,
                     color = makeColor(0.035, 0.865, 0.0),
                     range = 30,
+                    warnSoundName = DefaultSoundNames["mrSection"],
                 },
                 srSection = {
                     enabled = true,
                     color = makeColor(0.055, 0.875, 0.825),
                     range = 20,
+                    warnSoundName = DefaultSoundNames["srSection"],
                 },
                 crSection = {
                     enabled = true,
                     color = makeColor(0.9, 0.9, 0.9),
                     range = 5,
                     text = "Melee",
+                    warnSoundName = DefaultSoundNames["crSection"],
+                },
+            },
+            ["playertarget"] = {
+                crSection = {
+                    warnSound = true,
                 },
             },
             ["focus"] = {
@@ -217,7 +244,7 @@ end
 
 local function profileChanged(ud, db)
     ud.db = db
-    if db.color then -- FIXME: migration from pre 1.9.0 version, remove later
+    if db.color then -- FIXME: migration from pre 3.8.0 version, remove later
         db.defaultSection.color.r = db.color.r
         db.defaultSection.color.g = db.color.g
         db.defaultSection.color.b = db.color.b
@@ -332,6 +359,9 @@ local function applySettings(ud)
                 if ud.db[section].warnSound then
                     ud.sounds[section] = LSM:Fetch("sound", ud.db[section].warnSoundName)
                     if not ud.sounds[section] then
+                        if DefaultSoundNames[section] then
+                            ud.sounds[section] = Sounds[DefaultSoundNames[section]]
+                        end
                         LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "mediaUpdate")
                     end
                 else
@@ -667,6 +697,11 @@ RangeDisplay.units = units
 -- AceAddon stuff
 
 function RangeDisplay:OnInitialize()
+    if LSM then
+        for sound, fileName in pairs(Sounds) do
+            LSM:Register("sound", name, fileName)
+        end
+    end
     self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
     if LibDualSpec then
         LibDualSpec:EnhanceDatabase(self.db, AppName)
