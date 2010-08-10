@@ -699,7 +699,7 @@ RangeDisplay.units = units
 function RangeDisplay:OnInitialize()
     if LSM then
         for sound, fileName in pairs(Sounds) do
-            LSM:Register("sound", name, fileName)
+            LSM:Register("sound", sound, fileName)
         end
     end
     self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
