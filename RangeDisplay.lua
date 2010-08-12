@@ -702,7 +702,7 @@ function RangeDisplay:OnInitialize()
             LSM:Register("sound", sound, fileName)
         end
     end
-    self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults)
+    self.db = LibStub("AceDB-3.0"):New("RangeDisplayDB3", defaults, true)
     if LibDualSpec then
         LibDualSpec:EnhanceDatabase(self.db, AppName)
     end
