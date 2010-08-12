@@ -28,10 +28,13 @@ local mute = nil
 local UnitExists = UnitExists
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 local UnitCanAttack = UnitCanAttack
+local UnitCanAssist = UnitCanAssist
 local UnitIsUnit = UnitIsUnit
 local GetCursorPosition = GetCursorPosition
 local UIParent = UIParent
 local PlaySoundFile = PlaySoundFile
+local ipairs = ipairs
+local pairs = pairs
 
 -- hard-coded config stuff
 
@@ -128,6 +131,7 @@ local defaults = {
                 fontOutline = "",
                 strata = "HIGH",
                 enemyOnly = false,
+                warnEnemyOnly = true,
                 maxRangeOnly = false,
                 suffix = "",
 
@@ -222,15 +226,29 @@ local function setDisplayColor_Backdrop(ud, color)
     ud.bgFrame:SetBackdropColor(color.r, color.g, color.b, color.a)
 end
 
-local function isTargetValid(ud)
+local function checkTarget(ud)
     local unit = ud.unit
-    return UnitExists(unit)
-            and (not ud.db.enemyOnly or UnitCanAttack("player", unit))
-            and (not UnitIsUnit(unit, "player"))
+    if not UnitExists(unit) or UnitIsUnit(unit, "player") then
+        return nil
+    end
+    if UnitIsDeadOrGhost(unit) then
+        ud.useSound = false
+        return not ud.db.enemyOnly
+    end
+    if UnitCanAttack("player", unit) then
+        ud.useSound = not mute
+        return true
+    elseif UnitCanAssist("player", unit) then
+        ud.useSound = not mute and not ud.db.warnEnemyOnly 
+        return not ud.db.enemyOnly
+    else
+        ud.useSound = false
+        return not ud.db.enemyOnly
+    end
 end
 
 local function targetChanged(ud)
-    if ud:isTargetValid() then
+    if ud:checkTarget() then
         ud.rangeFrame:Show()
         ud.lastUpdate = UpdateDelay -- to force update in next onUpdate()
         if not ud.db.targetChangeKeepsSound then
@@ -344,7 +362,7 @@ local function applyFontSettings(ud)
     end
 end
 
-local function applySettings(ud)
+local function applySettings(ud, whatChanged)
     if ud.db.enabled then
         ud:enable()
         ud.mainFrame:ClearAllPoints()
@@ -368,6 +386,9 @@ local function applySettings(ud)
                     ud.sounds[section] = nil
                 end
             end
+        end
+        if whatChanged == 'enemyOnly' or whatChanged == 'warnEnemyOnly' then
+            ud:targetChanged()
         end
         ud.lastMinRange, ud.lastMaxRange = false, false -- to force update
         ud:update()
@@ -436,7 +457,7 @@ local function update(ud)
     if section then
         ud:setDisplayColor(ud.db[section].color)
         local sound = ud.sounds[section]
-        if sound and not mute and sound ~= ud.lastSound then
+        if sound and ud.useSound and sound ~= ud.lastSound then
             PlaySoundFile(sound)
         end
         ud.lastSound = sound
@@ -444,7 +465,7 @@ local function update(ud)
 end
 
 local function updateCheckValid(ud) -- needed for mouseover target
-    if not ud:isTargetValid() then
+    if not ud:checkTarget() then
         ud.rangeFrame:Hide()
         return
     end
@@ -682,7 +703,7 @@ for _, ud in ipairs(units) do
     ud.applyBGSettings = ud.applyBGSettings or applyBGSettings
     ud.mediaUpdate = ud.mediaUpdate or mediaUpdate
     ud.targetChanged = ud.targetChanged or targetChanged
-    ud.isTargetValid = ud.isTargetValid or isTargetValid
+    ud.checkTarget = ud.checkTarget or checkTarget
     ud.lock = ud.lock or lock
     ud.unlock = ud.unlock or unlock
     ud.createFrame = ud.createFrame or createFrame
@@ -814,6 +835,11 @@ function RangeDisplay:toggleMute(flag)
     end
     self.db.profile.mute = flag
     mute = flag
+    for _, ud in ipairs(units) do
+        if ud.db.enabled then
+            ud:checkTarget() -- to update useSound
+        end
+    end
 end
 
 function RangeDisplay:setupLDB()

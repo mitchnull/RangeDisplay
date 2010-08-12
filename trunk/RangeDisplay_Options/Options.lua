@@ -82,7 +82,7 @@ end
 
 local function setUnitOption(ud, info, value)
     ud.db[info[#info]] = value
-    ud:applySettings()
+    ud:applySettings(info[#info])
 end
 
 local function getSectionOption(ud, info)
@@ -277,7 +277,12 @@ do
                         lastConfiguredUd = ud
                         return false
                     end,
-                    width = 'full', -- to make the layout nicer
+                },
+                maxRangeOnly = {
+                    type = 'toggle',
+                    name = L["Max range only"],
+                    desc = L["Show the maximum range only"],
+                    order = 114,
                 },
                 enemyOnly = {
                     type = 'toggle',
@@ -285,11 +290,16 @@ do
                     desc = L["Show range for enemy targets only"],
                     order = 115,
                 },
-                maxRangeOnly = {
+                warnEnemyOnly = {
                     type = 'toggle',
-                    name = L["Max range only"],
-                    desc = L["Show the maximum range only"],
+                    name = L["Enemy only sound"],
+                    desc = L["Use warning sound for enemy targets only"],
                     order = 116,
+                },
+                sep1 = {
+                    type = 'header',
+                    name = "",
+                    order = 118,
                 },
                 rangeLimit = {
                     type = 'range',
@@ -298,17 +308,15 @@ do
                     min = MinRangeLimit,
                     max = MaxRangeLimit,
                     step = 1,
-                    order = 118,
+                    order = 119,
 
                 },
-
                 suffix = {
                     type = 'input',
                     name = L["Suffix"],
                     desc = L["A free-form suffix to append to the range display when you are in range"],
-                    order = 119,
+                    order = 120,
                 },
-
                 overLimitDisplay = {
                     type = 'toggle',
                     name = L["Over limit display"],
@@ -322,7 +330,11 @@ do
                     order = 125,
                     disabled = function() return not ud.db.enabled or not ud.db.overLimitDisplay end,
                 },
-
+                sep2 = {
+                    type = 'header',
+                    name = "",
+                    order = 130,
+                },
                 font = {
                     type = "select", dialogControl = 'LSM30_Font',
                     name = L["Font"],
@@ -352,6 +364,11 @@ do
                     desc = L["Frame strata"],
                     values = FrameStratas,
                     order = 155,
+                },
+                sepBG = {
+                    type = 'header',
+                    name = "",
+                    order = 157,
                 },
                 bg = {
                     type = "group",
@@ -451,6 +468,11 @@ do
                         },
                     },
                 },
+                sepSections = {
+                    type = 'header',
+                    name = "",
+                    order = 159,
+                },
                 autoAdjust = {
                     type = 'execute',
                     name = L["Auto adjust"],
@@ -485,11 +507,10 @@ do
             opts.args[section] = makeSectionOptions(ud, 170 + i, section)
         end
         if ud.mouseAnchor then
-            opts.args.enabled.width = nil
             opts.args.mouseAnchor = {
                 type = 'toggle',
                 name = L["Anchor to Mouse"],
-                order = 114,
+                order = 117,
             }
         end
         return opts
