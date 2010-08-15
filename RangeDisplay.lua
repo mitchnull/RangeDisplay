@@ -188,11 +188,11 @@ local defaults = {
                     warnSoundName = DefaultSoundNames["crSection"],
                 },
             },
-            ["playertarget"] = {
-                crSection = {
-                    warnSound = true,
-                },
-            },
+--            ["playertarget"] = {
+--                crSection = {
+--                    warnSound = true,
+--                },
+--            },
             ["focus"] = {
                 x = -(DefaultFrameWidth + 10),
             },
