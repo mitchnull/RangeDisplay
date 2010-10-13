@@ -82,9 +82,9 @@ local Sections = {
 
 -- all sounds are slightly edited samples from freesound.org
 local Sounds = {
-    ["DoubleSwoosh"] = [[Interface\AddOns\]] .. AppName .. [[\sounds\19312.wav]],
-    ["Goblet F Medium"] = [[Interface\AddOns\]] .. AppName .. [[\sounds\30600.wav]],
-    ["SwordUnsheathed"] = [[Interface\AddOns\]] .. AppName .. [[\sounds\74833.wav]],
+    ["DoubleSwoosh"] = [[Interface\AddOns\]] .. AppName .. [[\sounds\19312.ogg]],
+    ["Goblet F Medium"] = [[Interface\AddOns\]] .. AppName .. [[\sounds\30600.ogg]],
+    ["SwordUnsheathed"] = [[Interface\AddOns\]] .. AppName .. [[\sounds\74833.ogg]],
 }
 
 local DefaultSoundNames = {
