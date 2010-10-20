@@ -114,6 +114,8 @@ local function makeColor(r, g, b, a)
     return { ["r"] = r, ["g"] = g, ["b"] = b, ["a"] = a }
 end
 
+local Transparent = makeColor(0, 0, 0, 0)
+
 local defaults = {
     profile = {
         locked = false,
@@ -256,6 +258,7 @@ local function targetChanged(ud)
             ud.lastMinRange, ud.lastMaxRange = false, false -- to force update
         end
     else
+        ud:setDisplayColor(Transparent)
         ud.rangeFrame:Hide()
     end
 end
@@ -461,6 +464,8 @@ local function update(ud)
             PlaySoundFile(sound)
         end
         ud.lastSound = sound
+    else
+        ud:setDisplayColor(Transparent)
     end
 end
 
