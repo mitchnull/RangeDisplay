@@ -142,10 +142,6 @@ local function isSectionDisabled(ud, info)
     return (not ud.db.enabled) or (not ud.db[info[#info - 1]].enabled)
 end
 
-local function isSectionTextDisabled(ud, info)
-    return (not ud.db.enabled) or (not ud.db[info[#info - 1]].enabled) or (not ud.db[info[#info - 1]].useText)
-end
-
 function RangeDisplay:updateMainOptions()
     ACR:NotifyChange(self.AppName)
 end
@@ -227,21 +223,6 @@ do
                     step = 1,
                     order = 30,
                 },
-                useText = {
-                    type = 'toggle',
-                    name = L["Use Text"],
-                    desc = L["Use static text instead of the numeric range"],
-                    -- width = 'half',
-                    order = 40,
-                },
-                text = {
-                    type = 'input',
-                    name = L["Text"],
-                    desc = L["A free-form text to display for this section instead of the numeric range"],
-                    disabled = "isSectionTextDisabled",
-                    -- width = 'half',
-                    order = 50,
-                },
                 warnSound = {
                     type = 'toggle',
                     name = L["Warning Sound"],
@@ -254,6 +235,13 @@ do
                     name = L["Warning Sound Name"],
                     values = AceGUIWidgetLSMlists.sound,
                     order = 70,
+                },
+                text = {
+                    type = 'input',
+                    name = L["Text"],
+                    desc = L["The text to display for this section"],
+                    -- width = 'half',
+                    order = 80,
                 },
             },
         }
@@ -278,10 +266,10 @@ do
                         return false
                     end,
                 },
-                maxRangeOnly = {
+                reverse = {
                     type = 'toggle',
-                    name = L["Max range only"],
-                    desc = L["Show the maximum range only"],
+                    name = L["Reverse"],
+                    desc = L["Show max-min instead of min-max"],
                     order = 114,
                 },
                 enemyOnly = {
@@ -300,40 +288,6 @@ do
                     type = 'header',
                     name = "",
                     order = 118,
-                },
-                rangeLimit = {
-                    type = 'range',
-                    name = L["Range limit"],
-                    desc = L["Ranges above this are not reported"],
-                    min = MinRangeLimit,
-                    max = MaxRangeLimit,
-                    step = 1,
-                    order = 119,
-
-                },
-                suffix = {
-                    type = 'input',
-                    name = L["Suffix"],
-                    desc = L["A free-form suffix to append to the range display when you are in range"],
-                    order = 120,
-                },
-                overLimitDisplay = {
-                    type = 'toggle',
-                    name = L["Over limit display"],
-                    desc = L["Show/Hide display if the target is further than range limit"],
-                    order = 124,
-                },
-                overLimitSuffix = {
-                    type = 'input',
-                    name = L["Over limit suffix"],
-                    desc = L["A free-form suffix to append to the range display when you are further than range limit"],
-                    order = 125,
-                    disabled = function() return not ud.db.enabled or not ud.db.overLimitDisplay end,
-                },
-                sep2 = {
-                    type = 'header',
-                    name = "",
-                    order = 130,
                 },
                 font = {
                     type = "select", dialogControl = 'LSM30_Font',
@@ -471,16 +425,35 @@ do
                 sepSections = {
                     type = 'header',
                     name = "",
-                    order = 159,
+                    order = 190,
                 },
-                autoAdjust = {
-                    type = 'execute',
-                    name = L["Auto adjust"],
-                    width = 'full',
-                    func = function()
-                        ud:autoAdjust()
-                    end,
-                    order = 185,
+                rangeLimit = {
+                    type = 'range',
+                    name = L["Range limit"],
+                    desc = L["Ranges above this are not reported"],
+                    min = MinRangeLimit,
+                    max = MaxRangeLimit,
+                    step = 1,
+                    order = 191,
+
+                },
+                overLimitDisplay = {
+                    type = 'toggle',
+                    name = L["Over limit display"],
+                    desc = L["Show/Hide display if the target is further than range limit"],
+                    order = 192,
+                },
+                overLimitText = {
+                    type = 'input',
+                    name = L["Over limit text"],
+                    desc = L["The text to display when you are further than range limit"],
+                    order = 193,
+                    disabled = function() return not ud.db.enabled or not ud.db.overLimitDisplay end,
+                },
+                sep2 = {
+                    type = 'header',
+                    name = "",
+                    order = 195,
                 },
                 copySectionSettings = {
                     type = 'execute',
@@ -498,7 +471,7 @@ do
                             end
                         end
                     end,
-                    order = 186,
+                    order = 200,
                 },
             },
         }
@@ -526,7 +499,6 @@ do
             ud.setSectionOption = setSectionOption
             ud.isUnitDisabled = isUnitDisabled
             ud.isSectionDisabled = isSectionDisabled
-            ud.isSectionTextDisabled = isSectionTextDisabled
             ud.setBGColor = setBGColor
             ud.getBGColor = getBGColor
         end
