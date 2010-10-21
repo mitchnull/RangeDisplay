@@ -51,26 +51,6 @@ local DefaultFrameHeight = 36
 local FakeCursorImage = [[Interface\CURSOR\Point]]
 local Icon = [[Interface\Icons\INV_Misc_Spyglass_02]]
 
-local MaxRangeSpells = {
-    ["HUNTER"] = {
-        53351, -- ["Kill Shot"] -- 5-45 (Hawk Eye: 47, 49, 51)
-        75, -- ["Auto Shot"], -- 5-35 (Hawk Eye: 37, 39, 41)
-    },
-    ["MAGE"] = {
-        133, -- ["Fireball"], -- 35 (Flame Throwing: 38, 41)
-        116, -- ["Frostbolt"], -- 30 (Arctic Reach: 33, 36)
-        5143, -- ["Arcane Missiles"], -- 30 (Magic Attunement: 33, 36)
-    },
-    ["SHAMAN"] = {
-        403, -- ["Lightning Bolt"], -- 30 (Storm Reach: 33, 36)
-        8050, -- ["Flame Shock"], -- 30 (Lava Flows: 25, 30, 35; Gladiator Gloves: +5)
-    },
-    ["WARLOCK"] = {
-        348, -- ["Immolate"], -- 30 (Destructive Reach: 33, 36)
-        172, -- ["Corruption"], -- 30 (Grim Reach: 33, 36)
-    },
-}
-
 local Sections = {
     "crSection",
     "srSection",
@@ -115,6 +95,7 @@ local function makeColor(r, g, b, a)
 end
 
 local Transparent = makeColor(0, 0, 0, 0)
+local DefaultText = "%d - %d"
 
 local defaults = {
     profile = {
@@ -134,12 +115,11 @@ local defaults = {
                 strata = "HIGH",
                 enemyOnly = false,
                 warnEnemyOnly = true,
-                maxRangeOnly = false,
-                suffix = "",
+                reverse = false,
 
                 rangeLimit = 100,
                 overLimitDisplay = false,
-                overLimitSuffix = " +",
+                overLimitText = "%d +",
 
                 frameWidth = DefaultFrameWidth,
                 frameHeight = DefaultFrameHeight,
@@ -156,37 +136,41 @@ local defaults = {
                     enabled = true,
                     color = makeColor(0.9, 0.055, 0.075),
                     range = 40,
-                    text = "Too far, mon!",
+                    text = DefaultText,
                     warnSoundName = DefaultSoundNames["oorSection"],
                 },
                 defaultSection = {
                     enabled = true,
                     color = makeColor(1.0, 0.82, 0),
+                    text = DefaultText,
                     warnSoundName = DefaultSoundNames["defaultSection"],
                 },
                 lrSection = {
                     enabled = false,
                     color = makeColor(1.0, 0.82, 0),
                     range = 35,
+                    text = DefaultText,
                     warnSoundName = DefaultSoundNames["lrSection"],
                 },
                 mrSection = {
                     enabled = true,
                     color = makeColor(0.035, 0.865, 0.0),
                     range = 30,
+                    text = DefaultText,
                     warnSoundName = DefaultSoundNames["mrSection"],
                 },
                 srSection = {
                     enabled = true,
                     color = makeColor(0.055, 0.875, 0.825),
                     range = 20,
+                    text = DefaultText,
                     warnSoundName = DefaultSoundNames["srSection"],
                 },
                 crSection = {
                     enabled = true,
                     color = makeColor(0.9, 0.9, 0.9),
                     range = 5,
-                    text = "Melee",
+                    text = DefaultText,
                     warnSoundName = DefaultSoundNames["crSection"],
                 },
             },
@@ -217,6 +201,36 @@ local defaults = {
         },
     },
 }
+
+-- FIXME: profile data migration from pre 3.9.0 version, remove later
+local function updateUdDb_3_9_0(db)
+    if db.maxRangeOnly then
+        db.reverse = true
+    end
+    if db.overLimitSuffix then
+        db.overLimitText = "%d" .. db.overLimitSuffix
+    end
+    for _, section in pairs(Sections) do
+        local sdb = db[section]
+        if sdb.useText then
+            if not sdb.text or sdb.text == DefaultText then
+                sdb.text = ""
+            end
+        elseif db.suffix then
+            if db.maxRangeOnly then
+                sdb.text = "%d" .. db.suffix
+            else
+                sdb.text = "%d - %d" .. db.suffix
+            end
+        elseif db.maxRangeOnly then
+            sdb.text = "%d"
+        end
+        sdb.useText = nil
+    end
+    db.maxRangeOnly = nil
+    db.overLimitSuffix = nil
+    db.suffix = nil
+end
 
 -- Per unit data
 
@@ -264,13 +278,8 @@ local function targetChanged(ud)
 end
 
 local function profileChanged(ud, db)
+    updateUdDb_3_9_0(db) -- FIXME: migration from pre 3_9_0 version, remove later
     ud.db = db
-    if db.color then -- FIXME: migration from pre 3.8.0 version, remove later
-        db.defaultSection.color.r = db.color.r
-        db.defaultSection.color.g = db.color.g
-        db.defaultSection.color.b = db.color.b
-        db.color = nil
-    end
 end
 
 local function mediaUpdate(ud, event, mediaType, key)
@@ -418,7 +427,7 @@ local function update(ud)
     local minRange, maxRange = rc:GetRange(ud.unit)
     if minRange == ud.lastMinRange and maxRange == ud.lastMaxRange then return end
     ud.lastMinRange, ud.lastMaxRange = minRange, maxRange
-    local range = nil
+    local fmt = ""
     local section = nil
     if minRange then
         if minRange >= ud.db.rangeLimit then maxRange = nil end
@@ -436,27 +445,22 @@ local function update(ud)
             else
                 section = "defaultSection"
             end
-            if ud.db[section].useText then
-                range = ud.db[section].text
-            elseif ud.db.maxRangeOnly then
-                range = maxRange .. ud.db.suffix
-            else
-                range = minRange .. " - " .. maxRange .. ud.db.suffix
-            end
+            fmt = ud.db[section].text
         elseif ud.db.overLimitDisplay then
             if ud.db.oorSection.enabled and minRange >= ud.db.oorSection.range then
                 section = "oorSection"
             else
                 section = "defaultSection"
             end
-            if ud.db[section].useText then
-                range = ud.db[section].text
-            else
-                range = minRange .. ud.db.overLimitSuffix
-            end
+            fmt = ud.db.overLimitText
+            maxRange = minRange -- to handle ud.db.reverse
         end
     end
-    ud.rangeFrameText:SetText(range)
+    if ud.db.reverse then
+        ud.rangeFrameText:SetFormattedText(fmt, maxRange, minRange)
+    else
+        ud.rangeFrameText:SetFormattedText(fmt, minRange, maxRange)
+    end
     if section then
         ud:setDisplayColor(ud.db[section].color)
         local sound = ud.sounds[section]
@@ -606,23 +610,6 @@ local function unlock(ud)
         ud.mainFrame:EnableMouse(true)
         ud.overlay:Show()
         ud.overlayText:Show()
-    end
-end
-
-local function autoAdjust(ud)
-    local _, playerClass = UnitClass("player")
-    local maxRangeSpells = MaxRangeSpells[playerClass]
-    if maxRangeSpells then
-        local oor
-        for _, sid in ipairs(maxRangeSpells) do
-            local name, _, _, _, _, _, _, _, range = GetSpellInfo(sid)
-            if range and (not oor or oor < range) and rc:findSpellIndex(name) then
-                oor = range
-            end
-        end
-        if oor then
-            ud.db.oorSection.range = oor
-        end
     end
 end
 
