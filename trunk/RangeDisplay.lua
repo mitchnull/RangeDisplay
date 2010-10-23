@@ -399,7 +399,7 @@ local function applySettings(ud, whatChanged)
                 end
             end
         end
-        if whatChanged == 'enemyOnly' or whatChanged == 'warnEnemyOnly' then
+        if whatChanged == 'enemyOnly' or whatChanged == 'warnEnemyOnly' or whatChanged == 'enabled' then
             ud:targetChanged()
         end
         ud.lastMinRange, ud.lastMaxRange = false, false -- to force update
@@ -629,7 +629,7 @@ local units = {
         name = L["pet"], -- to make Babelfish happy
         event = "UNIT_PET",
         targetChanged = function(ud, event, unitId, ...)
-                if unitId ~= "player" then return end
+                if event and unitId ~= "player" then return end
                 targetChanged(ud, event, unitId, ...)
             end,
     },
