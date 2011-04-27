@@ -1,4 +1,4 @@
-## Interface: 40000
+## Interface: 40100
 ## Title: RangeDisplay
 ## Author: mitch0
 ## Version: @project-version@
@@ -25,8 +25,3 @@ embeds.xml
 libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 localizations\localizations.xml
 RangeDisplay.lua
-#@do-not-package@
-RangeDisplay_Options\embeds.xml
-RangeDisplay_Options\localizations\localizations.xml
-RangeDisplay_Options\Options.lua
-#@end-do-not-package@
