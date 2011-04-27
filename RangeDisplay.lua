@@ -532,7 +532,7 @@ local function createFrame(ud)
     ud.mainFrame:SetScript("OnMouseDown", function(frame, button)
         if button == "LeftButton" then
             if IsControlKeyDown() then
-                RangeDisplay:lock()
+                RangeDisplay:toggleLocked(true)
                 return
             end
             ud.mainFrame:StartMoving()
@@ -724,9 +724,6 @@ function RangeDisplay:OnInitialize()
     self.db.RegisterCallback(self, "OnProfileReset", "profileChanged")
     self:profileChanged()
     self:setupDummyOptions()
-    if self.setupDBOptions then -- trickery to make it work with a straight checkout
-        self:setupDBOptions()
-    end
     self:setupLDB()
     if not self.db.profile.locked then
         self:RegisterEvent("PLAYER_REGEN_DISABLED", function()
