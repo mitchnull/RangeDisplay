@@ -10,7 +10,10 @@ License: Public Domain
 
 local AppName = "RangeDisplay"
 local OptionsAppName = AppName .. "_Options"
+local VERSION = AppName .. "-@project-version@"
+--@debug@
 local VERSION = AppName .. "-r" .. ("$Revision$"):match("%d+")
+--@end-debug@
 
 local rc = LibStub("LibRangeCheck-2.0")
 local LSM = LibStub:GetLibrary("LibSharedMedia-3.0", true)
