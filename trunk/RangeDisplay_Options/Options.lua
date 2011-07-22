@@ -1,9 +1,10 @@
+local OptionsAppName = ...
 local RangeDisplay = RangeDisplay
 local ACR = LibStub("AceConfigRegistry-3.0")
 local AceDBOptions = LibStub("AceDBOptions-3.0")
 local LibDualSpec = LibStub("LibDualSpec-1.0", true)
 local ACD = LibStub("AceConfigDialog-3.0")
-local L = LibStub("AceLocale-3.0"):GetLocale(RangeDisplay.OptionsAppName)
+local L = LibStub("AceLocale-3.0"):GetLocale(OptionsAppName)
 local LL = LibStub("AceLocale-3.0"):GetLocale(RangeDisplay.AppName)
 
 local MinFontSize = 5

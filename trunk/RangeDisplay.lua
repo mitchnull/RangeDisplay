@@ -8,7 +8,7 @@ Description: RangeDisplay displays the estimated range to the current target bas
 License: Public Domain
 ]]
 
-local AppName = "RangeDisplay"
+local AppName, RangeDisplay = ...
 local OptionsAppName = AppName .. "_Options"
 local VERSION = AppName .. "-@project-version@"
 --@debug@
@@ -28,16 +28,17 @@ local mute = nil
 
 -- cached stuff
 
-local UnitExists = UnitExists
-local UnitIsDeadOrGhost = UnitIsDeadOrGhost
-local UnitCanAttack = UnitCanAttack
-local UnitCanAssist = UnitCanAssist
-local UnitIsUnit = UnitIsUnit
-local GetCursorPosition = GetCursorPosition
-local UIParent = UIParent
-local PlaySoundFile = PlaySoundFile
-local ipairs = ipairs
-local pairs = pairs
+local _G = _G
+local UnitExists = _G.UnitExists
+local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
+local UnitCanAttack = _G.UnitCanAttack
+local UnitCanAssist = _G.UnitCanAssist
+local UnitIsUnit = _G.UnitIsUnit
+local GetCursorPosition = _G.GetCursorPosition
+local UIParent = _G.UIParent
+local PlaySoundFile = _G.PlaySoundFile
+local ipairs = _G.ipairs
+local pairs = _G.pairs
 
 -- hard-coded config stuff
 
@@ -81,13 +82,13 @@ local DefaultSoundNames = {
 
 ---------------------------------
 
-RangeDisplay = LibStub("AceAddon-3.0"):NewAddon(AppName, "AceEvent-3.0")
-local RangeDisplay = RangeDisplay
+RangeDisplay = LibStub("AceAddon-3.0"):NewAddon(RangeDisplay, AppName, "AceEvent-3.0")
+_G['RangeDisplay'] = RangeDisplay
+
 RangeDisplay:SetDefaultModuleState(false)
 
 RangeDisplay.version = VERSION
 RangeDisplay.AppName = AppName
-RangeDisplay.OptionsAppName = OptionsAppName
 RangeDisplay.Sections = Sections
 
 -- Default DB stuff
