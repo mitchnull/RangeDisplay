@@ -83,7 +83,7 @@ local DefaultSoundNames = {
 ---------------------------------
 
 RangeDisplay = LibStub("AceAddon-3.0"):NewAddon(RangeDisplay, AppName, "AceEvent-3.0")
-_G['RangeDisplay'] = RangeDisplay
+_G.RangeDisplay = RangeDisplay
 
 RangeDisplay:SetDefaultModuleState(false)
 
