@@ -206,36 +206,6 @@ local defaults = {
     },
 }
 
--- FIXME: profile data migration from pre 3.9.0 version, remove later
-local function updateUdDb_3_9_0(db)
-    if db.maxRangeOnly then
-        db.reverse = true
-    end
-    if db.overLimitSuffix then
-        db.overLimitText = "%d" .. db.overLimitSuffix
-    end
-    for _, section in pairs(Sections) do
-        local sdb = db[section]
-        if sdb.useText then
-            if not sdb.text or sdb.text == DefaultText then
-                sdb.text = ""
-            end
-        elseif db.suffix then
-            if db.maxRangeOnly then
-                sdb.text = "%d" .. db.suffix
-            else
-                sdb.text = "%d - %d" .. db.suffix
-            end
-        elseif db.maxRangeOnly then
-            sdb.text = "%d"
-        end
-        sdb.useText = nil
-    end
-    db.maxRangeOnly = nil
-    db.overLimitSuffix = nil
-    db.suffix = nil
-end
-
 -- Per unit data
 
 local function setDisplayColor_Text(ud, color)
@@ -282,7 +252,6 @@ local function targetChanged(ud)
 end
 
 local function profileChanged(ud, db)
-    updateUdDb_3_9_0(db) -- FIXME: migration from pre 3_9_0 version, remove later
     ud.db = db
 end
 
