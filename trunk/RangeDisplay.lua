@@ -39,6 +39,7 @@ local UIParent = _G.UIParent
 local PlaySoundFile = _G.PlaySoundFile
 local ipairs = _G.ipairs
 local pairs = _G.pairs
+local tinsert = _G.tinsert
 
 -- hard-coded config stuff
 
@@ -393,7 +394,7 @@ local function createOverlay(ud)
     ud.overlayText:SetFont(DefaultFontPath, 10, "")
     ud.overlayText:SetJustifyH("CENTER")
     ud.overlayText:SetPoint("BOTTOM", ud.mainFrame, "BOTTOM", 0, 0)
-    ud.overlayText:SetText(L[unit])
+    ud.overlayText:SetText(ud.name)
 end
 
 local function update(ud)
@@ -524,7 +525,7 @@ local function createFrame(ud)
     end)
     ud.mainFrame:SetScript("OnEnter", function(frame)
         GameTooltip:SetOwner(frame)
-        GameTooltip:AddLine("RangeDisplay: " .. L[unit])
+        GameTooltip:AddLine("RangeDisplay: " .. ud.name)
         GameTooltip:AddLine(" ")
         GameTooltip:AddLine(L["|cffeda55fControl + Left Click|r to lock frames"])
         GameTooltip:AddLine(L["|cffeda55fRight Click|r to open the configuration window"])
@@ -589,17 +590,17 @@ end
 local units = {
     {
         unit = "playertarget",
-        name = L["playertarget"], -- to make Babelfish happy
+        name = L["playertarget"],
         event = "PLAYER_TARGET_CHANGED",
     },
     {
         unit = "focus",
-        name = L["focus"], -- to make Babelfish happy
+        name = L["focus"],
         event = "PLAYER_FOCUS_CHANGED",
     },
     {
         unit = "pet",
-        name = L["pet"], -- to make Babelfish happy
+        name = L["pet"],
         event = "UNIT_PET",
         targetChanged = function(ud, event, unitId, ...)
                 if event and unitId ~= "player" then return end
@@ -608,7 +609,7 @@ local units = {
     },
     {
         unit = "mouseover",
-        name = L["mouseover"], -- to make Babelfish happy
+        name = L["mouseover"],
         event = "UPDATE_MOUSEOVER_UNIT",
         mouseAnchor = true,
         applyMouseSettings = function(ud)
@@ -661,24 +662,30 @@ local units = {
     },
 }
 
-for _, ud in ipairs(units) do
-    ud.profileChanged = ud.profileChanged or profileChanged
-    ud.applySettings = ud.applySettings or applySettings
-    ud.applyFontSettings = ud.applyFontSettings or applyFontSettings
-    ud.applyBGSettings = ud.applyBGSettings or applyBGSettings
-    ud.mediaUpdate = ud.mediaUpdate or mediaUpdate
-    ud.targetChanged = ud.targetChanged or targetChanged
-    ud.checkTarget = ud.checkTarget or checkTarget
-    ud.lock = ud.lock or lock
-    ud.unlock = ud.unlock or unlock
-    ud.createFrame = ud.createFrame or createFrame
-    ud.update = ud.update or update
-    ud.autoAdjust = ud.autoAdjust or autoAdjust
-    ud.enable = ud.enable or enable
-    ud.disable = ud.disable or disable
-end
+local arenaUnits
 
-RangeDisplay.units = units
+local arenaMasterUnit = {
+    unit = ("arena%d"):format(1),
+    name = L["arena%d"]:format(1),
+    event = "ARENA_OPPONENT_UPDATE",
+    eventHandler = function()
+            for _, ud in ipairs(arenaUnits) do
+                if ud.db.enabled then
+                    targetChanged(ud)
+                end
+            end
+        end,
+    applySettings = function(mud, whatChanged)
+            if whatChanged == 'enabled' then
+                for _, ud in ipairs(arenaUnits) do
+                    ud.db.enabled = mud.db.enabled
+                    applySettings(ud, whatChanged)
+                end
+            else
+                applySettings(mud, whatChanged)
+            end
+        end,
+}
 
 -- AceAddon stuff
 
@@ -692,6 +699,37 @@ function RangeDisplay:OnInitialize()
     if LibDualSpec then
         LibDualSpec:EnhanceDatabase(self.db, AppName)
     end
+
+    if self.db.global.enableArena and not arenaUnits then
+        arenaUnits = {}
+        tinsert(arenaUnits, arenaMasterUnit)
+        tinsert(units, arenaMasterUnit)
+        for i = 2, 5 do
+            local au = {
+                unit = ("arena%d"):format(i),
+                name = L["arena%d"]:format(i),
+            }
+            tinsert(arenaUnits, au)
+            tinsert(units, au)
+        end
+    end
+    for _, ud in ipairs(units) do
+        ud.profileChanged = ud.profileChanged or profileChanged
+        ud.applySettings = ud.applySettings or applySettings
+        ud.applyFontSettings = ud.applyFontSettings or applyFontSettings
+        ud.applyBGSettings = ud.applyBGSettings or applyBGSettings
+        ud.mediaUpdate = ud.mediaUpdate or mediaUpdate
+        ud.targetChanged = ud.targetChanged or targetChanged
+        ud.checkTarget = ud.checkTarget or checkTarget
+        ud.lock = ud.lock or lock
+        ud.unlock = ud.unlock or unlock
+        ud.createFrame = ud.createFrame or createFrame
+        ud.update = ud.update or update
+        ud.enable = ud.enable or enable
+        ud.disable = ud.disable or disable
+    end
+
+    self.units = units
     self.db.RegisterCallback(self, "OnProfileChanged", "profileChanged")
     self.db.RegisterCallback(self, "OnProfileCopied", "profileChanged")
     self.db.RegisterCallback(self, "OnProfileReset", "profileChanged")

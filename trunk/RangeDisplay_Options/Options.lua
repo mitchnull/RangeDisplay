@@ -5,7 +5,6 @@ local AceDBOptions = LibStub("AceDBOptions-3.0")
 local LibDualSpec = LibStub("LibDualSpec-1.0", true)
 local ACD = LibStub("AceConfigDialog-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale(OptionsAppName)
-local LL = LibStub("AceLocale-3.0"):GetLocale(RangeDisplay.AppName)
 
 local MinFontSize = 5
 local MaxFontSize = 30
@@ -252,7 +251,7 @@ do
         local unit = ud.unit
         local opts = {
             type = 'group',
-            name = LL[unit],
+            name = ud.name,
             handler = ud,
             get = "getUnitOption",
             set = "setUnitOption",
