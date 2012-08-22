@@ -294,10 +294,14 @@ local function applyBGSettings(ud)
             bg.bgFile = DefaultBGFile
             LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "mediaUpdate")
         end
-        bg.edgeFile = LSM:Fetch("border", ud.db.bgBorderTexture, true)
-        if not bg.edgeFile then
-            bg.edgeFile = DefaultEdgeFile
-            LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "mediaUpdate")
+        if ud.db.bgBorderTexture == 'None' then -- hack for beta green thing
+            bg.edgeFile = false
+        else
+            bg.edgeFile = LSM:Fetch("border", ud.db.bgBorderTexture, true)
+            if not bg.edgeFile then
+                bg.edgeFile = DefaultEdgeFile
+                LSM.RegisterCallback(ud, "LibSharedMedia_Registered", "mediaUpdate")
+            end
         end
     else
         bg.bgFile = DefaultBGFile
