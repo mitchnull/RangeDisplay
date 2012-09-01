@@ -103,6 +103,9 @@ local Transparent = makeColor(0, 0, 0, 0)
 local DefaultText = "%d - %d"
 
 local defaults = {
+    global = {
+        enableArena = true,
+    },
     profile = {
         locked = false,
         mute = false,
@@ -206,6 +209,14 @@ local defaults = {
         },
     },
 }
+
+for i = 1, 5 do
+    defaults.profile.units['arena' .. i] = {
+        enabled = false,
+        x = 2 * (DefaultFrameWidth + 10),
+        y = (5 - i) * (DefaultFrameHeight + 5),
+    }
+end
 
 -- Per unit data
 
@@ -750,6 +761,7 @@ function RangeDisplay:OnInitialize()
 end
 
 function RangeDisplay:OnEnable(first)
+    self:applySettings()
 end
 
 function RangeDisplay:OnDisable()
