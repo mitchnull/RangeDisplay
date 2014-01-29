@@ -892,6 +892,7 @@ function RangeDisplay:setupDummyOptions()
         return
     end
     self.dummyOpts = CreateFrame("Frame", AppName .. "DummyOptions", UIParent)
+    self.dummyOpts:Hide()
     self.dummyOpts.name = AppName
     self.dummyOpts:SetScript("OnShow", function(frame)
         if not self.optionsLoaded then
@@ -920,6 +921,7 @@ function RangeDisplay:openConfigDialog(ud)
     -- this function will be overwritten by the Options module when loaded
     if not self.optionsLoaded then
         self:loadOptions()
+        InterfaceAddOnsList_Update()
         return self:openConfigDialog(ud)
     end
     InterfaceOptionsFrame_OpenToCategory(self.dummyOpts)
