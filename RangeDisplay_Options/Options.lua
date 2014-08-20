@@ -16,6 +16,10 @@ local fakeUdForProfiles = {}
 
 local _
 
+local function printf(fmt, ...)
+    return print(fmt:format(...))
+end
+
 local FontOutlines = {
     [""] = L["None"],
     ["OUTLINE"] = L["Normal"],
@@ -644,10 +648,10 @@ do
                         local hc = rc:GetHarmMinChecker(range) or function() return "no checker" end
                         local mc = rc:GetMiscMinChecker(range) or function() return "no checker" end
                         local sc = rc:GetSmartMinChecker(range) or function() return "no checker" end
-                        print("FriendMinChecker(%d): %s", range, fc('target'))
-                        print("HarmMinChecker(%d): %s", range, hc('target'))
-                        print("MiscMinChecker(%d): %s", range, mc('target'))
-                        print("SmartMinChecker(%d): %s", range, sc('target'))
+                        printf("FriendMinChecker(%d): %s", range, tostring(fc('target') or nil))
+                        printf("HarmMinChecker(%d): %s", range, tostring(hc('target') or nil))
+                        printf("MiscMinChecker(%d): %s", range, tostring(mc('target') or nil))
+                        printf("SmartMinChecker(%d): %s", range, tostring(sc('target') or nil))
                     end,
                 },
                 testMax = {
@@ -659,10 +663,10 @@ do
                         local hc = rc:GetHarmMaxChecker(range) or function() return "no checker" end
                         local mc = rc:GetMiscMaxChecker(range) or function() return "no checker" end
                         local sc = rc:GetSmartMaxChecker(range) or function() return "no checker" end
-                        print("FriendMaxChecker(%d): %s", range, fc('target'))
-                        print("HarmMaxChecker(%d): %s", range, hc('target'))
-                        print("MiscMaxChecker(%d): %s", range, mc('target'))
-                        print("SmartMaxChecker(%d): %s", range, sc('target'))
+                        printf("FriendMaxChecker(%d): %s", range, tostring(fc('target') or nil))
+                        printf("HarmMaxChecker(%d): %s", range, tostring(hc('target') or nil))
+                        printf("MiscMaxChecker(%d): %s", range, tostring(mc('target') or nil))
+                        printf("SmartMaxChecker(%d): %s", range, tostring(sc('target') or nil))
                     end,
                 },
                 test = {
@@ -675,11 +679,11 @@ do
                         local mc = rc:GetMiscChecker(range) or function() return "no checker" end
                         local sc = rc:GetSmartChecker(range) or function() return "no checker" end
                         local scd = rc:GetSmartChecker(range, function() return "default" end) or function() return "no checker" end
-                        print("FriendChecker(%d): %s", range, fc('target'))
-                        print("HarmChecker(%d): %s", range, hc('target'))
-                        print("MiscChecker(%d): %s", range, mc('target'))
-                        print("SmartChecker(%d): %s", range, sc('target'))
-                        print("SmartChecker(%d, def): %s", range, scd('target'))
+                        printf("FriendChecker(%d): %s", range, tostring(fc('target') or nil))
+                        printf("HarmChecker(%d): %s", range, tostring(hc('target') or nil))
+                        printf("MiscChecker(%d): %s", range, tostring(mc('target') or nil))
+                        printf("SmartChecker(%d): %s", range, tostring(sc('target') or nil))
+                        printf("SmartChecker(%d, def): %s", range, tostring(scd('target') or nil))
                     end,
                 },
             },
