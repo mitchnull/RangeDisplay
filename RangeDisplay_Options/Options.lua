@@ -599,6 +599,14 @@ do
                         rc:checkAllItems()
                     end,
                 },
+                checkAllSpells = {
+                    type = 'execute',
+                    name = "CheckAllSpells",
+                    --desc = "CheckAllSpells",
+                    func = function()
+                        rc:checkAllSpells()
+                    end,
+                },
                 checkAllCheckers = {
                     type = 'execute',
                     name = "CheckAllCheckers",
