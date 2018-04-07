@@ -413,7 +413,7 @@ local function createOverlay(ud)
 end
 
 local function update(ud)
-    local minRange, maxRange = rc:GetRange(ud.unit)
+    local minRange, maxRange = rc:GetRange(ud.unit, ud.db.checkVisible)
     if minRange == ud.lastMinRange and maxRange == ud.lastMaxRange then return end
     ud.lastMinRange, ud.lastMaxRange = minRange, maxRange
     local fmt = ""
