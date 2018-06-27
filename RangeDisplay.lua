@@ -402,7 +402,7 @@ local function createOverlay(ud)
     local unit = ud.unit
 
     ud.overlay = ud.mainFrame:CreateTexture("RangeDisplayOverlay_" .. unit, "OVERLAY")
-    ud.overlay:SetTexture(0, 0.42, 0, 0.42)
+    ud.overlay:SetColorTexture(0, 0.42, 0, 0.42)
     ud.overlay:SetAllPoints()
 
     ud.overlayText = ud.mainFrame:CreateFontString("RangeDisplayOverlayText_" .. unit, "OVERLAY", "GameFontNormal")
