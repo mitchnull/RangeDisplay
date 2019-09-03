@@ -29,6 +29,7 @@ local mute = nil
 -- cached stuff
 
 local _G = _G
+local IsClassic = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC)
 local UnitExists = _G.UnitExists
 local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
 local UnitCanAttack = _G.UnitCanAttack
@@ -609,11 +610,6 @@ local units = {
         event = "PLAYER_TARGET_CHANGED",
     },
     {
-        unit = "focus",
-        name = L["focus"],
-        event = "PLAYER_FOCUS_CHANGED",
-    },
-    {
         unit = "pet",
         name = L["pet"],
         event = "UNIT_PET",
@@ -677,6 +673,15 @@ local units = {
     },
 }
 
+if not IsClassic then
+    local fu = {
+        unit = "focus",
+        name = L["focus"],
+        event = "PLAYER_FOCUS_CHANGED",
+    }
+    tinsert(units, fu)
+end
+
 local arenaUnits
 
 local arenaMasterUnit = {
@@ -715,7 +720,7 @@ function RangeDisplay:OnInitialize()
         LibDualSpec:EnhanceDatabase(self.db, AppName)
     end
 
-    if self.db.global.enableArena and not arenaUnits then
+    if not IsClassic and self.db.global.enableArena and not arenaUnits then
         arenaUnits = {}
         tinsert(arenaUnits, arenaMasterUnit)
         tinsert(units, arenaMasterUnit)
