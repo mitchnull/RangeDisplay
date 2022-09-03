@@ -29,7 +29,10 @@ local mute = nil
 -- cached stuff
 
 local _G = _G
-local IsClassic = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC) or (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
+local IsClassic = false
+  or (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC)
+  or (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
+  or (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_WRATH_CLASSIC)
 local UnitExists = _G.UnitExists
 local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
 local UnitCanAttack = _G.UnitCanAttack
