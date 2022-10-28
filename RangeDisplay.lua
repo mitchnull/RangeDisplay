@@ -896,7 +896,7 @@ end
 -- LoD Options muckery
 
 function RangeDisplay:setupDummyOptions()
-    if self.optionsLoaded then
+    if self.optionsLoaded or not InterfaceOptionsFrame then
         return
     end
     self.dummyOpts = CreateFrame("Frame", AppName .. "DummyOptions", UIParent)
@@ -929,7 +929,9 @@ function RangeDisplay:openConfigDialog(ud)
     -- this function will be overwritten by the Options module when loaded
     if not self.optionsLoaded then
         self:loadOptions()
-        InterfaceAddOnsList_Update()
+        if InterfaceAddOnsList_Update then
+            InterfaceAddOnsList_Update()
+        end
         return self:openConfigDialog(ud)
     end
     InterfaceOptionsFrame_OpenToCategory(self.dummyOpts)
