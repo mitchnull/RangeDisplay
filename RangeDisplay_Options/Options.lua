@@ -5,6 +5,7 @@ local AceDBOptions = LibStub("AceDBOptions-3.0")
 local LibDualSpec = LibStub("LibDualSpec-1.0", true)
 local ACD = LibStub("AceConfigDialog-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale(OptionsAppName)
+local Settings = Settings
 
 local MinFontSize = 5
 local MaxFontSize = 30
@@ -43,6 +44,11 @@ local SectionNames = {
 
 function RangeDisplay:openConfigDialog(ud)
   ud = ud or lastConfiguredUd
+  if Settings then
+    -- TODO: find out how to open to a sub-category...
+    Settings.OpenToCategory(self.AppName)
+    return
+  end
   if ud then
     InterfaceOptionsFrame_OpenToCategory(ud.opts)
   else

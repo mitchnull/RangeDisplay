@@ -752,7 +752,7 @@ function RangeDisplay:OnInitialize()
   self.db.RegisterCallback(self, "OnProfileCopied", "profileChanged")
   self.db.RegisterCallback(self, "OnProfileReset", "profileChanged")
   self:profileChanged()
-  self:setupDummyOptions()
+  self:loadOptions()
   self:setupLDB()
   if not self.db.profile.locked then
     self:RegisterEvent("PLAYER_REGEN_DISABLED", function()
@@ -888,49 +888,19 @@ function RangeDisplay:setupLDB()
   LDB:NewDataObject(self.AppName, ldb)
 end
 
--- LoD Options muckery
-
-function RangeDisplay:setupDummyOptions()
-  if self.optionsLoaded or not InterfaceOptionsFrame then
-    return
-  end
-  self.dummyOpts = CreateFrame("Frame", AppName .. "DummyOptions", UIParent)
-  self.dummyOpts:Hide()
-  self.dummyOpts.name = AppName
-  self.dummyOpts:SetScript("OnShow", function(frame)
-    if not self.optionsLoaded then
-      if not InterfaceOptionsFrame:IsVisible() then
-        return -- wtf... Happens if you open the game map and close it with ESC
-      end
-      self:openConfigDialog()
-    else
-      frame:Hide()
-    end
-  end)
-  InterfaceOptions_AddCategory(self.dummyOpts)
-end
+-- BEGIN LoD Options muckery
 
 function RangeDisplay:loadOptions()
-  if not self.optionsLoaded then
-    self.optionsLoaded = true
-    local loaded, reason = LoadAddOn(OptionsAppName)
-    if not loaded then
-      print("Failed to load " .. tostring(OptionsAppName) .. ": " .. tostring(reason))
-    end
-  end
+  self.optionsLoaded, self.optionsLoadError = LoadAddOn(OptionsAppName)
 end
 
-function RangeDisplay:openConfigDialog(ud)
+function RangeDisplay:openConfigDialog()
   -- this function will be overwritten by the Options module when loaded
-  if not self.optionsLoaded then
-    self:loadOptions()
-    if InterfaceAddOnsList_Update then
-      InterfaceAddOnsList_Update()
-    end
-    return self:openConfigDialog(ud)
-  end
-  InterfaceOptionsFrame_OpenToCategory(self.dummyOpts)
+  print(OptionsAppName .. " not loaded: " .. tostring(self.optionsLoadError))
+  self.openConfigDialog = function() end
 end
+
+-- END LoD Options muckery
 
 -- Stubs for RangeDisplay_Options
 
