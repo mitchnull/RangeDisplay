@@ -10,7 +10,7 @@ local AppName, RangeDisplay = ...
 local OptionsAppName = AppName .. "_Options"
 local VERSION = AppName .. "-@project-version@"
 
-local rc = LibStub("LibRangeCheck-2.0")
+local rc = LibStub("LibRangeCheck-3.0")
 local LSM = LibStub:GetLibrary("LibSharedMedia-3.0", true)
 local LibDualSpec = LibStub("LibDualSpec-1.0", true)
 local L = LibStub("AceLocale-3.0"):GetLocale(AppName)

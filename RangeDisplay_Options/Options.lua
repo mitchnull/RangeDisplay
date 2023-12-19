@@ -549,7 +549,7 @@ do
   fakeUdForProfiles.opts = self.profiles
 --@do-not-package@
   if self.db.profile.debug then
-    local rc = LibStub("LibRangeCheck-2.0")
+    local rc = LibStub("LibRangeCheck-3.0")
     local debugOptions = {
       type = 'group',
       name = "Debug",
