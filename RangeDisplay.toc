@@ -16,6 +16,7 @@
 ## X-CompatibleLocales: enUS, enGB, deDE, frFR, esES, zhCN, zhTW, koKR, ruRU
 
 #@no-lib-strip@
+libs\LibStub-1.0\LibStub.lua
 libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
 libs\LibRangeCheck-3.0\LibRangeCheck-3.0.lua
 libs\Ace3\AceAddon-3.0\AceAddon-3.0.xml
