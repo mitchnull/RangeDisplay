@@ -891,7 +891,8 @@ end
 -- BEGIN LoD Options muckery
 
 function RangeDisplay:loadOptions()
-  self.optionsLoaded, self.optionsLoadError = LoadAddOn(OptionsAppName)
+  local loadAddOn = C_AddOns.LoadAddOn or LoadAddOn
+  self.optionsLoaded, self.optionsLoadError = loadAddOn(OptionsAppName)
 end
 
 function RangeDisplay:openConfigDialog()
