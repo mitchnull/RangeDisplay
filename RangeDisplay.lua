@@ -24,6 +24,7 @@ local mute = nil
 -- cached stuff
 
 local _G = _G
+local LoadAddOn = _G.LoadAddOn or C_AddOns.LoadAddOn
 local IsClassicVanilla = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC)
 local IsClassicBC = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
 local IsClassicWrath = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_WRATH_CLASSIC)
