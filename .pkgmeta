@@ -21,7 +21,6 @@ externals:
         tag: latest
     libs/LibRangeCheck-3.0:
         url: https://github.com/WeakAuras/LibRangeCheck-3.0
-        tag: latest
     libs/LibSharedMedia-3.0:
         url: https://repos.wowace.com/wow/libsharedmedia-3-0/trunk/LibSharedMedia-3.0
         tag: latest
