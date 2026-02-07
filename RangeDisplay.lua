@@ -236,12 +236,10 @@ local function checkTarget(ud)
     if not UnitExists(unit) or UnitIsUnit(unit, "player") then
       return nil
     end
-
     if UnitIsDeadOrGhost(unit) then
       ud.useSound = false
       return not ud.db.enemyOnly
     end
-
     if UnitCanAttack("player", unit) then
       ud.useSound = not mute
       return true
@@ -249,7 +247,6 @@ local function checkTarget(ud)
       ud.useSound = not mute and not ud.db.warnEnemyOnly
       return not ud.db.enemyOnly
     end
-    
     ud.useSound = false
     return not ud.db.enemyOnly
   end)
@@ -257,7 +254,7 @@ local function checkTarget(ud)
   if success then
     return result
   else
-    return true 
+    return true
   end
 end
 
