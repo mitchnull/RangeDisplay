@@ -25,8 +25,6 @@ local mute = nil
 
 local _G = _G
 local LoadAddOn = _G.LoadAddOn or C_AddOns.LoadAddOn
-local IsClassicVanilla = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC)
-local IsClassicBC = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
 local IsClassicWrath = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_WRATH_CLASSIC)
 local IsMainline = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE)
 local UnitExists = _G.UnitExists
@@ -422,7 +420,10 @@ local function createOverlay(ud)
 end
 
 local function update(ud)
-  local success, minRange, maxRange = pcall(function() rc:GetRange(ud.unit, ud.db.checkVisible) end)
+  local success, minRange, maxRange = pcall(function()
+    local unit = ud.unit
+    return rc:GetRange(unit, ud.db.checkVisible)
+  end)
   if not success then
     minRange = nil
     maxRange = nil
