@@ -422,7 +422,11 @@ local function createOverlay(ud)
 end
 
 local function update(ud)
-  local minRange, maxRange = rc:GetRange(ud.unit, ud.db.checkVisible)
+  local success, minRange, maxRange = pcall(function() rc:GetRange(ud.unit, ud.db.checkVisible) end)
+  if not success then
+    minRange = nil
+    maxRange = nil
+  end
   if minRange == ud.lastMinRange and maxRange == ud.lastMaxRange then return end
   ud.lastMinRange, ud.lastMaxRange = minRange, maxRange
   local fmt = ""
